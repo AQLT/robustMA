@@ -1,72 +1,37 @@
 library(rjd3filters)
 source("0-functions.R")
 lc_f <- lp_filter()
+robust_ff <- readRDS("data/robust_ff.RDS")
 
-filters_ao <- lapply(6:-6, function(t) {
-	X <- c(rep(0, 6+t), 1, rep(0, 6-t))
-
-	sym <- sym_filter(X= X)
-	res <- list("q=6" = sym)
-	if (t == 6)
-		return(res)
-	all_q <- 5:max(t, 0)
-	afilters <- lapply(all_q, function(q) {
-		mmsre_filter(
-			ref_filter = sym, q = q,
-			delta = 2 / (sqrt(pi) * 3.5),
-			U = cbind(polynomial_matrix(l = -6, d0 = 0, d1 = 0), X),
-			Z = polynomial_matrix(l = -6, d0 = 1, d1 = 1),
-		)
-	})
-	names(afilters) <- paste0("q=", all_q)
-	res <- c(res, afilters)
-	res
-})
-names(filters_ao) <- paste0("t=", 6:-6)
-
-filters_ao <- reorder_out_filters(filters_ao)
-
-finite_filters(
-	moving_average(c(0, coef(lc_f@sfilter), 0), lags = -7),
-			   rfilters =  filters_ao$t0,
-			   lfilters = c(lc_f@lfilters, list(lc_f@sfilter))
-) * y_vintage$"1998.58333333333" -
-res$"1998.58333333333"[,3]
-
-out_filters = filters_ao
-default_filter = lc_f
-all_ff <- to_ff(filters_ao, default_filter)
-
-
-confint <- confint_filter(y_vintage$"1998.58333333333", all_ff$t0)
+confint <- confint_filter(y_vintage$"1998.58333333333", robust_ff[["ao"]]$t0)
 confint2 <- confint_filter(y_vintage$"1998.58333333333", lc_f)
 plot(confint2, plot.type = "single",
 	 col = c("blue", "black", "black"),
 	 lty = c(1, 2, 2))
 lines(confint[,1], col = "red", lty = 1)
 
-confint <- confint_filter(y_vintage$"1998.66666666667", all_ff$`t-1`)
+confint <- confint_filter(y_vintage$"1998.66666666667", robust_ff[["ao"]]$`t-1`)
 confint2 <- confint_filter(y_vintage$"1998.66666666667", lc_f)
 plot(confint2, plot.type = "single",
 	 col = c("blue", "black", "black"),
 	 lty = c(1, 2, 2))
 lines(confint[,1], col = "red", lty = 1)
 
-confint <- confint_filter(y_vintage$"1998.75", all_ff$`t-2`)
+confint <- confint_filter(y_vintage$"1998.75", robust_ff[["ao"]]$`t-2`)
 confint2 <- confint_filter(y_vintage$"1998.75", lc_f)
 plot(confint2, plot.type = "single",
 	 col = c("blue", "black", "black"),
 	 lty = c(1, 2, 2))
 lines(confint[,1], col = "red", lty = 1)
 
-confint <- confint_filter(y_vintage$"1998.83333333333", all_ff$`t-3`)
+confint <- confint_filter(y_vintage$"1998.83333333333", robust_ff[["ao"]]$`t-3`)
 confint2 <- confint_filter(y_vintage$"1998.83333333333", lc_f)
 plot(confint2, plot.type = "single",
 	 col = c("blue", "black", "black"),
 	 lty = c(1, 2, 2))
 lines(confint[,1], col = "red", lty = 1)
 
-confint <- confint_filter(y_vintage$"1999", all_ff$t0)
+confint <- confint_filter(y_vintage$"1999", robust_ff[["ao"]]$t0)
 confint2 <- confint_filter(y_vintage$"1999", lc_f)
 plot(confint2, plot.type = "single",
 	 col = c("blue", "black", "black"),

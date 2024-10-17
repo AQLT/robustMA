@@ -8,7 +8,7 @@ data <- readRDS("data/data.rds")
 
 # IPI voitures: 010768140
 ipi_voitures <- data[["010768140"]]
-date_out <- c(1998 + (8-1)/12, 1998 + (8-1)/12)
+date_out <- c(1998 + (8-1)/12, 1999 + (8-1)/12)
 y <- window(ipi_voitures, start = min(date_out) - 2, end = max(date_out)+2)
 dates_studied <- time(y)[-(1:18)]
 y_vintage <- lapply(dates_studied, window, x = y, start = NULL)
