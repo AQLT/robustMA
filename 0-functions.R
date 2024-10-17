@@ -8,14 +8,16 @@ sym_filter <- function(X = NULL, X_full = NULL, kernel = "Henderson") {
 	rjd3filters::moving_average(K %*% X_full %*% solve(t(X_full) %*% K %*% X_full, e_1),lags = -6)
 }
 
-reorder_out_filters <- function(filters) {
-	obs_ao <- -12:0
+reorder_out_filters <- function(filters, h = 6) {
+	obs_ao <- seq.int(
+		min(as.numeric(gsub("t=", "", names(filters)))) - h,
+		0)
 	res <- lapply(obs_ao, function(t){
-		focus_t_out <- seq.int(from = 6,
-							   to = -6 + max(t + 6, 0))
+		focus_t_out <- seq.int(from = h,
+							   to = -h + max(t + h, 0))
 
 		res <- lapply(focus_t_out, function(t_out){
-			filters[[sprintf("t=%i", t_out)]][[sprintf("q=%i", min(abs(t - t_out), 6))]]
+			filters[[sprintf("t=%i", t_out)]][[sprintf("q=%i", min(abs(t - t_out), h))]]
 		})
 		names(res) <- (t - focus_t_out)
 		res
