@@ -90,3 +90,23 @@ to_ff <- function(out_filters, default_filter) {
 		)
 	})
 }
+
+create_vintage <- function(x, date_out, ny_before = 2, ny_after = ny_before, nb_removed = 18) {
+	y <- window(x,
+				start = min(date_out) - ny_before,
+				end = max(date_out) + ny_after)
+	dates_studied <- time(y)[-(1:nb_removed)]
+	y_vintage <- lapply(dates_studied, window, x = y, start = NULL)
+	names(y_vintage) <- dates_studied
+	y_vintage
+}
+
+create_vintage_est <- function(res) {
+	all_est <- lapply(colnames(res[[1]]), function(col){
+		table <- do.call(cbind, lapply(res, `[`,,col))
+		colnames(table) <- as.character(zoo::as.yearmon(as.numeric(colnames(table))))
+		table
+	})
+	names(all_est) <- colnames(res[[1]])
+	all_est
+}

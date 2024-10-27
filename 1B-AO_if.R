@@ -1,9 +1,10 @@
 library(rjd3filters)
 source("0-functions.R")
 lc_f <- lp_filter()
-robust_ff <- readRDS("data/robust_ff.RDS")
+robust_ff <- readRDS("data/robust_ff.rds")
 
-confint <- confint_filter(y_vintage$"1998.58333333333", robust_ff[["ao"]]$t0)
+res <- readRDS(file.path("results", "AO", "ipi_voitures2004.rds"))
+confint <- confint_filter(res$data$"2004.25", robust_ff[["ao"]]$t0)
 confint2 <- confint_filter(y_vintage$"1998.58333333333", lc_f)
 plot(confint2, plot.type = "single",
 	 col = c("blue", "black", "black"),
