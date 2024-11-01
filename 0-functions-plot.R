@@ -44,12 +44,25 @@ format_data_plot  <- function(data){
 	na.omit(reshape2::melt(dataGraph, id = "date"))
 }
 
-all_est <- create_vintage_est(res)
-all_est2 <- create_vintage_est(res2)
+plot_confint <- function(data, out, default_filter, robust_f, nest = 6) {
+	all_plots <- lapply(seq(0, by = 1, length.out = nest), function(i){
+		y <- data[[	which(round(out,3) == round(as.numeric(names(data)),3))+i]][,"y"]
+		confint_robust <- confint_filter(y, robust_f[[sprintf("t%i", -i)]])
+		confint_default <- confint_filter(y, lc_f)
+		data_plot <- ts.union(confint_default, confint_robust[,1],y)
+		colnames(data_plot) <- c("Default", "Confint_m", "Confint_p", "Robust","y")
+		data_plot <- data.frame(date = as.numeric(time(data_plot)), data_plot)
+		ggplot2::ggplot(data =data_plot, ggplot2::aes(x = date)) +
+			ggplot2::geom_ribbon(ggplot2::aes(ymin = Confint_m, ymax = Confint_p),
+								 fill = "grey") +
+			ggplot2::geom_vline(xintercept = out,linetype= 2, alpha = 0.5) +
+			ggplot2::geom_line(ggplot2::aes(y = Default), col = "blue") +
+			# ggplot2::geom_line(ggplot2::aes(y = y), col = "darkgreen") +
+			ggplot2::geom_line(ggplot2::aes(y = Robust), col = "red") +
+			ggplot2::labs(x = NULL, y = NULL, title = as.character(zoo::as.yearmon(out + i*deltat(y)))) +
+			ggplot2::theme_bw()
 
-plot_est(window(all_est$`LC robust`[,6:18], start = 2010))
-library(gggplot2)
-library(patchwork)
-plot_est(window(all_est$LC[,6:18], start = 2010))
-plot_est(window(all_est2$`LC robust`[,6:18], start = 2010))
+	})
+	all_plots
 
+}
