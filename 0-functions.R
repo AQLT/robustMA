@@ -68,11 +68,15 @@ CLF <- list(
 	c(0.045, 0.076, 0.114, 0.134, 0.182, 0.218, 0.230)
 )
 CLF <- rjd3filters::finite_filters(CLF)
-all_filtered <- function(x, robust_length = 13, default_filter, out_filter, date_out, ...) {
+all_filtered <- function(
+		x, robust_length = 13, default_filter, out_filter, date_out,
+		order_robust = c("MED", "RM", "LMS", "LTS", "LQD", "DR"),
+		...) {
 	data_rob <- robfilter::robreg.filter(x, robust_length)
-	data_rob_level <- ts(data_rob$level,
+	data_rob_level <- ts(data_rob$level[,order_robust],
 						 start = start(x),
 						 frequency = frequency(x))
+
 	lc_level <- x * default_filter
 	CLF_level <- x * CLF
 	lc_out_level <- filtered_out(x, default_filter, out_filter, date_out)
