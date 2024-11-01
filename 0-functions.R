@@ -58,15 +58,26 @@ filtered_out <- function(x, default_filter, out_filter, date_out) {
 	filtered
 }
 
+CLF <- list(
+	c(-0.027, -0.007, 0.031, 0.067, 0.136, 0.188, 0.224, 0.188, 0.136, 0.067, 0.031, -0.007, -0.027),
+	c(-0.026, -0.007, 0.030, 0.065, 0.132, 0.183, 0.219, 0.183, 0.132, 0.065, 0.030, -0.006),
+	c(-0.026, -0.007, 0.030, 0.064, 0.131, 0.182, 0.218, 0.183, 0.132, 0.065, 0.031),
+	c(-0.25, -0.004, -0.034, 0.069, 0.137, 0.187, 0.222, 0.185, 0.131, 0.064),
+	c(-0.20, 0.005, 0.046, 0.083, 0.149, 0.196, 0.226, 0.184),
+	c(0.001, 0.033, 0.075, 0.108, 0.167, 0.205, 0.229, 0.182),
+	c(0.045, 0.076, 0.114, 0.134, 0.182, 0.218, 0.230)
+)
+CLF <- rjd3filters::finite_filters(CLF)
 all_filtered <- function(x, robust_length = 13, default_filter, out_filter, date_out, ...) {
 	data_rob <- robfilter::robreg.filter(x, robust_length)
 	data_rob_level <- ts(data_rob$level,
 						 start = start(x),
 						 frequency = frequency(x))
 	lc_level <- x * default_filter
+	CLF_level <- x * CLF
 	lc_out_level <- filtered_out(x, default_filter, out_filter, date_out)
-	res <- ts.union(x, lc_level, lc_out_level, data_rob_level)
-	colnames(res) <- c("y", "LC", "LC robust", colnames(data_rob_level))
+	res <- ts.union(x, lc_level, lc_out_level, CLF_level, data_rob_level)
+	colnames(res) <- c("y", "LC", "LC robust", "CLF", colnames(data_rob_level))
 	res
 }
 
