@@ -117,6 +117,8 @@ create_vintage <- function(x, date_out, ny_before = 2, ny_after = ny_before, nb_
 }
 
 create_vintage_est <- function(res) {
+	if (!is.null(res$out))
+		res <- res$data
 	all_est <- lapply(colnames(res[[1]]), function(col){
 		table <- do.call(cbind, lapply(res, `[`,,col))
 		colnames(table) <- as.character(zoo::as.yearmon(as.numeric(colnames(table))))

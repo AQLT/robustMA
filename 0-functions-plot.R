@@ -1,4 +1,5 @@
-plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits_y = NULL, outDec = ".") {
+plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits_y = NULL, outDec = ".",
+					  extra_series = NULL, colour.extra_series = "darkgreen") {
 	x_lab = y_lab= NULL
 	n_xlabel = 6 ;n_ylabel = 4;
 
@@ -9,7 +10,12 @@ plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits
 		data.frame()
 	p <- ggplot2::ggplot(data = dataGraph)
 	if (!is.null(vline))
-		p <- p + ggplot2::geom_vline(xintercept = vline, linetype = "dotted")
+		p <- p + ggplot2::geom_vline(xintercept = vline, linetype = "dotted", alpha = 0.5)
+	if (!is.null(extra_series))
+		p <- p + ggplot2::geom_line(data = format_data_plot(extra_series),
+									 aes(x = date, y = value),
+									 linewidth = 0.7, alpha = 0.5,
+									 colour = colour.extra_series)
 
 	p <- p +
 		ggplot2::geom_line(mapping = aes(x = date, y = value, group = variable,
@@ -65,4 +71,46 @@ plot_confint <- function(data, out, default_filter, robust_f, nest = 6) {
 	})
 	all_plots
 
+}
+
+get_all_plots <- function(
+		res,
+		out = NULL,
+		nb_est = 10, nb_dates_before = 6,
+		vline = TRUE,
+		add_y = FALSE){
+	if (is.null(out)) {
+		out <- res$out
+	}
+	if (length(out) > 1) {
+		all_plots <- lapply(out, get_all_plots, res = res, nb_est = nb_est, nb_dates_before = nb_dates_before, vline = vline, add_y = add_y)
+		names(all_plots) <- out
+		return(all_plots)
+	}
+	y <- all_est$y[,ncol(all_est$y)]
+	all_est$y <- NULL
+	cols <- seq.int(
+		which(!is.na(window(all_est[[1]], start = out, end = out))),
+		length.out = nb_est)
+	data_plots <- lapply(all_est, `[`,, cols)
+	data_plots <- lapply(data_plots, window,
+						 start  = out - nb_dates_before * deltat(y),
+						 end  = out + (nb_est - 1) * deltat(y))
+	y <- window(y, start = start(data_plots[[1]]), end = end(data_plots[[1]]))
+	if (vline) {
+		vline <- out
+	} else {
+		vline <- NULL
+	}
+	if(add_y) {
+		extra_series <- y
+	} else {
+		extra_series <- NULL
+	}
+	all_plots <- lapply(names(data_plots), function(x){
+		plot_est(data_plots[[x]], titre = x,
+				 vline = vline,
+				 extra_series = extra_series)
+	})
+	all_plots
 }
