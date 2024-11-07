@@ -116,12 +116,12 @@ $$
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "ipi_voitures98.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- get_all_plots(res, y_as_plot = FALSE)
 graph_est <- lapply(graph_est,function(p){
 	p$CLF <- NULL
 	p
-}) 
-# graph_y <- plot_y(res)
+})
+graph_y <- plot_y(res)
 graph_ci <- lapply(
 	res$out, plot_confint,
 	data = res,
@@ -129,6 +129,12 @@ graph_ci <- lapply(
 	robust_f = robust_ff[["ao"]])
 ```
 
+
+```{r}
+#| label: fig-ipi_voitures98-out1-y
+#| fig.cap: "Série brute"
+graph_y[[1]]
+```
 
 ```{r}
 #| label: fig-ipi_voitures98-out1-est
@@ -148,6 +154,12 @@ patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
 
 #### Août 1999
 
+
+```{r}
+#| label: fig-ipi_voitures98-out2-y
+#| fig.cap: "Série brute"
+graph_y[[2]]
+```
 
 ```{r}
 #| label: fig-ipi_voitures98-out2-est
@@ -171,15 +183,20 @@ patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "ipi_voitures2004.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- get_all_plots(res, y_as_plot = FALSE)
 graph_est$CLF <- NULL
-# graph_y <- plot_y(res)
+graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = robust_ff[["ao"]])
 ```
 
+```{r}
+#| label: fig-ipi_voitures2004-y
+#| fig.cap: "Série brute"
+graph_y
+```
 
 ```{r}
 #| label: fig-ipi_voitures2004-est
@@ -203,15 +220,20 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "LS", "ipi_petrole_brut10.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- get_all_plots(res, y_as_plot = FALSE)
 graph_est$CLF <- NULL
-# graph_y <- plot_y(res)
+graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = robust_ff[["ls"]])
 ```
 
+```{r}
+#| label: fig-ipi_petrole_brut10-y
+#| fig.cap: "Série brute"
+graph_y
+```
 
 ```{r}
 #| label: fig-ipi_petrole_brut10-est
@@ -237,15 +259,20 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- get_all_plots(res, y_as_plot = FALSE)
 graph_est$CLF <- NULL
-# graph_y <- plot_y(res)
+graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = robust_ff[["lsls"]])
 ```
 
+```{r}
+#| label: fig-retailx2008-y
+#| fig.cap: "Série brute"
+graph_y
+```
 
 ```{r}
 #| label: fig-retailx2008-est
@@ -270,14 +297,21 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- get_all_plots(res, y_as_plot = FALSE)
 graph_est$CLF <- NULL
-# graph_y <- plot_y(res)
+graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = robust_ff[["aols"]])
 ```
+
+```{r}
+#| label: fig-imat2018-y
+#| fig.cap: "Série brute"
+graph_y
+```
+
 
 
 ```{r}
@@ -302,21 +336,27 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
-graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- get_all_plots(res, y_as_plot = FALSE)
 graph_est$CLF <- NULL
-# graph_y <- plot_y(res)
+graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = robust_ff[["ao"]])
 ```
 
+```{r}
+#| label: fig-retailx2007-y
+#| fig.cap: "Série brute"
+graph_y
+```
+
+
 
 ```{r}
 #| label: fig-retailx2007-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
@@ -332,21 +372,27 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "ce160v2001.rds"))
-graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- get_all_plots(res, y_as_plot = FALSE)
 graph_est$CLF <- NULL
-# graph_y <- plot_y(res)
+graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = robust_ff[["ao"]])
 ```
 
+```{r}
+#| label: fig-ce160v2001-y
+#| fig.cap: "Série brute"
+graph_y
+```
+
+
 
 ```{r}
 #| label: fig-ce160v2001-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 

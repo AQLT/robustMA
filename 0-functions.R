@@ -68,6 +68,16 @@ CLF <- list(
 	c(0.045, 0.076, 0.114, 0.134, 0.182, 0.218, 0.230)
 )
 CLF <- rjd3filters::finite_filters(CLF)
+CLF_CN <- lapply(0:6, function(i) {
+	sfilter <- CLF@sfilter
+	if (i==0)
+		return(coef(sfilter))
+	coef_cut <- rev(rev(coef(sfilter))[seq.int(-1, by = -1, length.out = i)])
+	coef_norm <- coef_cut / sum(coef_cut)
+	coef_norm
+	})
+CLF_CN <- rjd3filters::finite_filters(CLF_CN)
+
 all_filtered <- function(
 		x, robust_length = 13, default_filter, out_filter, date_out,
 		order_robust = c("MED", "RM", "LMS", "LTS", "LQD", "DR"),
@@ -79,9 +89,10 @@ all_filtered <- function(
 
 	lc_level <- x * default_filter
 	CLF_level <- x * CLF
+	CLF_CN_level <- x * CLF_CN
 	lc_out_level <- filtered_out(x, default_filter, out_filter, date_out)
-	res <- ts.union(x, lc_level, lc_out_level, CLF_level, data_rob_level)
-	colnames(res) <- c("y", "LC", "LC robust", "CLF", colnames(data_rob_level))
+	res <- ts.union(x, lc_level, lc_out_level, CLF_level, CLF_CN_level, data_rob_level)
+	colnames(res) <- c("y", "LC", "LC robust", "CLF", "CLF CN", colnames(data_rob_level))
 	res
 }
 

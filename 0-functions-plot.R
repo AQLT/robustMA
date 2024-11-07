@@ -180,18 +180,26 @@ get_all_plots <- function(
 
 plot_y <- function(res, out = NULL, vline = TRUE,
 				   titre = NULL, sous_titre = NULL,
-				   nb_dates_before = 6, nb_after = 4,
+				   nb_dates_before = 6, nb_after = 10,
 				   outDec = ".") {
 	x_lab = y_lab= NULL
-	n_xlabel = 6 ;n_ylabel = 4;
+	n_xlabel = 8 ;n_ylabel = 6;
 	if (is.null(out)) {
 		out <- res$out
 	}
+	if (length(out) > 1) {
+		all_plots <- lapply(out, plot_y, res = res, vline = vline,
+							titre = titre, sous_titre = sous_titre,
+							nb_dates_before = nb_dates_before, nb_after = nb_after,
+							outDec = outDec)
+		names(all_plots) <- out
+		return(all_plots)
+	}
+
 	all_est <- create_vintage_est(res)
 	y <- all_est$y[,ncol(all_est$y)]
-	y <- window(y,
-				start  = min(out) - nb_dates_before * deltat(y),
-				end  = max(out) + (nb_after - 1) * deltat(y)
+	xlim <- c(start  = min(out) - nb_dates_before * deltat(y),
+			  end  = max(out) + (nb_after - 1) * deltat(y)
 	)
 	data_plot <- data.frame(date = as.numeric(time(y)),
 							y = as.numeric(y))
@@ -206,7 +214,8 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 		ggplot2::geom_line(mapping = ggplot2::aes(x = date, y = y), linewidth = 0.7) +
 		ggplot2::labs(title = titre, subtitle = sous_titre, x = x_lab,
 					  y = y_lab) +
-		ggplot2::scale_x_continuous(n.breaks = n_xlabel,
+		ggplot2::coord_cartesian(xlim = xlim) +
+		ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n_xlabel),
 									labels = zoo::as.yearmon) +
 		ggplot2::scale_y_continuous(n.breaks = n_ylabel,
 									labels = function(x) format(x, decimal.mark = outDec)) +
@@ -216,8 +225,7 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 			plot.title = ggplot2::element_text(hjust = 0.5),
 			panel.grid.minor.x = ggplot2::element_blank(),
 			panel.grid.major.x = ggplot2::element_blank(),
-			axis.text.x = ggplot2::element_text(size=8, angle=20,
-												vjust=1.1, hjust=1),
+			axis.text.x = ggplot2::element_text(size=8),
 			axis.text.y = ggplot2::element_text(size=8),
 			plot.subtitle = ggplot2::element_text(hjust = 0.5,
 												  size=10,face="italic")
