@@ -1,7 +1,9 @@
 plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits_y = NULL, outDec = ".",
 					  extra_series = NULL, colour.extra_series = "darkgreen") {
 	x_lab = y_lab= NULL
-	n_xlabel = 6 ;n_ylabel = 4;
+	n_xlabel = 5 ;n_ylabel = 4;
+	x_breaks <- time(data)[seq.int(1, length((time(data))), by = length((time(data))) %/% n_xlabel)]
+
 
 	dataGraph <- format_data_plot(data)
 	data_legend <- dataGraph |>
@@ -22,7 +24,7 @@ plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits
 										 colour = variable), linewidth = 0.7) +
 		ggplot2::labs(title = titre, subtitle = sous_titre, x = x_lab,
 					  y = y_lab) +
-		ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = n_xlabel),
+		ggplot2::scale_x_continuous(breaks = x_breaks,
 									labels = zoo::as.yearmon) +
 		ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(n = n_ylabel),
 									labels = function(x) format(x, decimal.mark = outDec)) +
@@ -54,6 +56,7 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 	if (is.null(out)) {
 		out <- data$out
 	}
+	n_xlabel <- 5
 	if (!is.null(data$data))
 		data <- data$data
 	first_date <- min(out) - nb_dates_before * deltat(data[[1]])
@@ -65,6 +68,8 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 		data_plot <- ts.union(confint_default, confint_robust[,1],y)
 		data_plot <- window(data_plot, start = first_date)
 		colnames(data_plot) <- c("Default", "Confint_m", "Confint_p", "Robust","y")
+		dates <- time(data_plot)
+		x_breaks <- dates[seq.int(1, length((dates)), by = length((dates)) %/% n_xlabel)]
 		data_plot <- data.frame(date = as.numeric(time(data_plot)), data_plot)
 		p <- ggplot2::ggplot(data =data_plot, ggplot2::aes(x = date)) +
 			ggplot2::geom_ribbon(ggplot2::aes(ymin = Confint_m, ymax = Confint_p),
@@ -73,12 +78,12 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 			ggplot2::geom_line(ggplot2::aes(y = Default), col = "blue")
 		if (add_y)
 			p <- p +
-			ggplot2::geom_line(ggplot2::aes(y = y), col = "darkgreen")
+			ggplot2::geom_line(ggplot2::aes(y = y), col = "black")
 		p <- p +
 			ggplot2::geom_line(ggplot2::aes(y = Robust), col = "red") +
 			ggplot2::labs(x = NULL, y = NULL, title = as.character(zoo::as.yearmon(out + i*deltat(y)))) +
 			ggplot2::theme_bw() +
-			ggplot2::scale_x_continuous(n.breaks = 6,
+			ggplot2::scale_x_continuous(breaks = x_breaks,
 										labels = zoo::as.yearmon) +
 			ggplot2::theme(
 				legend.position = "none",
@@ -102,14 +107,15 @@ get_all_plots <- function(
 		nb_est = 10, nb_dates_before = 6,
 		vline = TRUE,
 		add_y = FALSE,
-		y_as_plot = FALSE){
+		y_as_plot = FALSE,
+		share_y_lim = TRUE){
 	if (is.null(out)) {
 		out <- res$out
 	}
 	if (length(out) > 1) {
 		all_plots <- lapply(out, get_all_plots, res = res, nb_est = nb_est,
 							nb_dates_before = nb_dates_before, vline = vline, add_y = add_y,
-							y_as_plot = y_as_plot)
+							y_as_plot = y_as_plot, share_y_lim = share_y_lim)
 		names(all_plots) <- out
 		return(all_plots)
 	}
@@ -134,10 +140,19 @@ get_all_plots <- function(
 	} else {
 		extra_series <- NULL
 	}
+	if (share_y_lim & !add_y)  {
+		limits_y <- range(unlist(sapply(data_plots[grep("^CLF$", names(data_plots), invert = TRUE)],
+										range,na.rm = TRUE)),
+						  na.rm = TRUE)
+	} else {
+		limits_y <- NULL
+	}
+
 	all_plots <- lapply(names(data_plots), function(x){
 		plot_est(data_plots[[x]], titre = x,
 				 vline = vline,
-				 extra_series = extra_series)
+				 extra_series = extra_series,
+				 limits_y = limits_y)
 	})
 	names(all_plots) <- names(data_plots)
 	if (y_as_plot) {
@@ -183,7 +198,7 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 				   nb_dates_before = 6, nb_after = 10,
 				   outDec = ".") {
 	x_lab = y_lab= NULL
-	n_xlabel = 8 ;n_ylabel = 6;
+	n_xlabel = 6 ;n_ylabel = 6;
 	if (is.null(out)) {
 		out <- res$out
 	}
@@ -201,6 +216,10 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 	xlim <- c(start  = min(out) - nb_dates_before * deltat(y),
 			  end  = max(out) + (nb_after - 1) * deltat(y)
 	)
+	ylim <- range(window(y, start = xlim[1], end = xlim[2]))
+	dates <- time(ts(start = xlim[1], end = xlim[2], deltat = deltat(y)))
+	x_breaks <- dates[seq.int(1, length((dates)), by = length((dates)) %/% n_xlabel)]
+
 	data_plot <- data.frame(date = as.numeric(time(y)),
 							y = as.numeric(y))
 
@@ -214,8 +233,8 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 		ggplot2::geom_line(mapping = ggplot2::aes(x = date, y = y), linewidth = 0.7) +
 		ggplot2::labs(title = titre, subtitle = sous_titre, x = x_lab,
 					  y = y_lab) +
-		ggplot2::coord_cartesian(xlim = xlim) +
-		ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n_xlabel),
+		ggplot2::coord_cartesian(xlim = xlim, ylim = ylim) +
+		ggplot2::scale_x_continuous(breaks = x_breaks,
 									labels = zoo::as.yearmon) +
 		ggplot2::scale_y_continuous(n.breaks = n_ylabel,
 									labels = function(x) format(x, decimal.mark = outDec)) +

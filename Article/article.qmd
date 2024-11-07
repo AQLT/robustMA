@@ -14,10 +14,21 @@ toc: true
 ```{r}
 #| include: false
 library(rjd3filters)
+library(ggplot2)
+library(patchwork)
 source("../0-functions.R", local = knitr::knit_global())
 source("../0-functions-plot.R", local = knitr::knit_global())
 lc_f <- lp_filter()
 robust_ff <- readRDS("../data/robust_ff.rds")
+y_as_plot <- FALSE
+add_y <- FALSE
+apply_consistent_y_lims <- function(this_plot){
+    num_plots <- length(this_plot$layers)
+    y_lims <- lapply(1:num_plots, function(x) ggplot_build(this_plot[[x]])$layout$panel_scales_y[[1]]$range$range)
+    min_y <- min(unlist(y_lims))
+    max_y <- max(unlist(y_lims))
+    this_plot & coord_cartesian(ylim = c(min_y, max_y))
+}
 ```
 
 
@@ -116,7 +127,7 @@ $$
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "ipi_voitures98.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = FALSE)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est <- lapply(graph_est,function(p){
 	p$CLF <- NULL
 	p
@@ -141,7 +152,7 @@ graph_y[[1]]
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
 #| 
-patchwork::wrap_plots(graph_est[[1]], ncol = 3)
+patchwork::wrap_plots(graph_est[[1]], ncol = 3) 
 ```
 
 
@@ -183,7 +194,7 @@ patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "ipi_voitures2004.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = FALSE)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res)
 graph_ci <- plot_confint(
@@ -220,7 +231,7 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "LS", "ipi_petrole_brut10.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = FALSE)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res)
 graph_ci <- plot_confint(
@@ -259,7 +270,7 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = FALSE)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res)
 graph_ci <- plot_confint(
@@ -297,7 +308,7 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = FALSE)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res)
 graph_ci <- plot_confint(
@@ -336,7 +347,7 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
-graph_est <- get_all_plots(res, y_as_plot = FALSE)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res)
 graph_ci <- plot_confint(
@@ -372,7 +383,7 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ```{r}
 res <- readRDS(file.path("..", "results", "AO", "ce160v2001.rds"))
-graph_est <- get_all_plots(res, y_as_plot = FALSE)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res)
 graph_ci <- plot_confint(

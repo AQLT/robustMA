@@ -42,10 +42,10 @@ saveRDS(list(data = res,
 			 out = date_out),
 		file.path(dir_exports, "ce160v2001.rds")
 )
-plot(window(res[[20]][,1], start = 2000))
-lines(res[[20]][,2], col = "orange")
-lines(res[[20]][,3], col = "lightblue")
-lines(res[[20]][,4], col = "darkgreen")
+# plot(window(res[[20]][,1], start = 2000))
+# lines(res[[20]][,2], col = "orange")
+# lines(res[[20]][,3], col = "lightblue")
+# lines(res[[20]][,4], col = "darkgreen")
 
 RETAILx <- data[["RETAILx"]]
 date_out <- 2007 + (11 - 1) / 12
@@ -56,7 +56,7 @@ saveRDS(list(data = res,
 		file.path(dir_exports, "retailx2007.rds")
 )
 
-plot(window(res[[20]][,1], start = 2006, end = 2008.5))
-lines(res[[20]][,2], col = "orange")
-lines(res[[20]][,3], col = "lightblue")
-lines(res[[20]][,4], col = "darkgreen")
+# plot(window(res[[20]][,1], start = 2006, end = 2008.5))
+# lines(res[[20]][,2], col = "orange")
+# lines(res[[20]][,3], col = "lightblue")
+# lines(res[[20]][,4], col = "darkgreen")
