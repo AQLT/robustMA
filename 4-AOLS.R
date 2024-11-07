@@ -33,3 +33,6 @@ saveRDS(list(data = res,
 			 out = date_out),
 		file.path(dir_exports, "immat2018_ao.RDS")
 )
+# all_est <- create_vintage_est(res)
+# plot_est(all_est$`LC robust`)
+

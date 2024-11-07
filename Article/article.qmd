@@ -1,22 +1,34 @@
 ---
 title: "Estimation de la tendance-cycle avec des méthodes robustes aux points atypiques"
-format: html
+format: 
+  html:
+    fig-width: 9
+    toc-depth: 3
+    include-before-body: template/preambule.html
+    output-file: index
+lang: fr
 echo: false
+toc: true
 ---
 
 ```{r}
-source("../O-functions-plot.R", local = knitr::knit_global())
+#| include: false
+library(rjd3filters)
+source("../0-functions.R", local = knitr::knit_global())
+source("../0-functions-plot.R", local = knitr::knit_global())
+lc_f <- lp_filter()
+robust_ff <- readRDS("../data/robust_ff.rds")
 ```
 
 
 # Introduction
 
-L’analyse du cycle économique, et en particulier la détection rapide des points de retournement d'une série, est un sujet de première importance dans l'analyse de la conjoncture économique. 
+L'analyse du cycle économique, et en particulier la détection rapide des points de retournement d'une série, est un sujet de première importance dans l'analyse de la conjoncture économique. 
 Pour cela, les indicateurs économiques sont généralement corrigés des variations saisonnières.
 Toutefois, afin d'améliorer leur lisibilité, il peut être nécessaire d'effectuer un lissage supplémentaire afin de réduire le bruit, et ainsi analyser la composante tendance-cycle.
-Par construction, les méthodes d’extraction de tendance-cycle sont étroitement liées aux méthodes de désaisonnalisation.
+Par construction, les méthodes d'extraction de tendance-cycle sont étroitement liées aux méthodes de désaisonnalisation.
 En effet, afin d'estimer la composante saisonnière, les algorithmes de désaisonnalisation estiment préalablement une composante tendance-cycle.
-Ainsi, même si les méthodes d’extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également également des méthodes d'estimation de la tendance-cycle.
+Ainsi, même si les méthodes d'extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également également des méthodes d'estimation de la tendance-cycle.
 
 Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d'extraction du cycle économique et d'ajustement saisonnier^[
 Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série temporelle : à chaque date $t$ on calcule une moyenne pondérée de $p$ points passés et $q$ points futurs où $p,q\geq0$ dépend de la moyenne mobile.
@@ -27,48 +39,322 @@ Pour l'extraction de la tendance-cycle, le filtre symétrique le plus connu est 
 
 Toutefois, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques.
 L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
- 
+
 D'autre part, les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques.
 L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
 
-Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-13ARIMA pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle).
-Les filtres asymétriques finaux amplifient même les cycles de 9 ou 10 mois.
-Cela peut avoir pour conséquence l'introduction d'ondulations indésirables, c'est-à-dire la détection de faux points de retournement.
-Ce problème est réduit par la correction des points atypiques (ces cycles étant considérés comme de l'irrégulier). 
-C'est ainsi que le *Nonlinear Dagum Filter* (NLDF) a été développé et consiste à :
+<!-- Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-13ARIMA pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle). -->
+<!-- Les filtres asymétriques finaux amplifient même les cycles de 9 ou 10 mois. -->
+<!-- Cela peut avoir pour conséquence l'introduction d'ondulations indésirables, c'est-à-dire la détection de faux points de retournement. -->
+<!-- Ce problème est réduit par la correction des points atypiques (ces cycles étant considérés comme de l'irrégulier).  -->
+<!-- C'est ainsi que le *Nonlinear Dagum Filter* (NLDF) a été développé et consiste à : -->
 
-    a. appliquer l'algorithme de correction des points atypiques de X-13ARIMA sur la série désaisonnalisée, puis de la prolonger par un modèle ARIMA ;
-    
-    b. effectuer une nouvelle correction des points atypiques en utilisant un seuil bien plus strict et appliquer ensuite le filtre symétrique de 13 termes. 
-    En supposant une distribution normale cela revient à modifier 48 % des valeurs de l'irrégulier.   
+<!-- a. appliquer l'algorithme de correction des points atypiques de X-13ARIMA sur la série désaisonnalisée, puis de la prolonger par un modèle ARIMA ; -->
 
-    Les *cascade linear filter* (CLF), notamment étudiés dans @dagumBianconcini2023, correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$
-    
-Une piste d'étude serait alors d'étudier plus précisément l'effet des points atypiques sur l'estimation de la tendance-cycle et la détection des points de retournement, mais aussi d'explorer de nouveaux types de filtres asymétriques fondés sur des méthodes robustes (comme les régressions locales robustes, les médianes mobiles, etc.). 
- 
-En revanche, pour les estimations en temps réel, en raison de l’absence d’observations futures, toutes ces méthodes doivent s'appuyer sur des filtres asymétriques pour estimer les points les plus récents. 
-Par exemple, même si X-13ARIMA-SEATS applique des moyennes symétriques aux prévisions obtenues à partir d'un modèle ARIMA, cela revient à appliquer des filtres asymétriques en fin de série, car les valeurs prédites sont des combinaisons linéaires de valeurs passées. 
+<!-- b. effectuer une nouvelle correction des points atypiques en utilisant un seuil bien plus strict et appliquer ensuite le filtre symétrique de 13 termes.  -->
+<!-- En supposant une distribution normale cela revient à modifier 48 % des valeurs de l'irrégulier.    -->
 
-Si ces moyennes mobiles asymétriques ont de bonnes propriétés concernant la taille des révisions futures induites par le processus de lissage^[Voir par exemple @pierce1980SA.], elles induisent également, par construction, des déphasages qui retardent en général la détection en temps réel des points de retournement.
+<!-- Les *cascade linear filter* (CLF), notamment étudiés dans @dagumBianconcini2023, correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$ -->
+
+<!-- Une piste d'étude serait alors d'étudier plus précisément l'effet des points atypiques sur l'estimation de la tendance-cycle et la détection des points de retournement, mais aussi d'explorer de nouveaux types de filtres asymétriques fondés sur des méthodes robustes (comme les régressions locales robustes, les médianes mobiles, etc.).  -->
+
+<!-- En revanche, pour les estimations en temps réel, en raison de l'absence d'observations futures, toutes ces méthodes doivent s'appuyer sur des filtres asymétriques pour estimer les points les plus récents.  -->
+<!-- Par exemple, même si X-13ARIMA-SEATS applique des moyennes symétriques aux prévisions obtenues à partir d'un modèle ARIMA, cela revient à appliquer des filtres asymétriques en fin de série, car les valeurs prédites sont des combinaisons linéaires de valeurs passées.  -->
+
+<!-- Si ces moyennes mobiles asymétriques ont de bonnes propriétés concernant la taille des révisions futures induites par le processus de lissage^[Voir par exemple @pierce1980SA.], elles induisent également, par construction, des déphasages qui retardent en général la détection en temps réel des points de retournement. -->
 
 
-## Quarto
+# Méthodes utilisées
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+## Moyennes mobiles linéaires
 
-## Running Code
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+## Méthodes robustes
+
+
+$$
+y_{t+i}=\mu_t+\beta_ti+\varepsilon_{t,i}\text{ et }
+r_{t+i}=y_{t+i}-\hat\mu_t-\hat\beta_ti
+$$
+
+- Médiane mobile :
+
+$$
+\hat\mu_t=\underset{i=-m,\dots,m}{\med}y_{t+i}
+$$
+
+- Least Median of Squares regression (LMS)
+$$
+(\hat\mu_t,\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \underset{i=-m,\dots,m}{\med}r^2_{t+i} \right\}
+$$
+
+- Least Trimmed Squares regression (LTS)
+$$
+(\hat\mu_t,\hat\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \sum_{i=-m}^m r^2_{t+i} \right\}
+$$
+
+- Repeated Median regression (RM)
+$$
+\hat{\beta}_{t}=\underset{i=1,\dots,n}{\med}\left\{ \underset{i\ne j}{\med}\frac{y_{t+i}-y_{t+j}}{i-j} \right\}
+$$
+et 
+$$
+\hat\mu_t=\underset{i=1,\dots,n}{\med}\left\{ y_{t+i}-i\hat{\beta}_{t} \right\}
+$$
+- Least Quartile Difference regression (LQD)
+
+- Deepest Regression (DR)
+
+# Résultats
+
+## Additive outlier (A0)
+
+### IPI voitures
+
+#### Août 1998
+
 
 ```{r}
-1 + 1
+res <- readRDS(file.path("..", "results", "AO", "ipi_voitures98.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est <- lapply(graph_est,function(p){
+	p$CLF <- NULL
+	p
+}) 
+# graph_y <- plot_y(res)
+graph_ci <- lapply(
+	res$out, plot_confint,
+	data = res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ao"]])
 ```
 
-You can add options to executable code like this 
 
 ```{r}
-#| echo: false
-2 * 2
+#| label: fig-ipi_voitures98-out1-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+#| label: fig-ipi_voitures98-out1-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
+```
+
+#### Août 1999
+
+
+```{r}
+#| label: fig-ipi_voitures98-out2-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est[[2]], ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ipi_voitures98-out2-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
+```
+
+
+#### 2004
+
+
+```{r}
+res <- readRDS(file.path("..", "results", "AO", "ipi_voitures2004.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est$CLF <- NULL
+# graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ao"]])
+```
+
+
+```{r}
+#| label: fig-ipi_voitures2004-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ipi_voitures2004-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+
+## Level shift (LS)
+
+### IPI petrole brut
+
+```{r}
+res <- readRDS(file.path("..", "results", "LS", "ipi_petrole_brut10.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est$CLF <- NULL
+# graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ls"]])
+```
+
+
+```{r}
+#| label: fig-ipi_petrole_brut10-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ipi_petrole_brut10-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+
+
+
+## Deux LS
+
+### Retailx
+
+```{r}
+res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est$CLF <- NULL
+# graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["lsls"]])
+```
+
+
+```{r}
+#| label: fig-retailx2008-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-retailx2008-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+
+
+## AO puis LS
+
+### Immatriculation de véhicules neufs
+
+```{r}
+res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est$CLF <- NULL
+# graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["aols"]])
+```
+
+
+```{r}
+#| label: fig-imat2018-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-imat2018-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+
+## Point de retournement
+
+### Retailx
+
+```{r}
+res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
+graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est$CLF <- NULL
+# graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ao"]])
+```
+
+
+```{r}
+#| label: fig-retailx2007-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-retailx2007-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+
+### ce160v
+
+```{r}
+res <- readRDS(file.path("..", "results", "AO", "ce160v2001.rds"))
+graph_est <- get_all_plots(res, y_as_plot = TRUE)
+graph_est$CLF <- NULL
+# graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ao"]])
+```
+
+
+```{r}
+#| label: fig-ce160v2001-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ce160v2001-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+

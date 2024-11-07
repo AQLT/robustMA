@@ -26,7 +26,7 @@ res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["aoao"]], date_
 
 saveRDS(list(data = res,
 			 out = date_out),
-		file.path(dir_exports, "ipi_petrole_brut10.rds")
+		file.path(dir_exports, "ipi_petrole_brut10aoao.rds")
 )
 
 
