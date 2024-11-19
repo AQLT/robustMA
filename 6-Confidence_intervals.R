@@ -4,19 +4,23 @@ source("0-functions-plot.R")
 lc_f <- lp_filter()
 robust_ff <- readRDS("data/robust_ff.rds")
 
-res <- readRDS(file.path("results", "AO", "ipi_voitures90.rds"))
 
 
 
 patchwork::wrap_plots(
 	plot_confint(
-		readRDS(file.path("results", "AO", "ipi_voitures90.rds")),
+		readRDS(file.path("results", "AO", "ipi_voitures98.rds")),
 		out = 1998 + (8-1)/12, default_filter = lc_f,
 		robust_f = robust_ff[["ao"]],
 		nest = 6),
 	ncol = 3)
-
-
+patchwork::wrap_plots(
+	plot_confint(
+		readRDS(file.path("results", "AO", "ipi_voitures98.rds")),
+		out = 1998 + (8-1)/12, default_filter = lc_f,
+		robust_f = robust_ff[["ao"]],
+		nest = 6,gaussian_distribution = TRUE),
+	ncol = 3)
 
 patchwork::wrap_plots(
 	plot_confint(
