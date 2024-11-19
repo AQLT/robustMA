@@ -52,7 +52,7 @@ format_data_plot  <- function(data){
 	na.omit(reshape2::melt(dataGraph, id = "date"))
 }
 
-plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_before = 10, nest = 6, add_y = FALSE) {
+plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_before = 10, nest = 6, add_y = FALSE, gaussian_distribution = FALSE, exact_df = TRUE) {
 	if (is.null(out)) {
 		out <- data$out
 	}
@@ -63,8 +63,8 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 	lagest <- seq(0, by = 1, length.out = nest)
 	all_plots <- lapply(lagest, function(i){
 		y <- data[[which(round(out,3) == round(as.numeric(names(data)),3)) + i]][,"y"]
-		confint_robust <- confint_filter(y, robust_f[[sprintf("t%i", -i)]])
-		confint_default <- confint_filter(y, lc_f)
+		confint_robust <- confint_filter(y, robust_f[[sprintf("t%i", -i)]], gaussian_distribution = gaussian_distribution, exact_df = exact_df)
+		confint_default <- confint_filter(y, lc_f, gaussian_distribution = gaussian_distribution, exact_df = exact_df)
 		data_plot <- ts.union(confint_default, confint_robust[,1],y)
 		data_plot <- window(data_plot, start = first_date)
 		colnames(data_plot) <- c("Default", "Confint_m", "Confint_p", "Robust","y")
