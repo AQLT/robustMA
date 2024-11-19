@@ -77,9 +77,6 @@ L'application directe des méthodes peut donc conduire à des estimations biais�
 
 # Méthodes utilisées
 
-## Moyennes mobiles linéaires
-
-
 ## Méthodes robustes
 
 
@@ -115,6 +112,9 @@ $$
 - Least Quartile Difference regression (LQD)
 
 - Deepest Regression (DR)
+
+## Moyennes mobiles linéaires
+
 
 # Résultats
 
@@ -414,4 +414,24 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 #| fig-width: 9
 patchwork::wrap_plots(graph_ci, ncol = 3)
 ```
+
+
+### Construction d'intervalles de confiance
+
+The variance $\sigma^2$ can be estimated using the observed data set and the symmetric filter $(\theta_{-h},\dots,\theta_h)$.
+Indeed, as for example shown by @Loader1999, the variance $\sigma^2$ can be estimating using the normalized residual sum of squares:
+$$
+\hat\sigma^2=\frac{1}{(n-2h)-2\nu_1+\nu_2}\sum_{t=h+1}^{n-h}(y_t-\widehat{TC}_t)^2.
+$$
+Since the symmetric filter is used, only $n-2h$ observations can be used to estimate $\sigma^2$.
+$\nu_1$ and $\nu_2$ are two definitions of degrees of freedom of a local fit (generalization of the number of parameters of a parametric model).
+In the case of local polynomial smoothing, they can be linked to the coefficient of the associated filter: $\nu_1 = (n-2h)\theta_0$ (number of observations multiplied by the central coefficient of the moving average) and $\nu_2 = (n-2h)\sum_{i=-h}^{h} \theta_i^2$ (number of observations multiplied by the sum of squares of coefficients of the moving average).
+Thus, the variance can be estimated by:
+$$
+\hat\sigma^2=\frac{1}{n-2h}\sum_{t=h+1}^{n-h}\frac{(y_t-\widehat{TC}_t)^2}{1-2\theta_0^2+\sum_{i=-h}^{h} \theta_i^2}.
+$$
+This is implemented in the function `rjd3filters::var_estimator()`.
+This estimator assumes that $\widehat{TC}_t$ is unbiased, so variance estimates intervals are usually computed at small bandwidths ($h$).
+In this paper we study monthly series with small bandwidth ($h=6$), and the variance is estimated using local polynomial of degree 3 (Henderson filter), the biased of $\widehat{TC}_t$ is thus already small and using smaller bandwidths have almost no impact on the estimates (see supplemental materials).
+
 
