@@ -21,6 +21,7 @@ y_vintage <- create_vintage(data[["RETAILx"]], date_out)
 res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["lsls"]], date_out)
 
 saveRDS(list(data = res,
-			 out = date_out),
+			 out = date_out,
+			 y = data[["RETAILx"]]),
 		file.path(dir_exports, "retailx2008.RDS")
 )

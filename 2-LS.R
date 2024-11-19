@@ -18,14 +18,16 @@ y_vintage <- create_vintage(ipi_petrole_brut, date_out)
 res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ls"]], date_out)
 
 saveRDS(list(data = res,
-			 out = date_out),
+			 out = date_out,
+			 y = data[["ipi_petrole_brut"]]),
 		file.path(dir_exports, "ipi_petrole_brut10.rds")
 )
 
 res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["aoao"]], date_out)
 
 saveRDS(list(data = res,
-			 out = date_out),
+			 out = date_out,
+			 y = data[["ipi_petrole_brut"]]),
 		file.path(dir_exports, "ipi_petrole_brut10aoao.rds")
 )
 

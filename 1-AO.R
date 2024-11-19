@@ -22,7 +22,8 @@ y_vintage <- create_vintage(ipi_voitures, date_out)
 res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
 
 saveRDS(list(data = res,
-			 out = date_out),
+			 out = date_out,
+			 y = data[["ipi_voitures"]]),
 		 file.path(dir_exports, "ipi_voitures98.rds")
 		)
 
@@ -30,7 +31,8 @@ date_out <- c(2004 + (8-1)/12)
 y_vintage <- create_vintage(ipi_voitures, date_out)
 res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
 saveRDS(list(data = res,
-			 out = date_out),
+			 out = date_out,
+			 y = ipi_voitures),
 		file.path(dir_exports, "ipi_voitures2004.rds")
 )
 
@@ -39,7 +41,8 @@ date_out <- 2001 + (2 - 1) / 12
 y_vintage <- create_vintage(CE16OV, date_out)
 res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
 saveRDS(list(data = res,
-			 out = date_out),
+			 out = date_out,
+			 y = data[["CE16OV"]]),
 		file.path(dir_exports, "ce160v2001.rds")
 )
 # plot(window(res[[20]][,1], start = 2000))
@@ -52,7 +55,8 @@ date_out <- 2007 + (11 - 1) / 12
 y_vintage <- create_vintage(RETAILx, date_out)
 res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
 saveRDS(list(data = res,
-			 out = date_out),
+			 out = date_out,
+			 y = data[["RETAILx"]]),
 		file.path(dir_exports, "retailx2007.rds")
 )
 
