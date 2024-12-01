@@ -115,6 +115,47 @@ $$
 
 ## Moyennes mobiles linéaires
 
+Moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale
+$$
+\forall j\in\left\llbracket -h,h\right\rrbracket : y_{t+j}=\underbrace{\sum_{i=0}^{d}\beta_{i}j^{i}}_{m_{t+j}}+\varepsilon_{t+j}
+$$
+
+Estimation en utilisant les WLS avec *noyaux*: $\hat{\beta}=(X'KX)^{1}X'Ky$ et
+$$
+\hat{TC}_{t}=\hat\beta_0=w'y=\sum_{j=-h}^{h}w_{j}y_{t-j}
+$$
+En ajoutant un régresseur $x_t$ on peut donc obtenir une nouvelle moyenne mobile donc l'estimation de $\beta_0$ prendrait en compte l'effet modélisé par $x_t$
+$$
+y_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i} + \gamma x_{t+j}+\varepsilon_{t+j}
+$$
+
+Deux cas sont ici étudiés :
+
+- Points atypiques additifs (AO) : un choc soudain à une certaine date puis un retour à la normal.
+Si le choc est à la date $t_0$ le régresseur utilisé est alors $x_t=1_{t=t_0}$.
+
+- Rupture en niveau (LS) : un changement de niveau à une certaine date.
+Si le choc est à la date $t_0$ le régresseur utilisé est alors $x_t=-1_{t< t_0}$ pour l'estimation de $TC_t$ avec $t\leq t_0$ et $x_t=1_{t\geq t_0}$ sinon.
+
+Pour le cas asymétrique, @proietti2008 proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance.
+Il s'agit d'une généralisation des filtres asymétriques de @musgrave1964set (utilisés dans l'algorithme de désaisonnalisation X-13ARIMA).
+
+On modélise ici la série initiale par :
+$$
+\boldsymbol y=\boldsymbol U\boldsymbol \gamma+\boldsymbol Z\boldsymbol \delta+\boldsymbol \varepsilon,\quad
+\boldsymbol \varepsilon\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
+$${#eq-lpgeneralmodel}
+où $[\boldsymbol U,\boldsymbol Z]$ est de rang plein et forme un sous-ensemble des colonnes de $\boldsymbol X$.
+L'objectif est de trouver un filtre $\boldsymbol v$ qui minimise l'erreur quadratique moyenne de révision (au filtre symétrique $\boldsymbol \theta$) sous certaines contraintes.
+Ces contraintes sont représentées par la matrice $\boldsymbol U=\begin{pmatrix}\boldsymbol U_{p}'&\boldsymbol U_{f}'\end{pmatrix}'$ : $\boldsymbol U_p'\boldsymbol v=\boldsymbol U'\boldsymbol \theta$ (avec $\boldsymbol U_p$ la matrice $(h+q+1)\times (d+1)$ qui contient les observations de la matrice $\boldsymbol U$ connues lors de l'estimation par le filtre asymétrique).
+C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()`.
+
+Lorsque $\boldsymbol U=\boldsymbol X$, la contrainte équivaut à préserver les polynômes de degré $d$ : on retrouve les filtres directs symétriques avec $\boldsymbol D=\boldsymbol K^{-1}$.
+
+Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymbol X$, $d^*<d$, la contrainte consiste à reproduire des tendances polynomiales de degré $d^*$.
+Cela introduit du biais mais réduit la variance. 
+Le filtre de Musgrave se retrouve en modélisant $y_t$ linéaire ($d=1$) et $v$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique.
+Les filtres asymétriques robustes sont construits en ajoutant un régresseur supplémentaire à $\boldsymbol U$ (estimation sans biais de l'outlier) et en utilisant comme filtre symétrique celui construit en utilisant le même régresseur.
 
 # Résultats
 
@@ -418,17 +459,22 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 ### Construction d'intervalles de confiance
 
-The variance $\sigma^2$ can be estimated using the observed data set and the symmetric filter $(\theta_{-h},\dots,\theta_h)$.
-Indeed, as for example shown by @Loader1999, the variance $\sigma^2$ can be estimating using the normalized residual sum of squares:
+Soit $\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile.
+Si $\theta$ permet d'avoir un estimateur sans biais de la tendance-cycle $TC_t$ ($\mathbb E[\hat{TC}_t]=TC_t$ avec $\hat{TC}_t = \sum_{i=-p}^p\theta_iy_i$), alors un intervalle de confiance peut être calculé à partir de la formule :
 $$
-\hat\sigma^2=\frac{1}{(n-2h)-2\nu_1+\nu_2}\sum_{t=h+1}^{n-h}(y_t-\widehat{TC}_t)^2.
+I_t=\left[\hat{TC}_t - q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{f}\theta_i^2};
+ \hat{TC}_t  + q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{f}\theta_i^2}\right]
 $$
-Since the symmetric filter is used, only $n-2h$ observations can be used to estimate $\sigma^2$.
+Indeed, as shown by @Loader1999, the variance $\sigma^2$ can be estimating using the normalized residual sum of squares:
+$$
+\hat\sigma^2=\frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(y_t-\widehat{TC}_t)^2.
+$$
+With $\theta$ only $n-p-f$ observations can be used to estimate $\sigma^2$.
 $\nu_1$ and $\nu_2$ are two definitions of degrees of freedom of a local fit (generalization of the number of parameters of a parametric model).
-In the case of local polynomial smoothing, they can be linked to the coefficient of the associated filter: $\nu_1 = (n-2h)\theta_0$ (number of observations multiplied by the central coefficient of the moving average) and $\nu_2 = (n-2h)\sum_{i=-h}^{h} \theta_i^2$ (number of observations multiplied by the sum of squares of coefficients of the moving average).
+In the case of local polynomial smoothing, they can be linked to the coefficient of the associated filter: $\nu_1 = (n-p-f)\theta_0$ (number of observations multiplied by the central coefficient of the moving average) and $\nu_2 = (n-p-f)\sum_{i=-h}^{h} \theta_i^2$ (number of observations multiplied by the sum of squares of coefficients of the moving average).
 Thus, the variance can be estimated by:
 $$
-\hat\sigma^2=\frac{1}{n-2h}\sum_{t=h+1}^{n-h}\frac{(y_t-\widehat{TC}_t)^2}{1-2\theta_0^2+\sum_{i=-h}^{h} \theta_i^2}.
+\hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{TC}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{f} \theta_i^2}.
 $$
 This is implemented in the function `rjd3filters::var_estimator()`.
 This estimator assumes that $\widehat{TC}_t$ is unbiased, so variance estimates intervals are usually computed at small bandwidths ($h$).

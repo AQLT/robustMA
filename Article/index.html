@@ -77,8 +77,8 @@ window.Quarto = {
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#méthodes-utilisées" id="toc-méthodes-utilisées" class="nav-link" data-scroll-target="#méthodes-utilisées">Méthodes utilisées</a>
   <ul class="collapse">
-  <li><a href="#moyennes-mobiles-linéaires" id="toc-moyennes-mobiles-linéaires" class="nav-link" data-scroll-target="#moyennes-mobiles-linéaires">Moyennes mobiles linéaires</a></li>
   <li><a href="#méthodes-robustes" id="toc-méthodes-robustes" class="nav-link" data-scroll-target="#méthodes-robustes">Méthodes robustes</a></li>
+  <li><a href="#moyennes-mobiles-linéaires" id="toc-moyennes-mobiles-linéaires" class="nav-link" data-scroll-target="#moyennes-mobiles-linéaires">Moyennes mobiles linéaires</a></li>
   </ul></li>
   <li><a href="#résultats" id="toc-résultats" class="nav-link" data-scroll-target="#résultats">Résultats</a>
   <ul class="collapse">
@@ -102,6 +102,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#retailx-1" id="toc-retailx-1" class="nav-link" data-scroll-target="#retailx-1">Retailx</a></li>
   <li><a href="#ce160v" id="toc-ce160v" class="nav-link" data-scroll-target="#ce160v">ce160v</a></li>
+  <li><a href="#construction-dintervalles-de-confiance" id="toc-construction-dintervalles-de-confiance" class="nav-link" data-scroll-target="#construction-dintervalles-de-confiance">Construction d’intervalles de confiance</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -181,9 +182,6 @@ window.Quarto = {
 </section>
 <section id="méthodes-utilisées" class="level1">
 <h1>Méthodes utilisées</h1>
-<section id="moyennes-mobiles-linéaires" class="level2">
-<h2 class="anchored" data-anchor-id="moyennes-mobiles-linéaires">Moyennes mobiles linéaires</h2>
-</section>
 <section id="méthodes-robustes" class="level2">
 <h2 class="anchored" data-anchor-id="méthodes-robustes">Méthodes robustes</h2>
 <p><span class="math display">\[
@@ -211,6 +209,29 @@ r_{t+i}=y_{t+i}-\hat\mu_t-\hat\beta_ti
 <li><p>Least Quartile Difference regression (LQD)</p></li>
 <li><p>Deepest Regression (DR)</p></li>
 </ul>
+</section>
+<section id="moyennes-mobiles-linéaires" class="level2">
+<h2 class="anchored" data-anchor-id="moyennes-mobiles-linéaires">Moyennes mobiles linéaires</h2>
+<p>Moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale <span class="math display">\[
+\forall j\in\left\llbracket -h,h\right\rrbracket : y_{t+j}=\underbrace{\sum_{i=0}^{d}\beta_{i}j^{i}}_{m_{t+j}}+\varepsilon_{t+j}
+\]</span></p>
+<p>Estimation en utilisant les WLS avec <em>noyaux</em>: <span class="math inline">\(\hat{\beta}=(X'KX)^{1}X'Ky\)</span> et <span class="math display">\[
+\hat{TC}_{t}=\hat\beta_0=w'y=\sum_{j=-h}^{h}w_{j}y_{t-j}
+\]</span> En ajoutant un régresseur <span class="math inline">\(x_t\)</span> on peut donc obtenir une nouvelle moyenne mobile donc l’estimation de <span class="math inline">\(\beta_0\)</span> prendrait en compte l’effet modélisé par <span class="math inline">\(x_t\)</span> <span class="math display">\[
+y_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i} + \gamma x_{t+j}+\varepsilon_{t+j}
+\]</span></p>
+<p>Deux cas sont ici étudiés :</p>
+<ul>
+<li><p>Points atypiques additifs (AO) : un choc soudain à une certaine date puis un retour à la normal. Si le choc est à la date <span class="math inline">\(t_0\)</span> le régresseur utilisé est alors <span class="math inline">\(x_t=1_{t=t_0}\)</span>.</p></li>
+<li><p>Rupture en niveau (LS) : un changement de niveau à une certaine date. Si le choc est à la date <span class="math inline">\(t_0\)</span> le régresseur utilisé est alors <span class="math inline">\(x_t=-1_{t&lt; t_0}\)</span> pour l’estimation de <span class="math inline">\(TC_t\)</span> avec <span class="math inline">\(t\leq t_0\)</span> et <span class="math inline">\(x_t=1_{t\geq t_0}\)</span> sinon.</p></li>
+</ul>
+<p>Pour le cas asymétrique, <span class="citation" data-cites="proietti2008">@proietti2008</span> proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance. Il s’agit d’une généralisation des filtres asymétriques de <span class="citation" data-cites="musgrave1964set">@musgrave1964set</span> (utilisés dans l’algorithme de désaisonnalisation X-13ARIMA).</p>
+<p>On modélise ici la série initiale par : <span id="eq-lpgeneralmodel"><span class="math display">\[
+\boldsymbol y=\boldsymbol U\boldsymbol \gamma+\boldsymbol Z\boldsymbol \delta+\boldsymbol \varepsilon,\quad
+\boldsymbol \varepsilon\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
+\tag{1}\]</span></span> où <span class="math inline">\([\boldsymbol U,\boldsymbol Z]\)</span> est de rang plein et forme un sous-ensemble des colonnes de <span class="math inline">\(\boldsymbol X\)</span>. L’objectif est de trouver un filtre <span class="math inline">\(\boldsymbol v\)</span> qui minimise l’erreur quadratique moyenne de révision (au filtre symétrique <span class="math inline">\(\boldsymbol \theta\)</span>) sous certaines contraintes. Ces contraintes sont représentées par la matrice <span class="math inline">\(\boldsymbol U=\begin{pmatrix}\boldsymbol U_{p}'&amp;\boldsymbol U_{f}'\end{pmatrix}'\)</span> : <span class="math inline">\(\boldsymbol U_p'\boldsymbol v=\boldsymbol U'\boldsymbol \theta\)</span> (avec <span class="math inline">\(\boldsymbol U_p\)</span> la matrice <span class="math inline">\((h+q+1)\times (d+1)\)</span> qui contient les observations de la matrice <span class="math inline">\(\boldsymbol U\)</span> connues lors de l’estimation par le filtre asymétrique). C’est ce qui est implémenté dans la fonction <code>rjd3filters::mmsre_filter()</code>.</p>
+<p>Lorsque <span class="math inline">\(\boldsymbol U=\boldsymbol X\)</span>, la contrainte équivaut à préserver les polynômes de degré <span class="math inline">\(d\)</span> : on retrouve les filtres directs symétriques avec <span class="math inline">\(\boldsymbol D=\boldsymbol K^{-1}\)</span>.</p>
+<p>Lorsque <span class="math inline">\(\boldsymbol U\)</span> correspond aux <span class="math inline">\(d^*+1\)</span> premières colonnes de <span class="math inline">\(\boldsymbol X\)</span>, <span class="math inline">\(d^*&lt;d\)</span>, la contrainte consiste à reproduire des tendances polynomiales de degré <span class="math inline">\(d^*\)</span>. Cela introduit du biais mais réduit la variance. Le filtre de Musgrave se retrouve en modélisant <span class="math inline">\(y_t\)</span> linéaire (<span class="math inline">\(d=1\)</span>) et <span class="math inline">\(v\)</span> préserve les constantes (<span class="math inline">\(d^*=0\)</span>) et en prenant le filtre d’Henderson comme filtre symétrique. Les filtres asymétriques robustes sont construits en ajoutant un régresseur supplémentaire à <span class="math inline">\(\boldsymbol U\)</span> (estimation sans biais de l’outlier) et en utilisant comme filtre symétrique celui construit en utilisant le même régresseur.</p>
 </section>
 </section>
 <section id="résultats" class="level1">
@@ -591,6 +612,17 @@ Figure&nbsp;24: Intervalles de confiance pour les filtres de musgrave
 </div>
 </div>
 </div>
+</section>
+<section id="construction-dintervalles-de-confiance" class="level3">
+<h3 class="anchored" data-anchor-id="construction-dintervalles-de-confiance">Construction d’intervalles de confiance</h3>
+<p>Soit <span class="math inline">\(\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}\)</span> une moyenne mobile. Si <span class="math inline">\(\theta\)</span> permet d’avoir un estimateur sans biais de la tendance-cycle <span class="math inline">\(TC_t\)</span> (<span class="math inline">\(\mathbb E[\hat{TC}_t]=TC_t\)</span> avec <span class="math inline">\(\hat{TC}_t = \sum_{i=-p}^p\theta_iy_i\)</span>), alors un intervalle de confiance peut être calculé à partir de la formule : <span class="math display">\[
+I_t=\left[\hat{TC}_t - q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{f}\theta_i^2};
+\hat{TC}_t  + q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{f}\theta_i^2}\right]
+\]</span> Indeed, as shown by <span class="citation" data-cites="Loader1999">@Loader1999</span>, the variance <span class="math inline">\(\sigma^2\)</span> can be estimating using the normalized residual sum of squares: <span class="math display">\[
+\hat\sigma^2=\frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(y_t-\widehat{TC}_t)^2.
+\]</span> With <span class="math inline">\(\theta\)</span> only <span class="math inline">\(n-p-f\)</span> observations can be used to estimate <span class="math inline">\(\sigma^2\)</span>. <span class="math inline">\(\nu_1\)</span> and <span class="math inline">\(\nu_2\)</span> are two definitions of degrees of freedom of a local fit (generalization of the number of parameters of a parametric model). In the case of local polynomial smoothing, they can be linked to the coefficient of the associated filter: <span class="math inline">\(\nu_1 = (n-p-f)\theta_0\)</span> (number of observations multiplied by the central coefficient of the moving average) and <span class="math inline">\(\nu_2 = (n-p-f)\sum_{i=-h}^{h} \theta_i^2\)</span> (number of observations multiplied by the sum of squares of coefficients of the moving average). Thus, the variance can be estimated by: <span class="math display">\[
+\hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{TC}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{f} \theta_i^2}.
+\]</span> This is implemented in the function <code>rjd3filters::var_estimator()</code>. This estimator assumes that <span class="math inline">\(\widehat{TC}_t\)</span> is unbiased, so variance estimates intervals are usually computed at small bandwidths (<span class="math inline">\(h\)</span>). In this paper we study monthly series with small bandwidth (<span class="math inline">\(h=6\)</span>), and the variance is estimated using local polynomial of degree 3 (Henderson filter), the biased of <span class="math inline">\(\widehat{TC}_t\)</span> is thus already small and using smaller bandwidths have almost no impact on the estimates (see supplemental materials).</p>
 </section>
 </section>
 </section>
