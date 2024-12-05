@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="article_files/libs/clipboard/clipboard.min.js"></script>
@@ -102,11 +122,15 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#retailx-1" id="toc-retailx-1" class="nav-link" data-scroll-target="#retailx-1">Retailx</a></li>
   <li><a href="#ce160v" id="toc-ce160v" class="nav-link" data-scroll-target="#ce160v">ce160v</a></li>
-  <li><a href="#construction-dintervalles-de-confiance" id="toc-construction-dintervalles-de-confiance" class="nav-link" data-scroll-target="#construction-dintervalles-de-confiance">Construction d’intervalles de confiance</a></li>
   </ul></li>
+  </ul></li>
+  <li><a href="#annexe" id="toc-annexe" class="nav-link" data-scroll-target="#annexe">Annexe</a>
+  <ul class="collapse">
+  <li><a href="#construction-dintervalles-de-confiance" id="toc-construction-dintervalles-de-confiance" class="nav-link" data-scroll-target="#construction-dintervalles-de-confiance">Construction d’intervalles de confiance</a></li>
+  <li><a href="#moyennes-mobiles-utilisées" id="toc-moyennes-mobiles-utilisées" class="nav-link" data-scroll-target="#moyennes-mobiles-utilisées">Moyennes mobiles utilisées</a></li>
   </ul></li>
   </ul>
-</nav>
+<div class="quarto-alternate-formats"><h2>Autres formats</h2><ul><li><a href="article.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
 <main class="content" id="quarto-document-content">
 <script type="text/x-mathjax-config">
@@ -163,7 +187,7 @@ window.Quarto = {
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
 <p>L’analyse du cycle économique, et en particulier la détection rapide des points de retournement d’une série, est un sujet de première importance dans l’analyse de la conjoncture économique. Pour cela, les indicateurs économiques sont généralement corrigés des variations saisonnières. Toutefois, afin d’améliorer leur lisibilité, il peut être nécessaire d’effectuer un lissage supplémentaire afin de réduire le bruit, et ainsi analyser la composante tendance-cycle. Par construction, les méthodes d’extraction de tendance-cycle sont étroitement liées aux méthodes de désaisonnalisation. En effet, afin d’estimer la composante saisonnière, les algorithmes de désaisonnalisation estiment préalablement une composante tendance-cycle. Ainsi, même si les méthodes d’extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l’estimation de ces séries dépend également également des méthodes d’estimation de la tendance-cycle.</p>
-<p>Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d’extraction du cycle économique et d’ajustement saisonnier<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Ainsi, la méthode de désaisonnalisation X-13ARIMA-SEATS utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d’une série chronologique. Au centre de la série, des filtres symétriques sont appliqués. Pour l’extraction de la tendance-cycle, le filtre symétrique le plus connu est celui de <span class="citation" data-cites="henderson1916note">@henderson1916note</span>, notamment utilisé dans l’algorithme de désaisonnalisation X-13ARIMA.</p>
+<p>Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d’extraction du cycle économique et d’ajustement saisonnier<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Ainsi, la méthode de désaisonnalisation X-13ARIMA-SEATS utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d’une série chronologique. Au centre de la série, des filtres symétriques sont appliqués. Pour l’extraction de la tendance-cycle, le filtre symétrique le plus connu est celui de <span class="citation" data-cites="henderson1916note">Henderson (<a href="#ref-henderson1916note" role="doc-biblioref">1916</a>)</span>, notamment utilisé dans l’algorithme de désaisonnalisation X-13ARIMA.</p>
 <p>Toutefois, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques. L’application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.</p>
 <p>D’autre part, les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques. L’application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.</p>
 <!-- Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-13ARIMA pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle). -->
@@ -213,7 +237,7 @@ r_{t+i}=y_{t+i}-\hat\mu_t-\hat\beta_ti
 <section id="moyennes-mobiles-linéaires" class="level2">
 <h2 class="anchored" data-anchor-id="moyennes-mobiles-linéaires">Moyennes mobiles linéaires</h2>
 <p>Moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale <span class="math display">\[
-\forall j\in\left\llbracket -h,h\right\rrbracket : y_{t+j}=\underbrace{\sum_{i=0}^{d}\beta_{i}j^{i}}_{m_{t+j}}+\varepsilon_{t+j}
+\forall j\in\{ -h,-h+1,\dots, h\} : y_{t+j}=\underbrace{\sum_{i=0}^{d}\beta_{i}j^{i}}_{m_{t+j}}+\varepsilon_{t+j}
 \]</span></p>
 <p>Estimation en utilisant les WLS avec <em>noyaux</em>: <span class="math inline">\(\hat{\beta}=(X'KX)^{1}X'Ky\)</span> et <span class="math display">\[
 \hat{TC}_{t}=\hat\beta_0=w'y=\sum_{j=-h}^{h}w_{j}y_{t-j}
@@ -225,7 +249,7 @@ y_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i} + \gamma x_{t+j}+\varepsilon_{t+j}
 <li><p>Points atypiques additifs (AO) : un choc soudain à une certaine date puis un retour à la normal. Si le choc est à la date <span class="math inline">\(t_0\)</span> le régresseur utilisé est alors <span class="math inline">\(x_t=1_{t=t_0}\)</span>.</p></li>
 <li><p>Rupture en niveau (LS) : un changement de niveau à une certaine date. Si le choc est à la date <span class="math inline">\(t_0\)</span> le régresseur utilisé est alors <span class="math inline">\(x_t=-1_{t&lt; t_0}\)</span> pour l’estimation de <span class="math inline">\(TC_t\)</span> avec <span class="math inline">\(t\leq t_0\)</span> et <span class="math inline">\(x_t=1_{t\geq t_0}\)</span> sinon.</p></li>
 </ul>
-<p>Pour le cas asymétrique, <span class="citation" data-cites="proietti2008">@proietti2008</span> proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance. Il s’agit d’une généralisation des filtres asymétriques de <span class="citation" data-cites="musgrave1964set">@musgrave1964set</span> (utilisés dans l’algorithme de désaisonnalisation X-13ARIMA).</p>
+<p>Pour le cas asymétrique, <span class="citation" data-cites="proietti2008">Proietti et Luati (<a href="#ref-proietti2008" role="doc-biblioref">2008</a>)</span> proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance. Il s’agit d’une généralisation des filtres asymétriques de <span class="citation" data-cites="musgrave1964set">Musgrave (<a href="#ref-musgrave1964set" role="doc-biblioref">1964</a>)</span> (utilisés dans l’algorithme de désaisonnalisation X-13ARIMA).</p>
 <p>On modélise ici la série initiale par : <span id="eq-lpgeneralmodel"><span class="math display">\[
 \boldsymbol y=\boldsymbol U\boldsymbol \gamma+\boldsymbol Z\boldsymbol \delta+\boldsymbol \varepsilon,\quad
 \boldsymbol \varepsilon\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
@@ -246,12 +270,12 @@ y_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i} + \gamma x_{t+j}+\varepsilon_{t+j}
 <div class="cell-output-display">
 <div id="fig-ipi_voitures98-out1-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out1-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Série brute
+</figcaption>
 <div aria-describedby="fig-ipi_voitures98-out1-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures98-out1-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out1-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -260,12 +284,12 @@ Figure&nbsp;1: Série brute
 <div class="cell-output-display">
 <div id="fig-ipi_voitures98-out1-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out1-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-ipi_voitures98-out1-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures98-out1-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out1-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -274,12 +298,12 @@ Figure&nbsp;2: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-ipi_voitures98-out1-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out1-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-ipi_voitures98-out1-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures98-out1-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out1-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
@@ -291,12 +315,12 @@ Figure&nbsp;3: Intervalles de confiance pour les filtres de musgrave
 <div class="cell-output-display">
 <div id="fig-ipi_voitures98-out2-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out2-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Série brute
+</figcaption>
 <div aria-describedby="fig-ipi_voitures98-out2-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures98-out2-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out2-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -305,12 +329,12 @@ Figure&nbsp;4: Série brute
 <div class="cell-output-display">
 <div id="fig-ipi_voitures98-out2-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out2-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-ipi_voitures98-out2-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures98-out2-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out2-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -319,12 +343,12 @@ Figure&nbsp;5: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-ipi_voitures98-out2-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out2-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-ipi_voitures98-out2-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures98-out2-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures98-out2-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
@@ -336,12 +360,12 @@ Figure&nbsp;6: Intervalles de confiance pour les filtres de musgrave
 <div class="cell-output-display">
 <div id="fig-ipi_voitures2004-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures2004-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Série brute
+</figcaption>
 <div aria-describedby="fig-ipi_voitures2004-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures2004-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures2004-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -350,12 +374,12 @@ Figure&nbsp;7: Série brute
 <div class="cell-output-display">
 <div id="fig-ipi_voitures2004-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures2004-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-ipi_voitures2004-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures2004-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures2004-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;8: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -364,12 +388,12 @@ Figure&nbsp;8: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-ipi_voitures2004-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_voitures2004-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-ipi_voitures2004-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_voitures2004-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_voitures2004-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
@@ -385,12 +409,12 @@ Figure&nbsp;9: Intervalles de confiance pour les filtres de musgrave
 <div class="cell-output-display">
 <div id="fig-ipi_petrole_brut10-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_petrole_brut10-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: Série brute
+</figcaption>
 <div aria-describedby="fig-ipi_petrole_brut10-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_petrole_brut10-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_petrole_brut10-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -399,12 +423,12 @@ Figure&nbsp;10: Série brute
 <div class="cell-output-display">
 <div id="fig-ipi_petrole_brut10-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_petrole_brut10-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-ipi_petrole_brut10-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_petrole_brut10-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_petrole_brut10-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -413,12 +437,12 @@ Figure&nbsp;11: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-ipi_petrole_brut10-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi_petrole_brut10-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-ipi_petrole_brut10-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi_petrole_brut10-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ipi_petrole_brut10-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
@@ -433,12 +457,12 @@ Figure&nbsp;12: Intervalles de confiance pour les filtres de musgrave
 <div class="cell-output-display">
 <div id="fig-retailx2008-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2008-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: Série brute
+</figcaption>
 <div aria-describedby="fig-retailx2008-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-retailx2008-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-retailx2008-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;13: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -447,12 +471,12 @@ Figure&nbsp;13: Série brute
 <div class="cell-output-display">
 <div id="fig-retailx2008-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2008-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-retailx2008-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-retailx2008-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-retailx2008-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;14: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -461,12 +485,12 @@ Figure&nbsp;14: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-retailx2008-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2008-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-retailx2008-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-retailx2008-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-retailx2008-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;15: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
@@ -481,12 +505,12 @@ Figure&nbsp;15: Intervalles de confiance pour les filtres de musgrave
 <div class="cell-output-display">
 <div id="fig-imat2018-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-imat2018-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16: Série brute
+</figcaption>
 <div aria-describedby="fig-imat2018-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-imat2018-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-imat2018-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;16: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -495,12 +519,12 @@ Figure&nbsp;16: Série brute
 <div class="cell-output-display">
 <div id="fig-imat2018-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-imat2018-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-imat2018-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-imat2018-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-imat2018-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;17: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -509,12 +533,12 @@ Figure&nbsp;17: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-imat2018-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-imat2018-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;18: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-imat2018-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-imat2018-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-imat2018-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;18: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
@@ -529,12 +553,12 @@ Figure&nbsp;18: Intervalles de confiance pour les filtres de musgrave
 <div class="cell-output-display">
 <div id="fig-retailx2007-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;19: Série brute
+</figcaption>
 <div aria-describedby="fig-retailx2007-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-retailx2007-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-retailx2007-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;19: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -543,12 +567,12 @@ Figure&nbsp;19: Série brute
 <div class="cell-output-display">
 <div id="fig-retailx2007-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;20: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-retailx2007-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-retailx2007-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-retailx2007-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;20: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -557,12 +581,12 @@ Figure&nbsp;20: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-retailx2007-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;21: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-retailx2007-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-retailx2007-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-retailx2007-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;21: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
@@ -574,12 +598,12 @@ Figure&nbsp;21: Intervalles de confiance pour les filtres de musgrave
 <div class="cell-output-display">
 <div id="fig-ce160v2001-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce160v2001-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22: Série brute
+</figcaption>
 <div aria-describedby="fig-ce160v2001-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ce160v2001-y-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ce160v2001-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;22: Série brute
-</figcaption>
 </figure>
 </div>
 </div>
@@ -588,12 +612,12 @@ Figure&nbsp;22: Série brute
 <div class="cell-output-display">
 <div id="fig-ce160v2001-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce160v2001-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;23: Estimations en temps réel de la tendance-cycle
+</figcaption>
 <div aria-describedby="fig-ce160v2001-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ce160v2001-est-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ce160v2001-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;23: Estimations en temps réel de la tendance-cycle
-</figcaption>
 </figure>
 </div>
 </div>
@@ -602,33 +626,151 @@ Figure&nbsp;23: Estimations en temps réel de la tendance-cycle
 <div class="cell-output-display">
 <div id="fig-ce160v2001-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce160v2001-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24: Intervalles de confiance pour les filtres de musgrave
+</figcaption>
 <div aria-describedby="fig-ce160v2001-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ce160v2001-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ce160v2001-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;24: Intervalles de confiance pour les filtres de musgrave
-</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="construction-dintervalles-de-confiance" class="level3">
-<h3 class="anchored" data-anchor-id="construction-dintervalles-de-confiance">Construction d’intervalles de confiance</h3>
+</section>
+</section>
+<section id="annexe" class="level1">
+<h1>Annexe</h1>
+<section id="construction-dintervalles-de-confiance" class="level2">
+<h2 class="anchored" data-anchor-id="construction-dintervalles-de-confiance">Construction d’intervalles de confiance</h2>
 <p>Soit <span class="math inline">\(\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}\)</span> une moyenne mobile. Si <span class="math inline">\(\theta\)</span> permet d’avoir un estimateur sans biais de la tendance-cycle <span class="math inline">\(TC_t\)</span> (<span class="math inline">\(\mathbb E[\hat{TC}_t]=TC_t\)</span> avec <span class="math inline">\(\hat{TC}_t = \sum_{i=-p}^p\theta_iy_i\)</span>), alors un intervalle de confiance peut être calculé à partir de la formule : <span class="math display">\[
 I_t=\left[\hat{TC}_t - q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{f}\theta_i^2};
 \hat{TC}_t  + q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{f}\theta_i^2}\right]
-\]</span> Indeed, as shown by <span class="citation" data-cites="Loader1999">@Loader1999</span>, the variance <span class="math inline">\(\sigma^2\)</span> can be estimating using the normalized residual sum of squares: <span class="math display">\[
+\]</span> Indeed, as shown by <span class="citation" data-cites="Loader1999">Loader (<a href="#ref-Loader1999" role="doc-biblioref">1999</a>)</span>, the variance <span class="math inline">\(\sigma^2\)</span> can be estimating using the normalized residual sum of squares: <span class="math display">\[
 \hat\sigma^2=\frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(y_t-\widehat{TC}_t)^2.
 \]</span> With <span class="math inline">\(\theta\)</span> only <span class="math inline">\(n-p-f\)</span> observations can be used to estimate <span class="math inline">\(\sigma^2\)</span>. <span class="math inline">\(\nu_1\)</span> and <span class="math inline">\(\nu_2\)</span> are two definitions of degrees of freedom of a local fit (generalization of the number of parameters of a parametric model). In the case of local polynomial smoothing, they can be linked to the coefficient of the associated filter: <span class="math inline">\(\nu_1 = (n-p-f)\theta_0\)</span> (number of observations multiplied by the central coefficient of the moving average) and <span class="math inline">\(\nu_2 = (n-p-f)\sum_{i=-h}^{h} \theta_i^2\)</span> (number of observations multiplied by the sum of squares of coefficients of the moving average). Thus, the variance can be estimated by: <span class="math display">\[
 \hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{TC}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{f} \theta_i^2}.
 \]</span> This is implemented in the function <code>rjd3filters::var_estimator()</code>. This estimator assumes that <span class="math inline">\(\widehat{TC}_t\)</span> is unbiased, so variance estimates intervals are usually computed at small bandwidths (<span class="math inline">\(h\)</span>). In this paper we study monthly series with small bandwidth (<span class="math inline">\(h=6\)</span>), and the variance is estimated using local polynomial of degree 3 (Henderson filter), the biased of <span class="math inline">\(\widehat{TC}_t\)</span> is thus already small and using smaller bandwidths have almost no impact on the estimates (see supplemental materials).</p>
 </section>
+<section id="moyennes-mobiles-utilisées" class="level2">
+<h2 class="anchored" data-anchor-id="moyennes-mobiles-utilisées">Moyennes mobiles utilisées</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-mm-musgrave" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-mm-musgrave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;25: Henderson et filtre de musgrave
+</figcaption>
+<div aria-describedby="fig-mm-musgrave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-mm-musgrave-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-clf" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-clf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;26: Cascade linear filter
+</figcaption>
+<div aria-describedby="fig-clf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-clf-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-clfnn" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-clfnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;27: Cascade linear filter et cut and normalize
+</figcaption>
+<div aria-describedby="fig-clfnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-clfnn-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-robust-ao" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-ao-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;28: Filtre robuste AO présent à la dernière date
+</figcaption>
+<div aria-describedby="fig-robust-ao-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-robust-ao-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-robust-aols" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-aols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;29: Filtre robuste AO puis LS présent à la dernière date
+</figcaption>
+<div aria-describedby="fig-robust-aols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-robust-aols-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-robust-ls" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-ls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;30: Filtre robuste LS présent à la dernière date
+</figcaption>
+<div aria-describedby="fig-robust-ls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-robust-ls-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-robust-lsls" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-lsls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;31: Filtre robuste deux LS présents aux deux dernières dates
+</figcaption>
+<div aria-describedby="fig-robust-lsls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-robust-lsls-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+
 </section>
 </section>
 
 
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Notes de bas de page</h2>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">Les références</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-henderson1916note" class="csl-entry" role="listitem">
+Henderson, Robert. 1916. <span>«&nbsp;Note on graduation by adjusted average&nbsp;»</span>. <em>Transactions of the actuarial society of America</em> 17: 43‑48.
+</div>
+<div id="ref-Loader1999" class="csl-entry" role="listitem">
+Loader, Clive. 1999. <em>Local regression and likelihood</em>. New York: Springer-Verlag. <a href="https://doi.org/10.1007/b98858">https://doi.org/10.1007/b98858</a>.
+</div>
+<div id="ref-musgrave1964set" class="csl-entry" role="listitem">
+Musgrave, John C. 1964. <span>«&nbsp;A set of end weights to end all end weights&nbsp;»</span>. <em>US Census Bureau [custodian]</em>.
+</div>
+<div id="ref-proietti2008" class="csl-entry" role="listitem">
+Proietti, Tommaso, et Alessandra Luati. 2008. <span>«&nbsp;Real time estimation in local polynomial regression, with application to trend-cycle analysis&nbsp;»</span>. <em>Ann. Appl. Stat.</em> 2 (4): 1523‑53. <a href="https://doi.org/10.1214/08-AOAS195">https://doi.org/10.1214/08-AOAS195</a>.
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Notes de bas de page</h2>
 
 <ol>
 <li id="fn1"><p> Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série temporelle : à chaque date <span class="math inline">\(t\)</span> on calcule une moyenne pondérée de <span class="math inline">\(p\)</span> points passés et <span class="math inline">\(q\)</span> points futurs où <span class="math inline">\(p,q\geq0\)</span> dépend de la moyenne mobile.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>

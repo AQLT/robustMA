@@ -6,9 +6,25 @@ format:
     toc-depth: 3
     include-before-body: template/preambule.html
     output-file: index
+  pdf:
+    include-in-header: template/preambule.tex
+    keep-tex: true
+    classoption: french
+    cite-method: biblatex
+    pdf-engine: pdflatex
+    papersize: A4
+    fig-width: 7.5
+    toc: false # to include abstract first
+    fig-pos: 'H'
+execute: 
+  cache: true
 lang: fr
 echo: false
 toc: true
+tbl-cap-location: top
+fig-cap-location: top
+bibliography: biblio.bib
+# csl: chicago-author-date.csl
 ---
 
 ```{r}
@@ -117,7 +133,7 @@ $$
 
 Moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale
 $$
-\forall j\in\left\llbracket -h,h\right\rrbracket : y_{t+j}=\underbrace{\sum_{i=0}^{d}\beta_{i}j^{i}}_{m_{t+j}}+\varepsilon_{t+j}
+\forall j\in\{ -h,-h+1,\dots, h\} : y_{t+j}=\underbrace{\sum_{i=0}^{d}\beta_{i}j^{i}}_{m_{t+j}}+\varepsilon_{t+j}
 $$
 
 Estimation en utilisant les WLS avec *noyaux*: $\hat{\beta}=(X'KX)^{1}X'Ky$ et
@@ -456,8 +472,9 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 patchwork::wrap_plots(graph_ci, ncol = 3)
 ```
 
+# Annexe
 
-### Construction d'intervalles de confiance
+## Construction d'intervalles de confiance
 
 Soit $\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile.
 Si $\theta$ permet d'avoir un estimateur sans biais de la tendance-cycle $TC_t$ ($\mathbb E[\hat{TC}_t]=TC_t$ avec $\hat{TC}_t = \sum_{i=-p}^p\theta_iy_i$), alors un intervalle de confiance peut être calculé à partir de la formule :
@@ -481,3 +498,47 @@ This estimator assumes that $\widehat{TC}_t$ is unbiased, so variance estimates 
 In this paper we study monthly series with small bandwidth ($h=6$), and the variance is estimated using local polynomial of degree 3 (Henderson filter), the biased of $\widehat{TC}_t$ is thus already small and using smaller bandwidths have almost no impact on the estimates (see supplemental materials).
 
 
+## Moyennes mobiles utilisées
+
+
+```{r}
+#| label: fig-mm-musgrave
+#| fig.cap: "Henderson et filtre de musgrave"
+ggdemetra3::ggplot_coef(lp_filter(), q= 0:6)
+```
+
+```{r}
+#| label: fig-clf
+#| fig.cap: "Cascade linear filter"
+ggdemetra3::ggplot_coef(CLF, q= 0:6)
+```
+
+```{r}
+#| label: fig-clfnn
+#| fig.cap: "Cascade linear filter et cut and normalize"
+ggdemetra3::ggplot_coef(CLF_CN, q= 0:6)
+```
+
+```{r}
+#| label: fig-robust-ao
+#| fig.cap: "Filtre robuste AO présent à la dernière date"
+ggdemetra3::ggplot_coef(robust_ff$ao$t0, q= 0:7)
+```
+
+```{r}
+#| label: fig-robust-aols
+#| fig.cap: "Filtre robuste AO puis LS présent à la dernière date"
+ggdemetra3::ggplot_coef(robust_ff$aols$`t-1`, q= 0:7)
+```
+
+```{r}
+#| label: fig-robust-ls
+#| fig.cap: "Filtre robuste LS présent à la dernière date"
+ggdemetra3::ggplot_coef(robust_ff$ls$t0, q= 0:7)
+```
+
+```{r}
+#| label: fig-robust-lsls
+#| fig.cap: "Filtre robuste deux LS présents aux deux dernières dates"
+ggdemetra3::ggplot_coef(robust_ff$lsls$`t-1`, q= 0:7)
+```
