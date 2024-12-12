@@ -131,18 +131,74 @@ $$
 
 ## Moyennes mobiles linéaires
 
-Moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale
+Les moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale.
+En reprenant les notations de @proietti2008, on suppose que notre série temporelle $y_t$ peut être décomposée en :
 $$
-\forall j\in\{ -h,-h+1,\dots, h\} : y_{t+j}=\underbrace{\sum_{i=0}^{d}\beta_{i}j^{i}}_{m_{t+j}}+\varepsilon_{t+j}
+y_t=TC_t+\varepsilon_t,
 $$
+où $TC_t$ est la tendance-cycle et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit. 
+La tendance-cycle $\TC_t$ est localement approchée par un polynôme de degré $d$, de sorte que dans un voisinage $h$ de $t$ $TC_t\simeq m_{t}$ avec :
+$$
+\forall j\in\left\{-h,-h+1,\dots,h\right\},\:
+y_{t+j}=m_{t+j}+\varepsilon_{t+j},\quad m_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i}.
+$$
+En notation matricielle :
+$$
+\underbrace{\begin{pmatrix}y_{t-h}\\
+y_{t-(h-1)}\\
+\vdots\\
+y_{t}\\
+\vdots\\
+y_{t+(h-1)}\\
+y_{t+h}
+\end{pmatrix}}_{\boldsymbol y}=\underbrace{\begin{pmatrix}1 & -h & h^{2} & \cdots & (-h)^{d}\\
+1 & -(h-1) & (h-1)^{2} & \cdots & (-(h-1))^{d}\\
+\vdots & \vdots & \vdots & \cdots & \vdots\\
+1 & 0 & 0 & \cdots & 0\\
+\vdots & \vdots & \vdots & \cdots & \vdots\\
+1 & h-1 & (h-1)^{2} & \cdots & (h-1)^{d}\\
+1 & h & h^{2} & \cdots & h^{d}
+\end{pmatrix}}_{\boldsymbol X}\underbrace{\begin{pmatrix}\beta_{0}\\
+\beta_{1}\\
+\vdots\\
+\vdots\\
+\vdots\\
+\vdots\\
+\beta_{d}
+\end{pmatrix}}_{\boldsymbol \beta}+\underbrace{\begin{pmatrix}\varepsilon_{t-h}\\
+\varepsilon_{t-(h-1)}\\
+\vdots\\
+\varepsilon_{t}\\
+\vdots\\
+\varepsilon_{t+(h-1)}\\
+\varepsilon_{t+h}
+\end{pmatrix}}_{\boldsymbol \varepsilon}.
+$$ {#eq-lpp-mat}
 
-Estimation en utilisant les WLS avec *noyaux*: $\hat{\beta}=(X'KX)^{1}X'Ky$ et
+L'estimation des paramètres $\boldsymbol \beta$ peut être obtenue moindres carrés pondérés --- *weighted least squares* (WLS) --- à partir d'un ensemble de poids $(\kappa_j)_{-h\leq j \leq h}$ appelés noyaux.
+En notant $\boldsymbol K=diag(\kappa_{-h},\dots,\kappa_{h})$ il vient $\hat{\boldsymbol\beta}=(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\transp{\boldsymbol X}\boldsymbol K\boldsymbol y.$
+Avec $\boldsymbol e_1=\transp{\begin{pmatrix}1 &0 &\cdots&0 \end{pmatrix}}$, l'estimation de la tendance-cycle est :
 $$
-\hat{TC}_{t}=\hat\beta_0=w'y=\sum_{j=-h}^{h}w_{j}y_{t-j}
+\widehat{TC}_t=\boldsymbol e_{1}\hat{\boldsymbol \beta}=\transp{\boldsymbol \theta}\boldsymbol y=\sum_{j=-h}^{h}\theta_{j}y_{t-j}\text{ avec }\boldsymbol \theta=\boldsymbol K\boldsymbol X(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\boldsymbol e_{1}.
+$$ {#eq-mmsym}
+En somme, l'estimation de la tendance $\hat{m}_{t}$ est obtenue en appliquant une moyenne mobile symétrique $\boldsymbol \theta$ à $y_t$.
+
+On retrouve la moyenne mobile de Henderson en utilisant les noyaux :
 $$
-En ajoutant un régresseur $x_t$ on peut donc obtenir une nouvelle moyenne mobile donc l'estimation de $\beta_0$ prendrait en compte l'effet modélisé par $x_t$
+\kappa_{j}=\left[1-\frac{j^2}{(h+1)^2}\right]
+\left[1-\frac{j^2}{(h+2)^2}\right]
+\left[1-\frac{j^2}{(h+3)^2}\right].
 $$
-y_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i} + \gamma x_{t+j}+\varepsilon_{t+j}
+De plus, puisque $\transp{\boldsymbol X}\boldsymbol \theta=\boldsymbol e_{1}$ on a:
+$$
+\sum_{j=-h}^{h}\theta_{j}=1,\quad\forall r\in\left\{1,2,\dots,d\right\}:\sum_{j=-h}^{h}j^{r}\theta_{j}=0.
+$$
+La moyenne mobile $\boldsymbol \theta$ conserve donc les tendances polynomiales de degré $d$.
+
+
+En ajoutant un régresseur $O_t$ on peut donc obtenir une nouvelle moyenne mobile donc l'estimation de $\beta_0$ prendrait en compte l'effet modélisé par $x_t$
+$$
+y_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i} + \gamma O_{t+j}+\varepsilon_{t+j}
 $$
 
 Deux cas sont ici étudiés :
@@ -172,6 +228,123 @@ Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymb
 Cela introduit du biais mais réduit la variance. 
 Le filtre de Musgrave se retrouve en modélisant $y_t$ linéaire ($d=1$) et $v$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique.
 Les filtres asymétriques robustes sont construits en ajoutant un régresseur supplémentaire à $\boldsymbol U$ (estimation sans biais de l'outlier) et en utilisant comme filtre symétrique celui construit en utilisant le même régresseur.
+
+## Construction d'intervalles de confiance pour des moyennes mobiles
+
+Soit $y_1,\dots,y_n$ une série chronologique observée.
+On suppose qu'elle peut être décomposée en 
+$$
+y_t=\mu_t+\varepsilon_t,
+$$
+où $\mu_t$ est une composante observée déterministe et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
+
+Soit $\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
+Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
+
+Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ peut être calculé à partir de la formule :
+$$
+I_t=\left[\hat{\mu}_t - q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2};
+ \hat{\mu}_t  + q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2}\right]
+$$
+où 
+$$
+\hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{\mu}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{+f} \theta_i^2}.
+$$
+et $q_\alpha$ est le quantile d'ordre $\alpha$ d'une certaine loi de Student.
+C'est un intervalle de confiance de $\mu_t$ lorsque l'on a un estimateur sans biais de $\mu_t$ ($\mathbb E[\hat{\mu}_t]=\sum_{i=-p}^{+f}\theta_iy_{t+i}=\mu_t$), ce qui n'est généralement pas le cas mais il est négligeablelorsque la fenêtre $p+f+1$ est petite.
+
+Ces formules ces retrouvent par analogie avec la régression polynomiale locale.
+En reprenant les notations de @Loader1999 pour la régression polynomiale locale et en adaptant à l'utilisation de moyennes mobiles, la variance $\hat\sigma^2$ peut être estimée par la somme des carrés des résidus normalisés :
+$$
+\hat\sigma^2=\frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2.
+$$
+$n-p-f$ termes sont utilisés car avec la moyenne mobile $\theta$ seulement $n-p-f$ observations peuvent être utilisées pour estimer $\sigma^2$.
+$\nu_1$ et $\nu_2$ sont deux définitions de degrés de liberté d'une estimation locale (généralisation du nombre de paramètres d'un modèle paramétrique).
+Notons $\boldsymbol H$ la *matrice chapeau* de taille $n\times n$ permettant de faire correspondre les données aux valeurs estimées :
+$$
+\begin{pmatrix}
+\hat{\mu}_1\\ \vdots \\ \hat{\mu}_n
+\end{pmatrix} = \boldsymbol H \boldsymbol Y
+\text{ avec }
+\boldsymbol Y = \begin{pmatrix}
+y_1\\ \vdots \\ y_n
+\end{pmatrix}.
+$$
+En considérant par convention que $\hat\mu_1=\dots=\hat{\mu}_p=\hat\mu_{n-f+1}=\dots=\hat\mu_n=0$ (puisque l'on ne peut pas estimer ces quantités avec la moyenne mobile $\boldsymbol \theta$), on a donc :
+$$
+\boldsymbol H=\begin{pmatrix}
+&&\boldsymbol0_{p\times n} \\
+\theta_{-p} & \cdots & \theta_f  & 0 & \cdots\\
+0 & \theta_{-p} & \cdots & \theta_f  & 0 & \cdots
+\\ & \ddots &&&\ddots\\
+0 &\cdots&0& \theta_{-p} & \cdots & \theta_f \\
+&&\boldsymbol0_{f\times n} 
+\end{pmatrix},
+$$
+où $\boldsymbol 0_{p\times n}$ est la matrice de taille $p\times n$ ne contenant que de zéros.
+On a :
+$$
+\begin{cases}
+\nu_1 =\tr (L) = (n-p-f)\theta_0\\
+\nu_2 = \tr (\transp{L}L) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
+\end{cases}.
+$$
+Si les bruits $\varepsilon_t$ sont indépendants et de variance $\sigma^2$, alors :
+$$
+\V{Y_t-\hat_{\mu}_t}=\sigma^2 - 
+2\underbrace{\cov{Y_t,\hat{\mu}_t}}_{=\theta_0\sigma^2} + 
+\underbrace{\V{\hat{\mu}_t}}_{=\sigma^2\sum_{i=-p}^{+f} \theta_i^2}
+$$
+et l'on a donc :
+$$
+\E{\hat\sigma^2}=\sigma^2 + \frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(\E{\hat \mu_t}-\mu_t)^2.
+$$
+L'estimateur $\hat\sigma^2$ est donc sans biais si $\hat\mu_t$ l'est aussi.
+
+
+La somme des carrés des résidus peut s'écrire sous forme quadratique :
+$$
+\sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2 =
+\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y 
+$$
+où :
+$$
+\boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
+\boldsymbol I = \begin{pmatrix}
+&\boldsymbol0_{p\times n} \\
+\boldsymbol 0_{(n-p-f)\times p} &I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
+&\boldsymbol0_{f\times n} 
+\end{pmatrix}
+$$
+et $I_{n-p-f}$ la matrice identité de taille $n-p-f.$
+On a donc :
+$$
+\hat\sigma^2=\frac{1}{\tr{\boldsymbol \Gamma}}\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y
+$$
+et 
+$$
+\begin{cases}
+\E{\hat\sigma^2}=\sigma^2\tr(\boldsymbol \Gamma)\\
+\V{\hat\sigma^2}=2\sigma^4\frac{\tr(\boldsymbol \Gamma^2)}{\tr(\boldsymbol \Gamma)^2}
+\end{cases}.
+$$
+En notant $\nu = \tr(\boldsymbol \Gamma)^2 / \tr(\boldsymbol \Gamma^2)$, on a donc :
+$$
+\begin{cases}
+\E{\nu\frac{\hat\sigma^2}{\sigma^2}}=\nu\\
+\V{\nu\frac{\hat\sigma^2}{\sigma^2}}=2\nu
+\end{cases}.
+$$
+Les deux premiers moments de $\nu \hat\sigma^2/\sigma^2$ sont donc identiques à ceux d'un loi du chi-deux avec $\nu$ degrés de liberté : on peut donc approximer la distribution de $\hat\sigma^2$ par une loi du chi-deux.
+
+Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on a donc :
+$$
+\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu)
+$$
+Le paramètre $\nu$ peut être calculé analytiquement en reconstruisant la matrice $\boldsymbol \Gamma$ (c'est ce qui est fait par défaut dans `rjd3filters::confint_filter()`).
+Il peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire le temps de calcul^[
+Sur une série mensuelle de 19 ans, le temps de calcul est d'environ 0,1 secondes et est divisé d'en moyenne 4 000 en utilisant l'approximation.
+].
 
 # Résultats
 
@@ -474,122 +647,6 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 
 # Annexe
 
-## Construction d'intervalles de confiance pour des moyennes mobiles
-
-Soit $y_1,\dots,y_n$ une série chronologique observée.
-On suppose qu'elle peut être décomposée en 
-$$
-y_t=\mu_t+\varepsilon_t,
-$$
-où $\mu_t$ est une composante observée déterministe et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
-
-Soit $\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
-Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
-
-Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ peut être calculé à partir de la formule :
-$$
-I_t=\left[\hat{\mu}_t - q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2};
- \hat{\mu}_t  + q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2}\right]
-$$
-où 
-$$
-\hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{\mu}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{+f} \theta_i^2}.
-$$
-et $q_\alpha$ est le quantile d'ordre $\alpha$ d'une certaine loi de Student.
-C'est un intervalle de confiance de $\mu_t$ lorsque l'on a un estimateur sans biais de $\mu_t$ ($\mathbb E[\hat{\mu}_t]=\sum_{i=-p}^{+f}\theta_iy_{t+i}=\mu_t$), ce qui n'est généralement pas le cas mais il est négligeablelorsque la fenêtre $p+f+1$ est petite.
-
-Ces formules ces retrouvent par analogie avec la régression polynomiale locale.
-En reprenant les notations de @Loader1999 pour la régression polynomiale locale et en adaptant à l'utilisation de moyennes mobiles, la variance $\hat\sigma^2$ peut être estimée par la somme des carrés des résidus normalisés :
-$$
-\hat\sigma^2=\frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2.
-$$
-$n-p-f$ termes sont utilisés car avec la moyenne mobile $\theta$ seulement $n-p-f$ observations peuvent être utilisées pour estimer $\sigma^2$.
-$\nu_1$ et $\nu_2$ sont deux définitions de degrés de liberté d'une estimation locale (généralisation du nombre de paramètres d'un modèle paramétrique).
-Notons $\boldsymbol H$ la *matrice chapeau* de taille $n\times n$ permettant de faire correspondre les données aux valeurs estimées :
-$$
-\begin{pmatrix}
-\hat{\mu}_1\\ \vdots \\ \hat{\mu}_n
-\end{pmatrix} = \boldsymbol H \boldsymbol Y
-\text{ avec }
-\boldsymbol Y = \begin{pmatrix}
-y_1\\ \vdots \\ y_n
-\end{pmatrix}.
-$$
-En considérant par convention que $\hat\mu_1=\dots=\hat{\mu}_p=\hat\mu_{n-f+1}=\dots=\hat\mu_n=0$ (puisque l'on ne peut pas estimer ces quantités avec la moyenne mobile $\boldsymbol \theta$), on a donc :
-$$
-\boldsymbol H=\begin{pmatrix}
-&&\boldsymbol0_{p\times n} \\
-\theta_{-p} & \cdots & \theta_f  & 0 & \cdots\\
-0 & \theta_{-p} & \cdots & \theta_f  & 0 & \cdots
-\\ & \ddots &&&\ddots\\
-0 &\cdots&0& \theta_{-p} & \cdots & \theta_f \\
-&&\boldsymbol0_{f\times n} 
-\end{pmatrix},
-$$
-où $\boldsymbol 0_{p\times n}$ est la matrice de taille $p\times n$ ne contenant que de zéros.
-On a :
-$$
-\begin{cases}
-\nu_1 =\tr (L) = (n-p-f)\theta_0\\
-\nu_2 = \tr (\transp{L}L) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
-\end{cases}.
-$$
-Si les bruits $\varepsilon_t$ sont indépendants et de variance $\sigma^2$, alors :
-$$
-\V{Y_t-\hat_{\mu}_t}=\sigma^2 - 
-2\underbrace{\cov{Y_t,\hat{\mu}_t}}_{=\theta_0\sigma^2} + 
-\underbrace{\V{\hat{\mu}_t}}_{=\sigma^2\sum_{i=-p}^{+f} \theta_i^2}
-$$
-et l'on a donc :
-$$
-\E{\hat\sigma^2}=\sigma^2 + \frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(\E{\hat \mu_t}-\mu_t)^2.
-$$
-L'estimateur $\hat\sigma^2$ est donc sans biais si $\hat\mu_t$ l'est aussi.
-
-
-La somme des carrés des résidus peut s'écrire sous forme quadratique :
-$$
-\sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2 =
-\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y 
-$$
-où :
-$$
-\boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
-\boldsymbol I = \begin{pmatrix}
-&\boldsymbol0_{p\times n} \\
-\boldsymbol 0_{(n-p-f)\times p} &I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
-&\boldsymbol0_{f\times n} 
-\end{pmatrix}
-$$
-et $I_{n-p-f}$ la matrice identité de taille $n-p-f.$
-On a donc :
-$$
-\hat\sigma^2=\frac{1}{\tr{\boldsymbol \Gamma}}\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y
-$$
-et 
-$$
-\begin{cases}
-\E{\hat\sigma^2}=\sigma^2\tr(\boldsymbol \Gamma)\\
-\V{\hat\sigma^2}=2\sigma^4\frac{\tr(\boldsymbol \Gamma^2)}{\tr(\boldsymbol \Gamma)^2}
-\end{cases}.
-$$
-En notant $\nu = \tr(\boldsymbol \Gamma)^2 / \tr(\boldsymbol \Gamma^2)$, on a donc :
-$$
-\begin{cases}
-\E{\nu\frac{\hat\sigma^2}{\sigma^2}}=\nu\\
-\V{\nu\frac{\hat\sigma^2}{\sigma^2}}=2\nu
-\end{cases}.
-$$
-Les deux premiers moments de $\nu \hat\sigma^2/\sigma^2$ sont donc identiques à ceux d'un loi du chi-deux avec $\nu$ degrés de liberté : on peut donc approximer la distribution de $\hat\sigma^2$ par une loi du chi-deux.
-
-In the case of local polynomial smoothing, they can be linked to the coefficient of the associated filter: $\nu_1 = (n-p-f)\theta_0$ (number of observations multiplied by the central coefficient of the moving average) and $\nu_2 = (n-p-f)\sum_{i=-h}^{h} \theta_i^2$ (number of observations multiplied by the sum of squares of coefficients of the moving average).
-Thus, the variance can be estimated by:
-$$
-\hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{TC}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{f} \theta_i^2}.
-$$
-This is implemented in the function `rjd3filters::var_estimator()`.
-This estimator assumes that $\widehat{TC}_t$ is unbiased, so variance estimates intervals are usually computed at small bandwidths ($h$).
-In this paper we study monthly series with small bandwidth ($h=6$), and the variance is estimated using local polynomial of degree 3 (Henderson filter), the biased of $\widehat{TC}_t$ is thus already small and using smaller bandwidths have almost no impact on the estimates (see supplemental materials).
 
 
 ## Moyennes mobiles utilisées
