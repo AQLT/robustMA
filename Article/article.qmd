@@ -95,6 +95,7 @@ L'application directe des méthodes peut donc conduire à des estimations biais�
 
 ## Méthodes robustes
 
+Dans cette étude nous étudions étudions 6 méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter]
 
 $$
 y_{t+i}=\mu_t+\beta_ti+\varepsilon_{t,i}\text{ et }
@@ -107,17 +108,17 @@ $$
 \hat\mu_t=\underset{i=-m,\dots,m}{\med}y_{t+i}
 $$
 
-- Least Median of Squares regression (LMS)
+- Least Median of Squares regression (LMS) [@lms]
 $$
 (\hat\mu_t,\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \underset{i=-m,\dots,m}{\med}r^2_{t+i} \right\}
 $$
 
-- Least Trimmed Squares regression (LTS)
+- Least Trimmed Squares regression (LTS) [@lts]
 $$
 (\hat\mu_t,\hat\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \sum_{i=-m}^m r^2_{t+i} \right\}
 $$
 
-- Repeated Median regression (RM)
+- Repeated Median regression (RM) [@rm]
 $$
 \hat{\beta}_{t}=\underset{i=1,\dots,n}{\med}\left\{ \underset{i\ne j}{\med}\frac{y_{t+i}-y_{t+j}}{i-j} \right\}
 $$
@@ -125,9 +126,29 @@ et
 $$
 \hat\mu_t=\underset{i=1,\dots,n}{\med}\left\{ y_{t+i}-i\hat{\beta}_{t} \right\}
 $$
-- Least Quartile Difference regression (LQD)
+- Least Quartile Difference regression (LQD) []
+En notant $r_{i,j} = r_i-r_j$
+$$
+(\hat\mu_t,\hat\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \sum_{i=-m}^m r^2_{t+i} \right\}
+$$
 
-- Deepest Regression (DR)
+- Deepest Regression (DR) [@DeepestRegression]
+$$
+(\hat\mu_t,\hat\beta_t)=\underset{\tilde\mu_t,\tilde\beta_t}{\argmax}\left\{ rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) \right\}
+$$
+where the regression depth of a fit $(\tilde\mu,\tilde\beta)$ to a sample $\boldsymbol y$ is defined as :
+$$
+rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) = \underset{-h\leq i\leq h}{\min}
+\left\{ \min \left\{ L^+(i) + R^-(i);R^+(i) + L^-(i) \right\}\right\}
+$$
+avec :
+$$
+\begin{cases}
+L^+(i) = L^+_{\tilde\mu,\tilde\beta}(i) = cardinal \left\{ j\in\{-h,\dots,i\} : r_j(\tilde\mu,\tilde\beta)\leq 0 \right\} \\
+R^-(i) = R^-_{\tilde\mu,\tilde\beta}(i) = cardinal \left\{ j\in\{i+1,\dots,h\} : r_j(\tilde\mu,\tilde\beta)< 0 \right\}
+\end{cases}
+$$
+et $L^-(i)$ et $R^+(i)$ définis de manière analogue
 
 ## Moyennes mobiles linéaires
 
