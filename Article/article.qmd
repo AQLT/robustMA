@@ -95,7 +95,8 @@ L'application directe des méthodes peut donc conduire à des estimations biais�
 
 ## Méthodes robustes
 
-Dans cette étude nous étudions étudions 6 méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter]
+Dans cette étude nous étudions étudions 6 méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter].
+Dans ce package, la tendance-cycle est supposée être localement linéaire
 
 $$
 y_{t+i}=\mu_t+\beta_ti+\varepsilon_{t,i}\text{ et }
@@ -126,7 +127,7 @@ et
 $$
 \hat\mu_t=\underset{i=1,\dots,n}{\med}\left\{ y_{t+i}-i\hat{\beta}_{t} \right\}
 $$
-- Least Quartile Difference regression (LQD) []
+- Least Quartile Difference regression (LQD) [@lqd]
 En notant $r_{i,j} = r_i-r_j$
 $$
 (\hat\mu_t,\hat\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \sum_{i=-m}^m r^2_{t+i} \right\}
@@ -136,7 +137,7 @@ $$
 $$
 (\hat\mu_t,\hat\beta_t)=\underset{\tilde\mu_t,\tilde\beta_t}{\argmax}\left\{ rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) \right\}
 $$
-where the regression depth of a fit $(\tilde\mu,\tilde\beta)$ to a sample $\boldsymbol y$ is defined as :
+where the *regression depth* of a fit $(\tilde\mu,\tilde\beta)$ to a sample $\boldsymbol y$ is defined as :
 $$
 rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) = \underset{-h\leq i\leq h}{\min}
 \left\{ \min \left\{ L^+(i) + R^-(i);R^+(i) + L^-(i) \right\}\right\}
@@ -148,7 +149,9 @@ L^+(i) = L^+_{\tilde\mu,\tilde\beta}(i) = cardinal \left\{ j\in\{-h,\dots,i\} : 
 R^-(i) = R^-_{\tilde\mu,\tilde\beta}(i) = cardinal \left\{ j\in\{i+1,\dots,h\} : r_j(\tilde\mu,\tilde\beta)< 0 \right\}
 \end{cases}
 $$
-et $L^-(i)$ et $R^+(i)$ définis de manière analogue
+et $L^-(i)$ et $R^+(i)$ définis de manière analogue.
+
+Pour l'estimaion en temps réel, les mêmes algorithmes sont utilisés mais en utilisant moins de points dans le futur futurs.
 
 ## Moyennes mobiles linéaires
 
@@ -371,6 +374,44 @@ Sur une série mensuelle de 19 ans, le temps de calcul est d'environ 0,1 seconde
 
 ## Additive outlier (A0)
 
+### Données simulées
+
+
+```{r}
+res <- readRDS(file.path("..", "results", "simul", "simul_ao.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ao"]])
+```
+
+
+```{r}
+#| label: fig-simul_ao-out1-y
+#| fig.cap: "Série brute"
+graph_y
+```
+
+```{r}
+#| label: fig-simul_ao-out1-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3) 
+```
+
+
+```{r}
+#| label: fig-simul_ao-out1-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+
+
 ### IPI voitures
 
 #### Août 1998
@@ -477,6 +518,44 @@ patchwork::wrap_plots(graph_ci, ncol = 3)
 ```
 
 ## Level shift (LS)
+
+### Données simulées
+
+
+```{r}
+res <- readRDS(file.path("..", "results", "simul", "simul_ls.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ls"]])
+```
+
+
+```{r}
+#| label: fig-simul_ls-out1-y
+#| fig.cap: "Série brute"
+graph_y
+```
+
+```{r}
+#| label: fig-simul_ls-out1-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#| 
+patchwork::wrap_plots(graph_est, ncol = 3) 
+```
+
+
+```{r}
+#| label: fig-simul_ls-out1-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+patchwork::wrap_plots(graph_ci, ncol = 3)
+```
+
 
 ### IPI petrole brut
 
