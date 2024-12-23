@@ -91,7 +91,29 @@ L'application directe des méthodes peut donc conduire à des estimations biais�
 <!-- Si ces moyennes mobiles asymétriques ont de bonnes propriétés concernant la taille des révisions futures induites par le processus de lissage^[Voir par exemple @pierce1980SA.], elles induisent également, par construction, des déphasages qui retardent en général la détection en temps réel des points de retournement. -->
 
 
-# Méthodes utilisées
+# Description des méthodes
+
+L'hypothèse de base utilisée dans les méthodes de décomposition des séries temporelles est que la série temporelle observée, $y_t$, peut être décomposée en une composante de signal $\mu_t$ et une composante erratique $\varepsilon_t$ (appelée composante irrégulière) :
+$$
+f(y_t)=\mu_t+\varepsilon_t
+$$
+où $f$ désigne une transformation appropriée (généralement logarithmique ou aucune transformation).
+Pour simplifier les notations ultérieures, $y_t$ désignera la série observée transformée.
+La composante de bruit $\varepsilon_t$ est généralement supposée être un bruit blanc.
+En supposant que la série temporelle initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
+Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré :
+$$
+TC_{t'} = \sum_{j=0}^d\beta_j{t'}^j+\xi_{t'}\quad\forall t'\in\{t-h,\dots,t+h\}
+$$
+avec $\xi_t$ un processus stochastique non corrélé avec $\varepsilon_t$.
+Même si certains articles modélisent $\xi_t$ et $\varepsilon_t$ séparément [voir par exemple @GrayThomson2002], une hypothèse habituelle, utilisée dans cet article, est de rassembler $\xi_t$ et $\varepsilon_t$^[
+Cela revient à supposer que le biais d'approximation de la tendance-cycle par un polynôme local est nul.
+].
+Ainsi, la tendance-cycle $TC_t$ est considérée comme déterministe et modélisée comme une tendance polynomiale de degré $d$.
+Les coefficients $(\beta_0,\dots,\beta_d)$ peuvent être estimés par la méthode des moindres carrés pondérés.
+L'estimation $\hat \beta_0$ fournit l'estimation du cycle de tendance $\widehat{TC}_t$ et on peut montrer que cela équivaut à appliquer une moyenne mobile.
+<!-- L'objectif de cet article est de présenter deux nouvelles méthodes pour séparer la composante tendance-cycle de la composante bruit en temps réel (c'est-à-dire lorsqu'aucun point futur n'est connu), en utilisant des moyennes mobiles basées sur des techniques de lissage polynomial local. -->
+
 
 ## Méthodes robustes
 
