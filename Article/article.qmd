@@ -101,9 +101,9 @@ où $f$ désigne une transformation appropriée (généralement logarithmique ou
 Pour simplifier les notations ultérieures, $y_t$ désignera la série observée transformée.
 La composante de bruit $\varepsilon_t$ est généralement supposée être un bruit blanc.
 En supposant que la série temporelle initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
-Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré :
+Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$ :
 $$
-TC_{t'} = \sum_{j=0}^d\beta_j{t'}^j+\xi_{t'}\quad\forall t'\in\{t-h,\dots,t+h\}
+TC_{t+i} = \sum_{j=0}^d\beta_j{i}^j+\xi_{t+i}\quad\forall i\in\{-h,-h+1,\dots,t+h\}
 $$
 avec $\xi_t$ un processus stochastique non corrélé avec $\varepsilon_t$.
 Même si certains articles modélisent $\xi_t$ et $\varepsilon_t$ séparément [voir par exemple @GrayThomson2002], une hypothèse habituelle, utilisée dans cet article, est de rassembler $\xi_t$ et $\varepsilon_t$^[
@@ -112,52 +112,71 @@ Cela revient à supposer que le biais d'approximation de la tendance-cycle par u
 Ainsi, la tendance-cycle $TC_t$ est considérée comme déterministe et modélisée comme une tendance polynomiale de degré $d$.
 Les coefficients $(\beta_0,\dots,\beta_d)$ peuvent être estimés par la méthode des moindres carrés pondérés.
 L'estimation $\hat \beta_0$ fournit l'estimation du cycle de tendance $\widehat{TC}_t$ et on peut montrer que cela équivaut à appliquer une moyenne mobile.
-<!-- L'objectif de cet article est de présenter deux nouvelles méthodes pour séparer la composante tendance-cycle de la composante bruit en temps réel (c'est-à-dire lorsqu'aucun point futur n'est connu), en utilisant des moyennes mobiles basées sur des techniques de lissage polynomial local. -->
+
+L'estimation de $\widehat{TC}_t$ étant faite par un méthode linéaire, elle est sensible à la présence de points atypiques.
+L'objectif de cet article est d'étudier différentes méthodes robustes à la présence de points atypiques ainsi que de proposer une méthode de constructions de moyennes mobiles robuste, et de comparer les estimations faites en temps réel par ces différentes méthodes.
 
 
 ## Méthodes robustes
 
-Dans cette étude nous étudions étudions 6 méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter].
-Dans ce package, la tendance-cycle est supposée être localement linéaire
+Dans cette étude nous étudions six méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter].
+Dans ce package, la tendance-cycle est supposée être localement linéaire :
+$$
+y_{t+i}=\underbrace{\beta_{0,t}+\beta_{1,t}i}_{TC_{t+i}}+\varepsilon_{t,i}
+$$
+Et l'on note :
+$$
+r_{t+i}=y_{t+i}-(\beta_{0,t}+\beta_{1,t}i).
+$$
+On a donc :
+$$
+\widehat{TC}_t = \hat\beta_{0,t}.
+$$
 
-$$
-y_{t+i}=\mu_t+\beta_ti+\varepsilon_{t,i}\text{ et }
-r_{t+i}=y_{t+i}-\hat\mu_t-\hat\beta_ti
-$$
+Les différentes méthodes étudiées sont :
 
 - Médiane mobile :
 
 $$
-\hat\mu_t=\underset{i=-m,\dots,m}{\med}y_{t+i}
+\widehat{TC}_t =
+\underset{i=-h,\dots,h}{\med}y_{t+i}
 $$
 
-- Least Median of Squares regression (LMS) [@lms]
+- Régression des moindres carrés médians --- *Least Median of Squares* (LMS) [@lms] :
 $$
-(\hat\mu_t,\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \underset{i=-m,\dots,m}{\med}r^2_{t+i} \right\}
-$$
-
-- Least Trimmed Squares regression (LTS) [@lts]
-$$
-(\hat\mu_t,\hat\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \sum_{i=-m}^m r^2_{t+i} \right\}
+(\widehat{TC}_t,\hat\beta_{1,t})=
+\underset{\beta_{0,t},\beta_{1,t}}{\argmin}
+\left\{ \underset{i=-h,\dots,h}{\med}r^2_{t+i} \right\}
 $$
 
-- Repeated Median regression (RM) [@rm]
+- Régression des moindre carrés élagués --- *Least Trimmed Squares* (LTS) [@lts]
 $$
-\hat{\beta}_{t}=\underset{i=1,\dots,n}{\med}\left\{ \underset{i\ne j}{\med}\frac{y_{t+i}-y_{t+j}}{i-j} \right\}
+(\widehat{TC}_t,\hat\beta_{1,t})=
+\underset{\beta_{0,t},\beta_{1,t}}{\argmin}
+\left\{ \sum_{i=-h}^h r^2_{t+i} \right\}
+$$
+
+- Régression médiane répétée --- *Repeated Median* (RM) [@rm]
+$$
+\hat{\beta}_{1,t}=
+\underset{i=-h,\dots,h}{\med}
+\left\{ \underset{i\ne j}{\med}\frac{y_{t+i}-y_{t+j}}{i-j} \right\}
 $$
 et 
 $$
-\hat\mu_t=\underset{i=1,\dots,n}{\med}\left\{ y_{t+i}-i\hat{\beta}_{t} \right\}
+\widehat{TC}_t=
+\underset{i=-h,\dots,h}{\med}
+\left\{ y_{t+i}-i\hat{\beta}_{1,t} \right\}
 $$
-- Least Quartile Difference regression (LQD) [@lqd]
+- Régression des moindres quartiles différenciés --- *Least Quartile Difference* (LQD) [@lqd] TODO
 En notant $r_{i,j} = r_i-r_j$
 $$
-(\hat\mu_t,\hat\beta_t)=\underset{\hat\mu_t,\beta_t}{\argmin}\left\{ \sum_{i=-m}^m r^2_{t+i} \right\}
+(\widehat{TC}_t=,\hat\beta_{1,t})=\underset{\hat\beta_{0,t},\beta_{1,t}}{\argmin}\left\{ \sum_{i=-h}^h r^2_{t+i} \right\}
 $$
 
-- Deepest Regression (DR) [@DeepestRegression]
+- Régression profonde --- *Deepest Regression* (DR) [@DeepestRegression]
 $$
-(\hat\mu_t,\hat\beta_t)=\underset{\tilde\mu_t,\tilde\beta_t}{\argmax}\left\{ rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) \right\}
+(\widehat{TC}_t=\hat\beta_{0,t},\hat\beta_{1,t})=\underset{\tilde\beta_{0,t},\tilde\beta_{1,t}}{\argmax}\left\{ rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) \right\}
 $$
 where the *regression depth* of a fit $(\tilde\mu,\tilde\beta)$ to a sample $\boldsymbol y$ is defined as :
 $$
