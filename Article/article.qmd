@@ -21,6 +21,7 @@ execute:
 lang: fr
 echo: false
 toc: true
+number-sections: true
 tbl-cap-location: top
 fig-cap-location: top
 bibliography: biblio.bib
@@ -91,7 +92,7 @@ L'application directe des méthodes peut donc conduire à des estimations biais�
 <!-- Si ces moyennes mobiles asymétriques ont de bonnes propriétés concernant la taille des révisions futures induites par le processus de lissage^[Voir par exemple @pierce1980SA.], elles induisent également, par construction, des déphasages qui retardent en général la détection en temps réel des points de retournement. -->
 
 
-# Description des méthodes
+# Méthodologie
 
 L'hypothèse de base utilisée dans les méthodes de décomposition des séries temporelles est que la série temporelle observée, $y_t$, peut être décomposée en une composante de signal $\mu_t$ et une composante erratique $\varepsilon_t$ (appelée composante irrégulière) :
 $$
@@ -168,17 +169,30 @@ $$
 \underset{i=-h,\dots,h}{\med}
 \left\{ y_{t+i}-i\hat{\beta}_{1,t} \right\}
 $$
-- Régression des moindres quartiles différenciés --- *Least Quartile Difference* (LQD) [@lqd] TODO
+- Régression des moindres quartiles différenciés --- *Least Quartile Difference* (LQD) [@lqd].
 En notant $r_{i,j} = r_i-r_j$
 $$
-(\widehat{TC}_t=,\hat\beta_{1,t})=\underset{\hat\beta_{0,t},\beta_{1,t}}{\argmin}\left\{ \sum_{i=-h}^h r^2_{t+i} \right\}
+\underset{\beta_{1,t}}{\argmin}
+Q_{2h+1}(r_{t-h},\dots,r_{t+h})
+$$
+avec
+$$
+Q_{2h+1}(r_{t-h},\dots,r_{t+h}) = \left\{
+|r_i-r_j|;i<j
+\right\}_{\binom{h_p}{2}:\binom{2h+1}{2}}
+$$
+le quantile d'ordre $\binom{h_p}{2}$ sur les $\binom{2h+1}{2}$ éléments de l'ensemble $\{|r_i-r_j|;i<j\}$ et $h_p=[(2h+1+p+1)/2]$ avec $p=1$ le nombre de régresseurs (hors constante).
+La fonction objectif ne dépendant pas de la constante, elle est estimée a posteriori par exemple en utilisant la formule :
+$$
+\widehat{TC}_t =
+\underset{i=-h,\dots,h}{\med}y_{t+i}-\hat \beta_{1,t}i.
 $$
 
 - Régression profonde --- *Deepest Regression* (DR) [@DeepestRegression]
 $$
 (\widehat{TC}_t=\hat\beta_{0,t},\hat\beta_{1,t})=\underset{\tilde\beta_{0,t},\tilde\beta_{1,t}}{\argmax}\left\{ rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) \right\}
 $$
-where the *regression depth* of a fit $(\tilde\mu,\tilde\beta)$ to a sample $\boldsymbol y$ is defined as :
+où la profondeur de la regression --- *regression depth* $rdepth$ --- d'un ajustement $(\tilde\mu,\tilde\beta)$ à un échantillon $\boldsymbol y$ est défini comme :
 $$
 rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) = \underset{-h\leq i\leq h}{\min}
 \left\{ \min \left\{ L^+(i) + R^-(i);R^+(i) + L^-(i) \right\}\right\}
@@ -192,17 +206,18 @@ R^-(i) = R^-_{\tilde\mu,\tilde\beta}(i) = cardinal \left\{ j\in\{i+1,\dots,h\} :
 $$
 et $L^-(i)$ et $R^+(i)$ définis de manière analogue.
 
-Pour l'estimaion en temps réel, les mêmes algorithmes sont utilisés mais en utilisant moins de points dans le futur futurs.
+Pour l'estimaion en temps réel, le package `robfilter` utilise les mêmes algorithmes mais en n'utilisant que les données disponibles (donc en utilisant plus de points avant $t$ qu'après $t$).
 
 ## Moyennes mobiles linéaires
 
+### Moyenne mobile de Henderson et de Musgrave
 Les moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale.
 En reprenant les notations de @proietti2008, on suppose que notre série temporelle $y_t$ peut être décomposée en :
 $$
 y_t=TC_t+\varepsilon_t,
 $$
 où $TC_t$ est la tendance-cycle et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit. 
-La tendance-cycle $\TC_t$ est localement approchée par un polynôme de degré $d$, de sorte que dans un voisinage $h$ de $t$ $TC_t\simeq m_{t}$ avec :
+La tendance-cycle $TC_t$ est localement approchée par un polynôme de degré $d$, de sorte que dans un voisinage $h$ de $t$ $TC_t\simeq m_{t}$ avec :
 $$
 \forall j\in\left\{-h,-h+1,\dots,h\right\},\:
 y_{t+j}=m_{t+j}+\varepsilon_{t+j},\quad m_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i}.
@@ -254,11 +269,67 @@ $$
 \left[1-\frac{j^2}{(h+2)^2}\right]
 \left[1-\frac{j^2}{(h+3)^2}\right].
 $$
-De plus, puisque $\transp{\boldsymbol X}\boldsymbol \theta=\boldsymbol e_{1}$ on a:
+<!-- De plus, puisque $\transp{\boldsymbol X}\boldsymbol \theta=\boldsymbol e_{1}$ on a: -->
+<!-- $$ -->
+<!-- \sum_{j=-h}^{h}\theta_{j}=1,\quad\forall r\in\left\{1,2,\dots,d\right\}:\sum_{j=-h}^{h}j^{r}\theta_{j}=0. -->
+<!-- $$ -->
+<!-- La moyenne mobile $\boldsymbol \theta$ conserve donc les tendances polynomiales de degré $d$. -->
+
+Pour le cas asymétrique, @proietti2008 proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance.
+Il s'agit d'une généralisation des filtres asymétriques de @musgrave1964set (utilisés dans l'algorithme de désaisonnalisation X-13ARIMA).
+
+On modélise ici la série initiale par :
 $$
-\sum_{j=-h}^{h}\theta_{j}=1,\quad\forall r\in\left\{1,2,\dots,d\right\}:\sum_{j=-h}^{h}j^{r}\theta_{j}=0.
-$$
-La moyenne mobile $\boldsymbol \theta$ conserve donc les tendances polynomiales de degré $d$.
+\boldsymbol y=\boldsymbol U\boldsymbol \gamma+\boldsymbol Z\boldsymbol \delta+\boldsymbol \varepsilon,\quad
+\boldsymbol \varepsilon\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
+$${#eq-lpgeneralmodel}
+où $[\boldsymbol U,\boldsymbol Z]$ est de rang plein et forme un sous-ensemble des colonnes de $\boldsymbol X$.
+L'objectif est de trouver un filtre $\boldsymbol v$ qui minimise l'erreur quadratique moyenne de révision (au filtre symétrique $\boldsymbol \theta$) sous certaines contraintes.
+Ces contraintes sont représentées par la matrice $\boldsymbol U=\transp{\begin{pmatrix}\transp{\boldsymbol U_{p}}&\transp{\boldsymbol U_{f}}\end{pmatrix}}$ : $\transp{\boldsymbol U_p}\boldsymbol v=\transp{\boldsymbol U}\boldsymbol \theta$ (avec $\boldsymbol U_p$ la matrice $(h+q+1)\times (d+1)$ qui contient les observations de la matrice $\boldsymbol U$ connues lors de l'estimation par le filtre asymétrique).
+C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()`.
+
+Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymbol X$, $d^*<d$, la contrainte consiste à reproduire des tendances polynomiales de degré $d^*$.
+Cela introduit du biais mais réduit la variance. 
+Le filtre de Musgrave se retrouve en modélisant $y_t$ linéaire ($d=1$) et $v$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique. 
+C'est-à-dire que l'on a $\boldsymbol U=\transp{\begin{pmatrix}1&\cdots&1\end{pmatrix}}$, $\boldsymbol Z=\transp{\begin{pmatrix}-h&\cdots&+h\end{pmatrix}}$, $\boldsymbol \delta=\delta_1$, $\boldsymbol D=\sigma^2\boldsymbol I$.
+Ce filtre dépend du rapport $\lvert\delta_1/\sigma\rvert$ (modélisant le biais), qui est à fixer par l'utilisateur. 
+En supposant que la tendance est linéaire et le biais constant, ce rapport est lié à l'I-C ratio $R=\frac{\bar{I}}{\bar{C}}=\frac{\sum\lvert I_t-I_{t-1}\rvert}{\sum\lvert C_t-C_{t-1}\rvert}$ (et l'on a $\delta_1/\sigma=2/(R\sqrt{\pi})$), qui est notamment utilisé dans X-11 pour déterminer la longueur de la moyenne mobile de Henderson à utiliser.
+Pour des données mensuelles :
+
+- Si le rapport est élevé ($3,5< R$), un filtre à 23 termes est utilisé (pour éliminer plus de bruit) et le rapport $R=4,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
+
+- Si le rapport est faible ($R<1$), un filtre à 9 termes est utilisé et le rapport $R=1$ est utilisé dans X-11 pour définir le filtre de Musgrave.
+
+- Dans le cas contraire (la plupart des cas), un filtre à 13 termes est utilisé et le rapport $R=3,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
+
+
+TODO : parler des paramètres
+
+### Filtres cascade
+
+Les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques.
+L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
+Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-13ARIMA pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle).
+Les filtres asymétriques finaux amplifient même les cycles de 9 ou 10 mois.
+Cela peut avoir pour conséquence l'introduction d'ondulations indésirables, c'est-à-dire la détection de faux points de retournement.
+Ce problème est réduit par la correction des points atypiques (ces cycles étant considérés comme de l'irrégulier). 
+C'est ainsi que le *Nonlinear Dagum Filter* (NLDF) a été développé et consiste à :
+
+1. appliquer l'algorithme de correction des points atypiques de X-13ARIMA sur la série désaisonnalisée, puis de la prolonger par un modèle ARIMA ;
+    
+2. effectuer une nouvelle correction des points atypiques en utilisant un seuil bien plus strict et appliquer ensuite le filtre symétrique de 13 termes. 
+    En supposant une distribution normale cela revient à modifier 48 % des valeurs de l'irrégulier.   
+
+Les *cascade linear filter* [CLF, @clf], correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$
+    
+C'est cette moyenne mobile qui est utilisée par Statistique Canada pour l'estimation de la tendance-cycle^[
+Voir par exemple <https://www.statcan.gc.ca/fr/quo/bdd/tendance-cycle>.
+].
+Pour l'estimation en temps réel, Statistique Canada utilise la méthode « couper-et-normaliser » qui consiste à recalculer les poids, à partir de la moyenne mobile symétrique, en n'utilisant que les poids associées aux observations disponibles (couper) et en renormalisant pour que la somme des coefficients soit égale à 1 (normaliser).
+C'est l'approche qui sera utilisé dans cet article.
+
+
+## Construction de moyennes mobiles robustes
 
 
 En ajoutant un régresseur $O_t$ on peut donc obtenir une nouvelle moyenne mobile donc l'estimation de $\beta_0$ prendrait en compte l'effet modélisé par $x_t$
@@ -274,25 +345,6 @@ Si le choc est à la date $t_0$ le régresseur utilisé est alors $x_t=1_{t=t_0}
 - Rupture en niveau (LS) : un changement de niveau à une certaine date.
 Si le choc est à la date $t_0$ le régresseur utilisé est alors $x_t=-1_{t< t_0}$ pour l'estimation de $TC_t$ avec $t\leq t_0$ et $x_t=1_{t\geq t_0}$ sinon.
 
-Pour le cas asymétrique, @proietti2008 proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance.
-Il s'agit d'une généralisation des filtres asymétriques de @musgrave1964set (utilisés dans l'algorithme de désaisonnalisation X-13ARIMA).
-
-On modélise ici la série initiale par :
-$$
-\boldsymbol y=\boldsymbol U\boldsymbol \gamma+\boldsymbol Z\boldsymbol \delta+\boldsymbol \varepsilon,\quad
-\boldsymbol \varepsilon\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
-$${#eq-lpgeneralmodel}
-où $[\boldsymbol U,\boldsymbol Z]$ est de rang plein et forme un sous-ensemble des colonnes de $\boldsymbol X$.
-L'objectif est de trouver un filtre $\boldsymbol v$ qui minimise l'erreur quadratique moyenne de révision (au filtre symétrique $\boldsymbol \theta$) sous certaines contraintes.
-Ces contraintes sont représentées par la matrice $\boldsymbol U=\begin{pmatrix}\boldsymbol U_{p}'&\boldsymbol U_{f}'\end{pmatrix}'$ : $\boldsymbol U_p'\boldsymbol v=\boldsymbol U'\boldsymbol \theta$ (avec $\boldsymbol U_p$ la matrice $(h+q+1)\times (d+1)$ qui contient les observations de la matrice $\boldsymbol U$ connues lors de l'estimation par le filtre asymétrique).
-C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()`.
-
-Lorsque $\boldsymbol U=\boldsymbol X$, la contrainte équivaut à préserver les polynômes de degré $d$ : on retrouve les filtres directs symétriques avec $\boldsymbol D=\boldsymbol K^{-1}$.
-
-Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymbol X$, $d^*<d$, la contrainte consiste à reproduire des tendances polynomiales de degré $d^*$.
-Cela introduit du biais mais réduit la variance. 
-Le filtre de Musgrave se retrouve en modélisant $y_t$ linéaire ($d=1$) et $v$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique.
-Les filtres asymétriques robustes sont construits en ajoutant un régresseur supplémentaire à $\boldsymbol U$ (estimation sans biais de l'outlier) et en utilisant comme filtre symétrique celui construit en utilisant le même régresseur.
 
 ## Construction d'intervalles de confiance pour des moyennes mobiles
 
@@ -301,7 +353,7 @@ On suppose qu'elle peut être décomposée en
 $$
 y_t=\mu_t+\varepsilon_t,
 $$
-où $\mu_t$ est une composante observée déterministe et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
+où $\mu_t$ est une composante déterministe à estimer et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
 
 Soit $\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
 Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
@@ -381,7 +433,7 @@ $$
 &\boldsymbol0_{f\times n} 
 \end{pmatrix}
 $$
-et $I_{n-p-f}$ la matrice identité de taille $n-p-f.$
+et $\boldsymbol I_{n-p-f}$ la matrice identité de taille $n-p-f.$
 On a donc :
 $$
 \hat\sigma^2=\frac{1}{\tr{\boldsymbol \Gamma}}\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y
@@ -410,6 +462,8 @@ Le paramètre $\nu$ peut être calculé analytiquement en reconstruisant la matr
 Il peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire le temps de calcul^[
 Sur une série mensuelle de 19 ans, le temps de calcul est d'environ 0,1 secondes et est divisé d'en moyenne 4 000 en utilisant l'approximation.
 ].
+
+## Points atypiques étudiés
 
 # Résultats
 
