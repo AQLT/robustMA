@@ -21,7 +21,7 @@ plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits
 
 	p <- p +
 		ggplot2::geom_line(mapping = ggplot2::aes(x = date, y = value, group = variable,
-										 colour = variable), linewidth = 0.7) +
+												  colour = variable), linewidth = 0.7) +
 		ggplot2::labs(title = titre, subtitle = sous_titre, x = x_lab,
 					  y = y_lab) +
 		ggplot2::scale_x_continuous(breaks = x_breaks,
@@ -52,7 +52,9 @@ format_data_plot  <- function(data){
 	na.omit(reshape2::melt(dataGraph, id = "date"))
 }
 
-plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_before = 10, nest = 6, add_y = FALSE, gaussian_distribution = FALSE, exact_df = TRUE) {
+plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_before = 10, nest = 6, add_y = FALSE, gaussian_distribution = FALSE, exact_df = TRUE,
+						 names_robust_f = NULL,
+						 show.legend = FALSE) {
 	if (is.null(out)) {
 		out <- data$out
 	}
@@ -61,32 +63,48 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 		data <- data$data
 	first_date <- min(out) - nb_dates_before * deltat(data[[1]])
 	lagest <- seq(0, by = 1, length.out = nest)
+
+	if (rjd3filters::is.finite_filters(robust_f[[1]])) {
+		robust_f <- list("Robust" = robust_f)
+	}
+	if (is.null(names_robust_f))
+		names_robust_f <- names(robust_f)
 	all_plots <- lapply(lagest, function(i){
 		y <- data[[which(round(out,3) == round(as.numeric(names(data)),3)) + i]][,"y"]
-		confint_robust <- confint_filter(y, robust_f[[sprintf("t%i", -i)]], gaussian_distribution = gaussian_distribution, exact_df = exact_df)
+		est_robust <- do.call(ts.union, lapply(robust_f, function(x){
+			y * x[[sprintf("t%i", -i)]]
+		}))
+		# confint_robust <- confint_filter(y, robust_f[[sprintf("t%i", -i)]], gaussian_distribution = gaussian_distribution, exact_df = exact_df)
 		confint_default <- confint_filter(y, lc_f, gaussian_distribution = gaussian_distribution, exact_df = exact_df)
-		data_plot <- ts.union(confint_default, confint_robust[,1],y)
+		data_plot <- ts.union(confint_default, est_robust, y)
 		data_plot <- window(data_plot, start = first_date)
-		colnames(data_plot) <- c("Default", "Confint_m", "Confint_p", "Robust","y")
+		colnames(data_plot) <- c("Henderson", "Confint_m", "Confint_p", names_robust_f,"y")
 		dates <- time(data_plot)
 		x_breaks <- dates[seq.int(1, length((dates)), by = length((dates)) %/% n_xlabel)]
-		data_plot <- data.frame(date = as.numeric(time(data_plot)), data_plot)
-		p <- ggplot2::ggplot(data =data_plot, ggplot2::aes(x = date)) +
-			ggplot2::geom_ribbon(ggplot2::aes(ymin = Confint_m, ymax = Confint_p),
-								 fill = "grey") +
-			ggplot2::geom_vline(xintercept = out,linetype= 2, alpha = 0.5) +
-			ggplot2::geom_line(ggplot2::aes(y = Default), col = "blue")
-		if (add_y)
+		data_plot_wide <- data.frame(date = as.numeric(time(data_plot)), data_plot)
+		data_plot_long <- format_data_plot(data_plot)
+		data_plot_long <- data_plot_long[data_plot_long$variable %in% c(colnames(data_plot)[1], names_robust_f), ]
+		p <- ggplot2::ggplot(data = data_plot_wide, ggplot2::aes(x = date)) +
+			ggplot2::geom_ribbon(
+				ggplot2::aes(ymin = Confint_m, ymax = Confint_p, fill = "IC 95 %")) +
+			scale_fill_manual(values=c("grey")) +
+			ggplot2::geom_vline(xintercept = out,linetype= 2, alpha = 0.5)
+			# ggplot2::geom_line(ggplot2::aes(y = Default), col = "blue")
+		if (add_y) {
 			p <- p +
-			ggplot2::geom_line(ggplot2::aes(y = y), col = "black")
+				ggplot2::geom_line(ggplot2::aes(y = y), col = "black")
+		}
 		p <- p +
-			ggplot2::geom_line(ggplot2::aes(y = Robust), col = "red") +
-			ggplot2::labs(x = NULL, y = NULL, title = as.character(zoo::as.yearmon(out + i*deltat(y)))) +
+			ggplot2::geom_line(data = data_plot_long,
+							   ggplot2::aes(y = value, color = variable)) +
+			ggplot2::labs(x = NULL, y = NULL, title = as.character(zoo::as.yearmon(out + i*deltat(y))),
+						  color = NULL,
+						  fill = NULL) +
+			ggplot2::scale_color_manual(values = c("blue", "red", "darkgreen")) +
 			ggplot2::theme_bw() +
 			ggplot2::scale_x_continuous(breaks = x_breaks,
 										labels = zoo::as.yearmon) +
 			ggplot2::theme(
-				legend.position = "none",
 				plot.title = ggplot2::element_text(hjust = 0.5),
 				panel.grid.minor.x = ggplot2::element_blank(),
 				panel.grid.major.x = ggplot2::element_blank(),
@@ -94,6 +112,8 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 													vjust=1.1, hjust=1),
 				axis.text.y = ggplot2::element_text(size=8)
 			)
+		if (!show.legend)
+			p <- p + ggplot2::theme(legend.position = "none")
 		p
 
 	})
@@ -248,6 +268,6 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 			axis.text.y = ggplot2::element_text(size=8),
 			plot.subtitle = ggplot2::element_text(hjust = 0.5,
 												  size=10,face="italic")
-			)
+		)
 	p
 }
