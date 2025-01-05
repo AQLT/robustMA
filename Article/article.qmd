@@ -16,6 +16,11 @@ format:
     fig-width: 7.5
     toc: false # to include abstract first
     fig-pos: 'H'
+crossref:
+  tbl-prefix: table
+  fig-prefix: figure
+  sec-prefix: section
+  eq-prefix: équation
 execute: 
   cache: true
 lang: fr
@@ -30,6 +35,7 @@ bibliography: biblio.bib
 
 ```{r}
 #| include: false
+#| label: setup
 library(rjd3filters)
 library(ggplot2)
 library(patchwork)
@@ -59,7 +65,7 @@ En effet, afin d'estimer la composante saisonnière, les algorithmes de désaiso
 Ainsi, même si les méthodes d'extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également également des méthodes d'estimation de la tendance-cycle.
 
 Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d'extraction du cycle économique et d'ajustement saisonnier^[
-Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série temporelle : à chaque date $t$ on calcule une moyenne pondérée de $p$ points passés et $q$ points futurs où $p,q\geq0$ dépend de la moyenne mobile.
+Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série chronologique : à chaque date $t$ on calcule une moyenne pondérée de $p$ points passés et $q$ points futurs où $p,q\geq0$ dépend de la moyenne mobile.
 ]. 
 Ainsi, la méthode de désaisonnalisation X-13ARIMA-SEATS utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d'une série chronologique. 
 Au centre de la série, des filtres symétriques sont appliqués. 
@@ -94,14 +100,14 @@ L'application directe des méthodes peut donc conduire à des estimations biais�
 
 # Méthodologie
 
-L'hypothèse de base utilisée dans les méthodes de décomposition des séries temporelles est que la série temporelle observée, $y_t$, peut être décomposée en une composante de signal $\mu_t$ et une composante erratique $\varepsilon_t$ (appelée composante irrégulière) :
+L'hypothèse de base utilisée dans les méthodes de décomposition des séries temporelles est que la série chronologique observée, $y_t$, peut être décomposée en une composante de signal $\mu_t$ et une composante erratique $\varepsilon_t$ (appelée composante irrégulière) :
 $$
 f(y_t)=\mu_t+\varepsilon_t
 $$
 où $f$ désigne une transformation appropriée (généralement logarithmique ou aucune transformation).
 Pour simplifier les notations ultérieures, $y_t$ désignera la série observée transformée.
 La composante de bruit $\varepsilon_t$ est généralement supposée être un bruit blanc.
-En supposant que la série temporelle initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
+En supposant que la série chronologique initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
 Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$ :
 $$
 TC_{t+i} = \sum_{j=0}^d\beta_j{i}^j+\xi_{t+i}\quad\forall i\in\{-h,-h+1,\dots,t+h\}
@@ -113,12 +119,30 @@ Cela revient à supposer que le biais d'approximation de la tendance-cycle par u
 Ainsi, la tendance-cycle $TC_t$ est considérée comme déterministe et modélisée comme une tendance polynomiale de degré $d$.
 Les coefficients $(\beta_0,\dots,\beta_d)$ peuvent être estimés par la méthode des moindres carrés pondérés.
 L'estimation $\hat \beta_0$ fournit l'estimation du cycle de tendance $\widehat{TC}_t$ et on peut montrer que cela équivaut à appliquer une moyenne mobile.
+Cette moyenne mobile est symétrique ($\widehat{TC}_t$ est estimée en utilisant autant d'observation avant et après $t$) mais pour l'estimation des derniers points (lorsque l'on ne peut pas utiliser autant d'observations avant et après $t$) il est nécessaire de s'appuyer sur des moyennes mobiles ad-hoc qui sont asymétriques.
 
-L'estimation de $\widehat{TC}_t$ étant faite par un méthode linéaire, elle est sensible à la présence de points atypiques.
-L'objectif de cet article est d'étudier différentes méthodes robustes à la présence de points atypiques ainsi que de proposer une méthode de constructions de moyennes mobiles robuste, et de comparer les estimations faites en temps réel par ces différentes méthodes.
+L'estimation de $\widehat{TC}_t$ étant faite par un méthode linéaire, elle est sensible à la présence de points atypiques qui peuvent notamment entraîner des révisions importantes.
+C'est par exemple le cas pendant la crise du COVID-19 qui a conduit Statistiques Canada et Australian Bureau of Statistics à suspendre la publication des tendances-cycles pendant cette période.
+Comme notamment discuté par @matthewssapw4, différentes stratégies peuvent être adoptées pendant les périodes de fortes "turbulences" (comme la crise du COVID-19) où les points atypiques sont importants et donc les estimations directes :
+
+- Ne pas publier les estimations pendant cette période : c'est ce qui est fait par l'Australian Bureau of Statistics qui ne publie pas d'estimation tendance-cycle entre avril 2020 et mars 2022.
+
+- Estimer les points atypiques avec un modèle RegARIMA, estimer la tendance-cycle sur la série corrigée et "réintroduire" les effets corrigés sur la tendance-cycle. 
+L'inconvénient de cette approche est que l'estimation du point atypique dépend du modèle ARIMA utilisé et de la période d'estimation.
+
+- Estimer la tendance-cycle sur l'ensemble de la période et remplacement des données estimées après la rupture par celle estimée en commençant la série après la rupture et après la rupture (série segmentée d'un côté).
+L'inconvénient de cette approche est que les estimations avant la rupture vont être biaisées par la présence de la rupture et que celles après la rupture reposent sur des moyennes mobiles asymétriques (avec un biais plus important que les moyennes mobiles symétriques utilisées pour les estimations finales).
+
+- Diviser la série en deux au niveau de la rupture et estimer la tendance-cycle sur chaque segment (série segmentée des deux côtés).
+L'inconvénient de cette approche est que les estimations avant la rupture et après la rupture reposent sur des moyennes mobiles asymétriques (avec un biais plus important que les moyennes mobiles symétriques utilisées pour les estimations finales).
+C'est l'approche privilégiée par Statistique Canada.
+
+L'objectif de cet article est d'étudier des approches alternatives à celles de @matthewssapw4.
+D'une part en étudiant les estimations en temps réel de méthodes robustes à la présence de points (@sec-methodes-robustes) ;
+d'autre part en proposant une méthode de construction de moyennes mobiles linéaires robustes et en les comparant aux estimations des moyennes mobiles classiques (@sec-methodes-lineaires).
 
 
-## Méthodes robustes
+## Méthodes robustes {#sec-methodes-robustes}
 
 Dans cette étude nous étudions six méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter].
 Dans ce package, la tendance-cycle est supposée être localement linéaire :
@@ -136,25 +160,11 @@ $$
 
 Les différentes méthodes étudiées sont :
 
-- Médiane mobile :
+- Médiane mobile (MED) :
 
 $$
 \widehat{TC}_t =
 \underset{i=-h,\dots,h}{\med}y_{t+i}
-$$
-
-- Régression des moindres carrés médians --- *Least Median of Squares* (LMS) [@lms] :
-$$
-(\widehat{TC}_t,\hat\beta_{1,t})=
-\underset{\beta_{0,t},\beta_{1,t}}{\argmin}
-\left\{ \underset{i=-h,\dots,h}{\med}r^2_{t+i} \right\}
-$$
-
-- Régression des moindre carrés élagués --- *Least Trimmed Squares* (LTS) [@lts]
-$$
-(\widehat{TC}_t,\hat\beta_{1,t})=
-\underset{\beta_{0,t},\beta_{1,t}}{\argmin}
-\left\{ \sum_{i=-h}^h r^2_{t+i} \right\}
 $$
 
 - Régression médiane répétée --- *Repeated Median* (RM) [@rm]
@@ -167,8 +177,24 @@ et
 $$
 \widehat{TC}_t=
 \underset{i=-h,\dots,h}{\med}
-\left\{ y_{t+i}-i\hat{\beta}_{1,t} \right\}
+\left\{ y_{t+i}-i\hat{\beta}_{1,t} \right\}.
 $$
+
+- Régression des moindres carrés médians --- *Least Median of Squares* (LMS) [@lms] :
+$$
+(\widehat{TC}_t,\hat\beta_{1,t})=
+\underset{\beta_{0,t},\beta_{1,t}}{\argmin}
+\left\{ \underset{i=-h,\dots,h}{\med}r^2_{t+i} \right\}
+$$
+
+- Régression des moindre carrés élagués --- *Least Trimmed Squares* (LTS) [@lts] :
+$$
+(\widehat{TC}_t,\hat\beta_{1,t})=
+\underset{\beta_{0,t},\beta_{1,t}}{\argmin}
+\left\{ \sum_{i=-h}^h r^2_{t+i} \right\}
+$$
+
+
 - Régression des moindres quartiles différenciés --- *Least Quartile Difference* (LQD) [@lqd].
 En notant $r_{i,j} = r_i-r_j$
 $$
@@ -190,37 +216,37 @@ $$
 
 - Régression profonde --- *Deepest Regression* (DR) [@DeepestRegression]
 $$
-(\widehat{TC}_t=\hat\beta_{0,t},\hat\beta_{1,t})=\underset{\tilde\beta_{0,t},\tilde\beta_{1,t}}{\argmax}\left\{ rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) \right\}
+(\widehat{TC}_t,\hat\beta_{1,t})=\underset{\tilde\beta_{0},\tilde\beta_{1}}{\argmax}\left\{ rdepth(\tilde\beta_{0},\tilde\beta_{1}) \right\}
 $$
-où la profondeur de la regression --- *regression depth* $rdepth$ --- d'un ajustement $(\tilde\mu,\tilde\beta)$ à un échantillon $\boldsymbol y$ est défini comme :
+où la profondeur de la regression --- *regression depth* ($rdepth$) --- d'un ajustement $(\tilde\beta_{0},\tilde\beta_{1})$ est définie comme :
 $$
-rdepth((\tilde\mu,\tilde\beta),\boldsymbol y) = \underset{-h\leq i\leq h}{\min}
+rdepth(\tilde\beta_{0},\tilde\beta_{1}) = \underset{-h\leq i\leq h}{\min}
 \left\{ \min \left\{ L^+(i) + R^-(i);R^+(i) + L^-(i) \right\}\right\}
 $$
 avec :
 $$
 \begin{cases}
-L^+(i) = L^+_{\tilde\mu,\tilde\beta}(i) = cardinal \left\{ j\in\{-h,\dots,i\} : r_j(\tilde\mu,\tilde\beta)\leq 0 \right\} \\
-R^-(i) = R^-_{\tilde\mu,\tilde\beta}(i) = cardinal \left\{ j\in\{i+1,\dots,h\} : r_j(\tilde\mu,\tilde\beta)< 0 \right\}
+L^+(i) = L^+_{\tilde\beta_{0},\tilde\beta_{1}}(i) = cardinal \left\{ j\in\{-h,\dots,i\} : r_j(\tilde\beta_{0},\tilde\beta_{1})\leq 0 \right\} \\
+R^-(i) = R^-_{\tilde\beta_{0},\tilde\beta_{1}}(i) = cardinal \left\{ j\in\{i+1,\dots,h\} : r_j(\tilde\beta_{0},\tilde\beta_{1})< 0 \right\}
 \end{cases}
 $$
 et $L^-(i)$ et $R^+(i)$ définis de manière analogue.
 
-Pour l'estimaion en temps réel, le package `robfilter` utilise les mêmes algorithmes mais en n'utilisant que les données disponibles (donc en utilisant plus de points avant $t$ qu'après $t$).
+Pour l'estimation en temps réel, le package `robfilter` utilise les mêmes algorithmes mais en n'utilisant que les données disponibles (donc en utilisant plus de points avant $t$ qu'après $t$).
 
-## Moyennes mobiles linéaires
+## Moyennes mobiles linéaires {#sec-methodes-lineaires}
 
-### Moyenne mobile de Henderson et de Musgrave
+### Moyenne mobile de Henderson et de Musgrave {#sec-lp}
 Les moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale.
-En reprenant les notations de @proietti2008, on suppose que notre série temporelle $y_t$ peut être décomposée en :
+En reprenant les notations de @proietti2008, on suppose que notre série chronologique $y_t$ peut être décomposée en :
 $$
 y_t=TC_t+\varepsilon_t,
 $$
 où $TC_t$ est la tendance-cycle et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit. 
-La tendance-cycle $TC_t$ est localement approchée par un polynôme de degré $d$, de sorte que dans un voisinage $h$ de $t$ $TC_t\simeq m_{t}$ avec :
+La tendance-cycle $TC_t$ est localement approchée par un polynôme de degré $d$, de sorte que dans un voisinage $h$ de $t$ on a $TC_t\simeq m_{t}$ avec :
 $$
 \forall j\in\left\{-h,-h+1,\dots,h\right\},\:
-y_{t+j}=m_{t+j}+\varepsilon_{t+j},\quad m_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i}.
+y_{t+j}=m_{t+j}+\varepsilon_{t+j},\quad m_{t+j}=\sum_{i=0}^{d}\beta_{i,t}j^{i}.
 $$
 En notation matricielle :
 $$
@@ -231,35 +257,35 @@ y_{t}\\
 \vdots\\
 y_{t+(h-1)}\\
 y_{t+h}
-\end{pmatrix}}_{\boldsymbol y}=\underbrace{\begin{pmatrix}1 & -h & h^{2} & \cdots & (-h)^{d}\\
+\end{pmatrix}}_{\boldsymbol y_t}=\underbrace{\begin{pmatrix}1 & -h & h^{2} & \cdots & (-h)^{d}\\
 1 & -(h-1) & (h-1)^{2} & \cdots & (-(h-1))^{d}\\
 \vdots & \vdots & \vdots & \cdots & \vdots\\
 1 & 0 & 0 & \cdots & 0\\
 \vdots & \vdots & \vdots & \cdots & \vdots\\
 1 & h-1 & (h-1)^{2} & \cdots & (h-1)^{d}\\
 1 & h & h^{2} & \cdots & h^{d}
-\end{pmatrix}}_{\boldsymbol X}\underbrace{\begin{pmatrix}\beta_{0}\\
-\beta_{1}\\
+\end{pmatrix}}_{\boldsymbol X}\underbrace{\begin{pmatrix}\beta_{0,t}\\
+\beta_{1,t}\\
 \vdots\\
 \vdots\\
 \vdots\\
 \vdots\\
-\beta_{d}
-\end{pmatrix}}_{\boldsymbol \beta}+\underbrace{\begin{pmatrix}\varepsilon_{t-h}\\
+\beta_{d,t}
+\end{pmatrix}}_{\boldsymbol \beta_t}+\underbrace{\begin{pmatrix}\varepsilon_{t-h}\\
 \varepsilon_{t-(h-1)}\\
 \vdots\\
 \varepsilon_{t}\\
 \vdots\\
 \varepsilon_{t+(h-1)}\\
 \varepsilon_{t+h}
-\end{pmatrix}}_{\boldsymbol \varepsilon}.
-$$ {#eq-lpp-mat}
+\end{pmatrix}}_{\boldsymbol \varepsilon_t}.
+$$ {#eq-lpp}
 
-L'estimation des paramètres $\boldsymbol \beta$ peut être obtenue moindres carrés pondérés --- *weighted least squares* (WLS) --- à partir d'un ensemble de poids $(\kappa_j)_{-h\leq j \leq h}$ appelés noyaux.
-En notant $\boldsymbol K=diag(\kappa_{-h},\dots,\kappa_{h})$ il vient $\hat{\boldsymbol\beta}=(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\transp{\boldsymbol X}\boldsymbol K\boldsymbol y.$
+L'estimation des paramètres $\boldsymbol \beta_t$ peut être obtenue moindres carrés pondérés --- *weighted least squares* (WLS) --- à partir d'un ensemble de poids $(\kappa_j)_{-h\leq j \leq h}$ appelés noyaux.
+En notant $\boldsymbol K=diag(\kappa_{-h},\dots,\kappa_{h})$ il vient $\hat{\boldsymbol\beta_t}=(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\transp{\boldsymbol X}\boldsymbol K\boldsymbol y_t.$
 Avec $\boldsymbol e_1=\transp{\begin{pmatrix}1 &0 &\cdots&0 \end{pmatrix}}$, l'estimation de la tendance-cycle est :
 $$
-\widehat{TC}_t=\boldsymbol e_{1}\hat{\boldsymbol \beta}=\transp{\boldsymbol \theta}\boldsymbol y=\sum_{j=-h}^{h}\theta_{j}y_{t-j}\text{ avec }\boldsymbol \theta=\boldsymbol K\boldsymbol X(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\boldsymbol e_{1}.
+\widehat{TC}_t=\widehat{\beta}_{0,t}=\boldsymbol e_{1}\hat{\boldsymbol \beta_t}=\transp{\boldsymbol \theta}\boldsymbol y_t=\sum_{j=-h}^{h}\theta_{j}y_{t-j}\text{ avec }\boldsymbol \theta=\boldsymbol K\boldsymbol X(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\boldsymbol e_{1}.
 $$ {#eq-mmsym}
 En somme, l'estimation de la tendance $\hat{m}_{t}$ est obtenue en appliquant une moyenne mobile symétrique $\boldsymbol \theta$ à $y_t$.
 
@@ -277,33 +303,36 @@ $$
 
 Pour le cas asymétrique, @proietti2008 proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance.
 Il s'agit d'une généralisation des filtres asymétriques de @musgrave1964set (utilisés dans l'algorithme de désaisonnalisation X-13ARIMA).
-
-On modélise ici la série initiale par :
+En réecrivant l' @eq-lpp :
 $$
-\boldsymbol y=\boldsymbol U\boldsymbol \gamma+\boldsymbol Z\boldsymbol \delta+\boldsymbol \varepsilon,\quad
-\boldsymbol \varepsilon\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
-$${#eq-lpgeneralmodel}
+\boldsymbol y_t=\begin{pmatrix}\boldsymbol U &\boldsymbol Z\end{pmatrix}
+\begin{pmatrix}\boldsymbol \gamma_t \\ \boldsymbol \delta_t\end{pmatrix}+
+\boldsymbol \varepsilon_t,\quad
+\boldsymbol \varepsilon_t\sim\mathcal{N}(0,\boldsymbol D).
+$$ {#eq-lpgeneralmodel}
 où $[\boldsymbol U,\boldsymbol Z]$ est de rang plein et forme un sous-ensemble des colonnes de $\boldsymbol X$.
-L'objectif est de trouver un filtre $\boldsymbol v$ qui minimise l'erreur quadratique moyenne de révision (au filtre symétrique $\boldsymbol \theta$) sous certaines contraintes.
-Ces contraintes sont représentées par la matrice $\boldsymbol U=\transp{\begin{pmatrix}\transp{\boldsymbol U_{p}}&\transp{\boldsymbol U_{f}}\end{pmatrix}}$ : $\transp{\boldsymbol U_p}\boldsymbol v=\transp{\boldsymbol U}\boldsymbol \theta$ (avec $\boldsymbol U_p$ la matrice $(h+q+1)\times (d+1)$ qui contient les observations de la matrice $\boldsymbol U$ connues lors de l'estimation par le filtre asymétrique).
+L'objectif est de trouver une moyenne mobile asymétrique $\boldsymbol \theta^{(a)}$ qui minimise l'erreur quadratique moyenne de révision (à la moyenne mobile symétrique $\boldsymbol \theta$) sous certaines contraintes.
+Ces contraintes sont représentées par la matrice $\boldsymbol U=\transp{\begin{pmatrix}\transp{\boldsymbol U_{p}}&\transp{\boldsymbol U_{f}}\end{pmatrix}}$ : $\transp{\boldsymbol U_p}\boldsymbol \theta^{(a)}=\transp{\boldsymbol U}\boldsymbol \theta$ (avec $\boldsymbol U_p$ la matrice $(h+q+1)\times (d+1)$ qui contient les observations de la matrice $\boldsymbol U$ connues lors de l'estimation par le filtre asymétrique).
 C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()`.
 
 Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymbol X$, $d^*<d$, la contrainte consiste à reproduire des tendances polynomiales de degré $d^*$.
 Cela introduit du biais mais réduit la variance. 
-Le filtre de Musgrave se retrouve en modélisant $y_t$ linéaire ($d=1$) et $v$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique. 
-C'est-à-dire que l'on a $\boldsymbol U=\transp{\begin{pmatrix}1&\cdots&1\end{pmatrix}}$, $\boldsymbol Z=\transp{\begin{pmatrix}-h&\cdots&+h\end{pmatrix}}$, $\boldsymbol \delta=\delta_1$, $\boldsymbol D=\sigma^2\boldsymbol I$.
-Ce filtre dépend du rapport $\lvert\delta_1/\sigma\rvert$ (modélisant le biais), qui est à fixer par l'utilisateur. 
-En supposant que la tendance est linéaire et le biais constant, ce rapport est lié à l'I-C ratio $R=\frac{\bar{I}}{\bar{C}}=\frac{\sum\lvert I_t-I_{t-1}\rvert}{\sum\lvert C_t-C_{t-1}\rvert}$ (et l'on a $\delta_1/\sigma=2/(R\sqrt{\pi})$), qui est notamment utilisé dans X-11 pour déterminer la longueur de la moyenne mobile de Henderson à utiliser.
+Le filtre de Musgrave se retrouve en modélisant $y_t$ linéaire ($d=1$) et $\theta^{(a)}$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique. 
+C'est-à-dire que l'on a $\boldsymbol U=\transp{\begin{pmatrix}1&\cdots&1\end{pmatrix}}$, $\boldsymbol Z=\transp{\begin{pmatrix}-h&\cdots&+h\end{pmatrix}}$, $\boldsymbol \delta_t=\delta_{1,t}$, $\boldsymbol D=\sigma^2\boldsymbol I$.
+Ce filtre dépend du rapport $\lvert\delta_{1,t}/\sigma\rvert$ (modélisant le biais), qui est à fixer par l'utilisateur. 
+En supposant que la tendance est linéaire et le biais constant ($\delta_{1,t}=\delta_1$), ce rapport est lié à l'I-C ratio $R=\frac{\bar{I}}{\bar{C}}=\frac{\sum\lvert I_t-I_{t-1}\rvert}{\sum\lvert C_t-C_{t-1}\rvert}$ (et l'on a $\delta_1/\sigma=2/(R\sqrt{\pi})$), qui est notamment utilisé dans X-11 pour déterminer la longueur de la moyenne mobile de Henderson à utiliser.
 Pour des données mensuelles :
 
-- Si le rapport est élevé ($3,5< R$), un filtre à 23 termes est utilisé (pour éliminer plus de bruit) et le rapport $R=4,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
+- Si le rapport est élevé ($3,5< R$), un filtre symétrique à 23 termes est utilisé (pour éliminer plus de bruit) et le rapport $R=4,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
 
-- Si le rapport est faible ($R<1$), un filtre à 9 termes est utilisé et le rapport $R=1$ est utilisé dans X-11 pour définir le filtre de Musgrave.
+- Si le rapport est faible ($R<1$), un filtre symétrique à 9 termes est utilisé et le rapport $R=1$ est utilisé dans X-11 pour définir le filtre de Musgrave.
 
-- Dans le cas contraire (la plupart des cas), un filtre à 13 termes est utilisé et le rapport $R=3,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
+- Dans le cas contraire (la plupart des cas), un filtre symétrique à 13 termes est utilisé et le rapport $R=3,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
 
 
-TODO : parler des paramètres
+Dans cet article, seules des séries mensuelles sont étudiés et le filtre de Henderson à 13 termes sera utilisé comme filtre symétrique.
+Par simplification et par cohérence avec ce qui est utilisé dans X-11, le ratio $\delta_1/\sigma$ sera fixé de sorte à avoir $R=3,5$.
+Toutefois, comme notamment montré dans @jos2024AQLT, une paramétrisation locale de ce paramètre pourrait être préférée.
 
 ### Filtres cascade
 
@@ -329,24 +358,71 @@ Pour l'estimation en temps réel, Statistique Canada utilise la méthode « coup
 C'est l'approche qui sera utilisé dans cet article.
 
 
-## Construction de moyennes mobiles robustes
+### Construction de moyennes mobiles robustes
 
-
-En ajoutant un régresseur $O_t$ on peut donc obtenir une nouvelle moyenne mobile donc l'estimation de $\beta_0$ prendrait en compte l'effet modélisé par $x_t$
+Une autre façon de construire des moyennes mobiles robustes aux points atypiques est d'exploiter l'approche polynomiale locale présentée dans la @sec-lp.
+Pour la construire la moyenne mobile utilisée pour l'estimation finale de la tendance-cycle, il suffit pour cela d'ajouter dans l'@eq-lpp un ou plusieurs régresseurs $\boldsymbol O_t$ pour prendre en compte l'effet du point atypique modélisé :
 $$
-y_{t+j}=\sum_{i=0}^{d}\beta_{i}j^{i} + \gamma O_{t+j}+\varepsilon_{t+j}
+y_{t+j}=\sum_{i=0}^{d}\beta_{i,t}j^{i} + \boldsymbol O_{t+j} \boldsymbol\zeta_t+\varepsilon_{t+j}.
 $$
 
-Deux cas sont ici étudiés :
+On a alors :
+$$
+\widehat{TC}_t=\transp{\boldsymbol \theta_t^{(r)}}\boldsymbol y_t=\sum_{j=-h}^{h}\theta_{j,t}^{(r)}y_{t-j}
+$$
+avec
+$$
+\boldsymbol \theta_t^{(r)}=\boldsymbol K\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}(\transp{\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}}\boldsymbol K \begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix})^{-1}\boldsymbol e_{1}
+\text{ et }
+\mathcal O_{t} = \begin{pmatrix}
+\boldsymbol O_{t-h} \\ \vdots\\\boldsymbol O_{t+h}
+\end{pmatrix}.
+$$
+La moyenne mobile $\boldsymbol \theta_t^{(r)}$ est centrée (autant de points avant et après $t$ sont utilisées pour estimer $\widehat{TC}_t$) mais n'est plus forcément symétrique (pour au moins un $i\in\{1,\dots,h\}$ on a : $\theta_{-i,t}^{(r)}\ne\theta_{i,t}^{(r)}$).
 
-- Points atypiques additifs (AO) : un choc soudain à une certaine date puis un retour à la normal.
-Si le choc est à la date $t_0$ le régresseur utilisé est alors $x_t=1_{t=t_0}$.
-
-- Rupture en niveau (LS) : un changement de niveau à une certaine date.
-Si le choc est à la date $t_0$ le régresseur utilisé est alors $x_t=-1_{t< t_0}$ pour l'estimation de $TC_t$ avec $t\leq t_0$ et $x_t=1_{t\geq t_0}$ sinon.
+<!-- Comme $\transp{\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}}\boldsymbol \theta_t^{(r)}=\boldsymbol e_{1}$ -->
 
 
-## Construction d'intervalles de confiance pour des moyennes mobiles
+Pour la construction des moyennes mobiles asymétriques, le même principe est appliqué à l'@eq-lpgeneralmodel en estimant sans biais $\boldsymbol\zeta_t$ :
+$$
+\boldsymbol y_t=\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix}\begin{pmatrix}\boldsymbol \gamma_t \\ \boldsymbol\zeta_t \end{pmatrix}+\boldsymbol Z\boldsymbol \delta_t+\boldsymbol \varepsilon_t,\quad
+\boldsymbol \varepsilon_t\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
+$$
+La moyenne mobile asymétrique $\boldsymbol \theta^{(a)(r)}_t$ est trouvée par minimisation  qui minimise l'erreur quadratique moyenne de révision (à la moyenne mobile $\boldsymbol \theta_t^{(r)}$) sous contraintes.
+Ces contraintes sont représentées par la matrice
+$\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix} = \begin{pmatrix}\boldsymbol U_{p} & \mathcal O_{p,t} \\\boldsymbol U_{f} & \mathcal O_{f,t} \end{pmatrix}$ : 
+$$
+\transp{\begin{pmatrix}\boldsymbol U_{p} & \mathcal O_{p,t} \end{pmatrix}}\boldsymbol \theta^{(a)}=\transp{\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix}}\boldsymbol \theta
+$$ 
+
+Par convention, lorsque $\mathcal O_{t}$ ou $\mathcal O_{p,t}$ est la matrice nulle, on garde la modélisation de la @sec-lp.
+
+Dans cette étude, les deux types de points atypiques les plus couramment rencontrés dans l'analyse de données macroéconomiqués sont étudiés :
+
+- Les points atypiques additifs (AO, *additive outlier*) : un choc ponctuelle à une date particulière puis un retour à la normal (grève, mesure exceptionnelle, erreur de mesure par exemple liée à de la non réponse, etc.).
+Le choc affecte donc l'irrégulier et ne devrait pas avoir d'impact sur la tendance-cycle.
+Si le choc le choc apparaît à la date $t_0$ il peut être modélisé par le régresseur $O_t=\1_{t=t_0}$ qui vaut $1$ à la date $t_0$ et $0$ sinon.
+
+- Les ruptures en niveau (LS, *level shift*) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.).
+Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'irrégulier.
+Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t< t_0}$ si $t<t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t\geq t_0}$ si $t\geq t_0$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
+
+L'inconvénient de cette approche, par rapport aux méthodes robustes présentées dans la @sec-methodes-robustes, est que cela suppose de connaître la date et la nature du point atypique.
+Une approche en deux temps peut être utilisée :
+
+1. Partir sur un a priori basé sur une information économique (ex : baisse attendue de l'économie au moment des confinements durant le COVID-19, hausse attendue suite à une mise en place d'une politique...) ou sur des modèles statistiques (comme le module de détection des points atypiques de X-13ARIMA-SEATS basé sur un modèle RegARIMA).
+
+2. Valider la modélisation retenue en comparant l'intervalle de confiance de l'estimation de la tendance-cycle avec les moyennes mobiles de Henderson et de Musgrave avec l'estimation en utilisant les moyennes mobiles robustes.
+La @sec-ic décrit la méthodologie pour la construction d'intervalles de confiance pour des estimations basées sur des moyennes mobiles.
+
+Toutefois, pour l'estimation en temps réel, sauf à avoir une information extérieure, il est difficile de distinguer un *level shift* (LS) d'un ou plusieurs *additive outlier* (AO) consécutifs.
+Le choix du type de point atypique aura une influence forte sur l'estimation (puisque les LS affectent la tendance-cycle et les AO l'irrégulier) et passer d'une spécification à l'autre entraînera des révisions importantes.
+Ces révisions seront par ailleurs plus importantes que si, avant de décider de la bonne modélisation à adopter, les premières estimations avaient été faites avec des moyennes moyennes mobiles classiques.
+
+
+
+
+### Construction d'intervalles de confiance pour des moyennes mobiles {#sec-ic}
 
 Soit $y_1,\dots,y_n$ une série chronologique observée.
 On suppose qu'elle peut être décomposée en 
@@ -355,7 +431,7 @@ y_t=\mu_t+\varepsilon_t,
 $$
 où $\mu_t$ est une composante déterministe à estimer et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
 
-Soit $\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
+Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
 Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
 
 Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ peut être calculé à partir de la formule :
@@ -368,7 +444,7 @@ $$
 \hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{\mu}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{+f} \theta_i^2}.
 $$
 et $q_\alpha$ est le quantile d'ordre $\alpha$ d'une certaine loi de Student.
-C'est un intervalle de confiance de $\mu_t$ lorsque l'on a un estimateur sans biais de $\mu_t$ ($\mathbb E[\hat{\mu}_t]=\sum_{i=-p}^{+f}\theta_iy_{t+i}=\mu_t$), ce qui n'est généralement pas le cas mais il est négligeablelorsque la fenêtre $p+f+1$ est petite.
+C'est un intervalle de confiance de $\mu_t$ lorsque l'on a un estimateur sans biais de $\mu_t$ ($\mathbb E[\hat{\mu}_t]= \sum_{i=-p}^{+f}\theta_iy_{t+i}= \mu_t$), ce qui n'est généralement pas le cas, mais il est négligeable, lorsque la fenêtre $p+f+1$ est petite.
 
 Ces formules ces retrouvent par analogie avec la régression polynomiale locale.
 En reprenant les notations de @Loader1999 pour la régression polynomiale locale et en adaptant à l'utilisation de moyennes mobiles, la variance $\hat\sigma^2$ peut être estimée par la somme des carrés des résidus normalisés :
@@ -402,8 +478,8 @@ où $\boldsymbol 0_{p\times n}$ est la matrice de taille $p\times n$ ne contenan
 On a :
 $$
 \begin{cases}
-\nu_1 =\tr (L) = (n-p-f)\theta_0\\
-\nu_2 = \tr (\transp{L}L) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
+\nu_1 =\tr (H) = (n-p-f)\theta_0\\
+\nu_2 = \tr (\transp{H}H) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
 \end{cases}.
 $$
 Si les bruits $\varepsilon_t$ sont indépendants et de variance $\sigma^2$, alors :
@@ -429,7 +505,7 @@ $$
 \boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
 \boldsymbol I = \begin{pmatrix}
 &\boldsymbol0_{p\times n} \\
-\boldsymbol 0_{(n-p-f)\times p} &I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
+\boldsymbol 0_{(n-p-f)\times p} &\boldsymbol I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
 &\boldsymbol0_{f\times n} 
 \end{pmatrix}
 $$
@@ -458,11 +534,13 @@ Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on a donc :
 $$
 \frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu)
 $$
-Le paramètre $\nu$ peut être calculé analytiquement en reconstruisant la matrice $\boldsymbol \Gamma$ (c'est ce qui est fait par défaut dans `rjd3filters::confint_filter()`).
-Il peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire le temps de calcul^[
-Sur une série mensuelle de 19 ans, le temps de calcul est d'environ 0,1 secondes et est divisé d'en moyenne 4 000 en utilisant l'approximation.
-].
-
+Le numérateur de $\nu$ se calcule facilement puisque l'on a :
+$$
+\tr(\boldsymbol \Gamma) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
+$$
+En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Gamma^2).$
+Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Gamma$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (c'est ce qui est fait par défaut dans `rjd3filters::confint_filter()`, voir @sec-df-var).
+Le calcul de $\nu$ peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire davantage le temps de calcul. 
 ## Points atypiques étudiés
 
 # Résultats
@@ -486,25 +564,27 @@ graph_ci <- plot_confint(
 
 
 ```{r}
-#| label: fig-simul_ao-out-td0-y
+#| label: fig-simul-ao-out-td0-y
 #| fig.cap: "Série brute"
 graph_y
 ```
 
 ```{r}
-#| label: fig-simul_ao-out-td0-est
+#| label: fig-simul-ao-out-td0-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
-patchwork::wrap_plots(graph_est, ncol = 3) 
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-simul_ao-out-td0-ci
+#| label: fig-simul-ao-out-td0-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 
@@ -524,26 +604,70 @@ graph_ci <- plot_confint(
 
 
 ```{r}
-#| label: fig-simul_ao-out-td1-y
+#| label: fig-simul-ao-out-td1-y
 #| fig.cap: "Série brute"
 graph_y
 ```
 
 ```{r}
-#| label: fig-simul_ao-out-td1-est
+#| label: fig-simul-ao-out-td1-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
-patchwork::wrap_plots(graph_est, ncol = 3) 
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-simul_ao-out-td1-ci
+#| label: fig-simul-ao-out-td1-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
+
+
+#### Tendance de degré 2
+
+
+```{r}
+res <- readRDS(file.path("..", "results", "simul", "simul_ao_td2.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = robust_ff[["ao"]])
+```
+
+
+```{r}
+#| label: fig-simul-ao-out-td2-y
+#| fig.cap: "Série brute"
+graph_y
+```
+
+```{r}
+#| label: fig-simul-ao-out-td2-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-simul-ao-out-td2-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
+
+
 
 ### IPI voitures
 
@@ -567,22 +691,22 @@ graph_ci <- lapply(
 
 
 ```{r}
-#| label: fig-ipi_voitures98-out1-y
+#| label: fig-ipi-voitures98-out1-y
 #| fig.cap: "Série brute"
 graph_y[[1]]
 ```
 
 ```{r}
-#| label: fig-ipi_voitures98-out1-est
+#| label: fig-ipi-voitures98-out1-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
-patchwork::wrap_plots(graph_est[[1]], ncol = 3) 
+#|
+patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-ipi_voitures98-out1-ci
+#| label: fig-ipi-voitures98-out1-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
 patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
@@ -592,22 +716,22 @@ patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
 
 
 ```{r}
-#| label: fig-ipi_voitures98-out2-y
+#| label: fig-ipi-voitures98-out2-y
 #| fig.cap: "Série brute"
 graph_y[[2]]
 ```
 
 ```{r}
-#| label: fig-ipi_voitures98-out2-est
+#| label: fig-ipi-voitures98-out2-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
+#|
 patchwork::wrap_plots(graph_est[[2]], ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-ipi_voitures98-out2-ci
+#| label: fig-ipi-voitures98-out2-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
 patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
@@ -629,25 +753,27 @@ graph_ci <- plot_confint(
 ```
 
 ```{r}
-#| label: fig-ipi_voitures2004-y
+#| label: fig-ipi-voitures2004-y
 #| fig.cap: "Série brute"
 graph_y
 ```
 
 ```{r}
-#| label: fig-ipi_voitures2004-est
+#| label: fig-ipi-voitures2004-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
+#|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-ipi_voitures2004-ci
+#| label: fig-ipi-voitures2004-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 ## Level shift (LS)
@@ -663,30 +789,36 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ls"]])
+	robust_f = list(
+		"MM robuste LS" = robust_ff[["ls"]],
+		"MM robuste AO-AO" = robust_ff[["aoao"]]
+		)
+	)
 ```
 
 
 ```{r}
-#| label: fig-simul_ls-out-td0-y
+#| label: fig-simul-ls-out-td0-y
 #| fig.cap: "Série brute"
 graph_y
 ```
 
 ```{r}
-#| label: fig-simul_ls-out-td0-est
+#| label: fig-simul-ls-out-td0-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
-patchwork::wrap_plots(graph_est, ncol = 3) 
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-simul_ls-out-td0-ci
+#| label: fig-simul-ls-out-td0-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 #### Tendance de degré 1
@@ -698,33 +830,79 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ls"]])
+	robust_f = list(
+		"MM robuste LS" = robust_ff[["ls"]],
+		"MM robuste AO-AO" = robust_ff[["aoao"]]
+		)
+	)
 ```
 
 
 ```{r}
-#| label: fig-simul_ls-out-td1-y
+#| label: fig-simul-ls-out-td1-y
 #| fig.cap: "Série brute"
 graph_y
 ```
 
 ```{r}
-#| label: fig-simul_ls-out-td1-est
+#| label: fig-simul-ls-out-td1-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
-patchwork::wrap_plots(graph_est, ncol = 3) 
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-simul_ls-out-td1-ci
+#| label: fig-simul-ls-out-td1-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 
+#### Tendance de degré 2
+```{r}
+res <- readRDS(file.path("..", "results", "simul", "simul_ls_td2.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste LS" = robust_ff[["ls"]],
+		"MM robuste AO-AO" = robust_ff[["aoao"]]
+		)
+	)
+```
+
+
+```{r}
+#| label: fig-simul-ls-out-td2-y
+#| fig.cap: "Série brute"
+graph_y
+```
+
+```{r}
+#| label: fig-simul-ls-out-td2-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 8
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-simul-ls-out-td2-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig-width: 9
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
 
 ### IPI petrole brut
 
@@ -740,25 +918,27 @@ graph_ci <- plot_confint(
 ```
 
 ```{r}
-#| label: fig-ipi_petrole_brut10-y
+#| label: fig-ipi-petrole-brut10-y
 #| fig.cap: "Série brute"
 graph_y
 ```
 
 ```{r}
-#| label: fig-ipi_petrole_brut10-est
+#| label: fig-ipi-petrole-brut10-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
+#|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-ipi_petrole_brut10-ci
+#| label: fig-ipi-petrole-brut10-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 
@@ -775,7 +955,12 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["lsls"]])
+	robust_f = list(
+		"MM robuste LS-LS" = robust_ff[["lsls"]],
+		"MM robuste AO-AO" = robust_ff[["aoao"]]
+		),
+	show.legend = TRUE
+)
 ```
 
 ```{r}
@@ -788,7 +973,7 @@ graph_y
 #| label: fig-retailx2008-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
+#|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
@@ -797,7 +982,9 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 #| label: fig-retailx2008-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 
@@ -810,10 +997,17 @@ res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res)
+# graph_ci <- plot_confint(
+# 	res,
+# 	default_filter = lc_f,
+# 	robust_f = robust_ff[["aols"]])
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["aols"]])
+	robust_f = list("Robust AO-LS" = robust_ff[["aols"]],
+					"Robust AO" = robust_ff[["ao"]]),
+	show.legend = TRUE
+)
 ```
 
 ```{r}
@@ -828,16 +1022,17 @@ graph_y
 #| label: fig-imat2018-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
 #| fig-height: 8
-#| 
+#|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
-
 
 ```{r}
 #| label: fig-imat2018-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 ## Point de retournement
@@ -875,7 +1070,9 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 #| label: fig-retailx2007-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
 ### ce160v
@@ -911,11 +1108,15 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 #| label: fig-ce160v2001-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
 #| fig-width: 9
-patchwork::wrap_plots(graph_ci, ncol = 3)
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
 ```
 
-# Annexe
+\newpage
+\appendix
 
+# Annexes
 
 
 ## Moyennes mobiles utilisées
@@ -941,7 +1142,7 @@ ggdemetra3::ggplot_coef(CLF_CN, q= 0:6)
 
 ```{r}
 #| label: fig-robust-ao
-#| fig.cap: "Filtre robuste AO présent à la dernière date"
+#| fig.cap: "Filtres robustes à la présence d'un *additive outlier* (AO) à la dernière date"
 ggdemetra3::ggplot_coef(robust_ff$ao$t0, q= 0:7)
 ```
 
@@ -962,3 +1163,76 @@ ggdemetra3::ggplot_coef(robust_ff$ls$t0, q= 0:7)
 #| fig.cap: "Filtre robuste deux LS présents aux deux dernières dates"
 ggdemetra3::ggplot_coef(robust_ff$lsls$`t-1`, q= 0:7)
 ```
+
+## Calcul du degré de liberté de la variance {#sec-df-var}
+
+Soit $y_1,\dots,y_n$ une série chronologique observée.
+On suppose qu'elle peut être décomposée en 
+$$
+y_t=\mu_t+\varepsilon_t,
+$$
+où $\mu_t$ est une composante déterministe à estimer et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
+
+Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
+Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
+
+Notons $\boldsymbol H$ la *matrice chapeau* de taille $n\times n$ permettant de faire correspondre les données aux valeurs estimées :
+$$
+\begin{pmatrix}
+\hat{\mu}_1\\ \vdots \\ \hat{\mu}_n
+\end{pmatrix} = \boldsymbol H \boldsymbol Y
+\text{ avec }
+\boldsymbol Y = \begin{pmatrix}
+y_1\\ \vdots \\ y_n
+\end{pmatrix}.
+$$
+En considérant par convention que $\hat\mu_1=\dots=\hat{\mu}_p=\hat\mu_{n-f+1}=\dots=\hat\mu_n=0$ (puisque l'on ne peut pas estimer ces quantités avec la moyenne mobile $\boldsymbol \theta$), on a donc :
+$$
+\boldsymbol H=\begin{pmatrix}
+&&\boldsymbol0_{p\times n} \\
+\theta_{-p} & \cdots & \theta_f  & 0 & \cdots\\
+0 & \theta_{-p} & \cdots & \theta_f  & 0 & \cdots
+\\ & \ddots &&&\ddots\\
+0 &\cdots&0& \theta_{-p} & \cdots & \theta_f \\
+&&\boldsymbol0_{f\times n} 
+\end{pmatrix},
+$$
+Notons également :
+$$
+\boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
+\boldsymbol I = \begin{pmatrix}
+&\boldsymbol0_{p\times n} \\
+\boldsymbol 0_{(n-p-f)\times p} &\boldsymbol I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
+&\boldsymbol0_{f\times n} 
+\end{pmatrix}
+$$
+et $\boldsymbol I_{n-p-f}$ la matrice identité de taille $n-p-f.$
+L'objectif de cette annexe est de simplifier le calcul de $\tr(\boldsymbol \Gamma^2)$
+On a donc :
+$$
+\hat\sigma^2=\frac{1}{\tr{\boldsymbol \Gamma}}\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y
+$$
+et 
+$$
+\begin{cases}
+\E{\hat\sigma^2}=\sigma^2\tr(\boldsymbol \Gamma)\\
+\V{\hat\sigma^2}=2\sigma^4\frac{\tr(\boldsymbol \Gamma^2)}{\tr(\boldsymbol \Gamma)^2}
+\end{cases}.
+$$
+En notant $\nu = \tr(\boldsymbol \Gamma)^2 / \tr(\boldsymbol \Gamma^2)$, on a donc :
+$$
+\begin{cases}
+\E{\nu\frac{\hat\sigma^2}{\sigma^2}}=\nu\\
+\V{\nu\frac{\hat\sigma^2}{\sigma^2}}=2\nu
+\end{cases}.
+$$
+Les deux premiers moments de $\nu \hat\sigma^2/\sigma^2$ sont donc identiques à ceux d'un loi du chi-deux avec $\nu$ degrés de liberté : on peut donc approximer la distribution de $\hat\sigma^2$ par une loi du chi-deux.
+
+Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on a donc :
+$$
+\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu)
+$$
+Le numérateur de $\nu$ se calcule facilement puisque l'on a :
+$$
+\tr(\boldsymbol \Gamma) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
+$$
