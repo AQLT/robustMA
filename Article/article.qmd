@@ -14,6 +14,7 @@ format:
     pdf-engine: pdflatex
     papersize: A4
     fig-width: 7.5
+    fig-height: 3.5
     toc: false # to include abstract first
     fig-pos: 'H'
 crossref:
@@ -541,9 +542,10 @@ $$
 En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Gamma^2).$
 Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Gamma$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (c'est ce qui est fait par défaut dans `rjd3filters::confint_filter()`, voir @sec-df-var).
 Le calcul de $\nu$ peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire davantage le temps de calcul. 
-## Points atypiques étudiés
 
 # Résultats
+
+Les différentes méthodes sont tout d'abord comparées sur des séries simulées (choc de 10 %, tendance de degré 0, 1 ou 2) puis sur des séries réelles
 
 ## Additive outlier (A0)
 
@@ -559,20 +561,25 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ao"]])
+	robust_f = list(
+		"MM robuste AO" = robust_ff[["ao"]],
+		"MM robuste LS" = robust_ff[["ls"]]
+		)
+	)
 ```
 
 
 ```{r}
 #| label: fig-simul-ao-out-td0-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-simul-ao-out-td0-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -581,7 +588,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-simul-ao-out-td0-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -599,20 +606,25 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ao"]])
+	robust_f = list(
+		"MM robuste AO" = robust_ff[["ao"]],
+		"MM robuste LS" = robust_ff[["ls"]]
+		)
+	)
 ```
 
 
 ```{r}
 #| label: fig-simul-ao-out-td1-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-simul-ao-out-td1-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -621,7 +633,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-simul-ao-out-td1-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -639,20 +651,25 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ao"]])
+	robust_f = list(
+		"MM robuste AO" = robust_ff[["ao"]],
+		"MM robuste LS" = robust_ff[["ls"]]
+		)
+	)
 ```
 
 
 ```{r}
 #| label: fig-simul-ao-out-td2-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-simul-ao-out-td2-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -661,7 +678,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-simul-ao-out-td2-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -686,20 +703,21 @@ graph_ci <- lapply(
 	res$out, plot_confint,
 	data = res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ao"]])
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
 ```
 
 
 ```{r}
 #| label: fig-ipi-voitures98-out1-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y[[1]]
 ```
 
 ```{r}
 #| label: fig-ipi-voitures98-out1-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```
@@ -708,7 +726,7 @@ patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```{r}
 #| label: fig-ipi-voitures98-out1-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
 ```
 
@@ -718,13 +736,14 @@ patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
 ```{r}
 #| label: fig-ipi-voitures98-out2-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y[[2]]
 ```
 
 ```{r}
 #| label: fig-ipi-voitures98-out2-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est[[2]], ncol = 3)
 ```
@@ -733,7 +752,7 @@ patchwork::wrap_plots(graph_est[[2]], ncol = 3)
 ```{r}
 #| label: fig-ipi-voitures98-out2-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
 ```
 
@@ -749,19 +768,20 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ao"]])
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
 ```
 
 ```{r}
 #| label: fig-ipi-voitures2004-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-ipi-voitures2004-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -770,7 +790,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-ipi-voitures2004-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -800,13 +820,14 @@ graph_ci <- plot_confint(
 ```{r}
 #| label: fig-simul-ls-out-td0-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-simul-ls-out-td0-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -815,7 +836,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-simul-ls-out-td0-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -841,13 +862,14 @@ graph_ci <- plot_confint(
 ```{r}
 #| label: fig-simul-ls-out-td1-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-simul-ls-out-td1-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -856,7 +878,6 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-simul-ls-out-td1-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -883,13 +904,14 @@ graph_ci <- plot_confint(
 ```{r}
 #| label: fig-simul-ls-out-td2-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-simul-ls-out-td2-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -898,7 +920,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-simul-ls-out-td2-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -914,19 +936,20 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ls"]])
+	robust_f = list("MM robuste LS" = robust_ff[["ls"]]))
 ```
 
 ```{r}
 #| label: fig-ipi-petrole-brut10-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-ipi-petrole-brut10-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -935,7 +958,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-ipi-petrole-brut10-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -966,13 +989,14 @@ graph_ci <- plot_confint(
 ```{r}
 #| label: fig-retailx2008-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-retailx2008-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -981,7 +1005,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-retailx2008-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -1013,6 +1037,7 @@ graph_ci <- plot_confint(
 ```{r}
 #| label: fig-imat2018-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
@@ -1021,7 +1046,7 @@ graph_y
 ```{r}
 #| label: fig-imat2018-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -1029,7 +1054,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-imat2018-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -1047,12 +1072,13 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ao"]])
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
 ```
 
 ```{r}
 #| label: fig-retailx2007-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
@@ -1061,7 +1087,7 @@ graph_y
 ```{r}
 #| label: fig-retailx2007-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
@@ -1069,7 +1095,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-retailx2007-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
@@ -1085,12 +1111,13 @@ graph_y <- plot_y(res)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = robust_ff[["ao"]])
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
 ```
 
 ```{r}
 #| label: fig-ce160v2001-y
 #| fig.cap: "Série brute"
+#| fig-height: 2
 graph_y
 ```
 
@@ -1099,7 +1126,7 @@ graph_y
 ```{r}
 #| label: fig-ce160v2001-est
 #| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 8
+#| fig-height: 6
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
@@ -1107,7 +1134,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```{r}
 #| label: fig-ce160v2001-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-#| fig-width: 9
+
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
