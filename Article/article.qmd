@@ -333,6 +333,7 @@ Pour des données mensuelles :
 
 Dans cet article, seules des séries mensuelles sont étudiés et le filtre de Henderson à 13 termes sera utilisé comme filtre symétrique.
 Par simplification et par cohérence avec ce qui est utilisé dans X-11, le ratio $\delta_1/\sigma$ sera fixé de sorte à avoir $R=3,5$.
+C'est également ce qui est fait par l'Australian Bureau of Statistics [@abs2003].
 Toutefois, comme notamment montré dans @jos2024AQLT, une paramétrisation locale de ce paramètre pourrait être préférée.
 
 ### Filtres cascade
@@ -540,8 +541,27 @@ $$
 \tr(\boldsymbol \Gamma) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
 $$
 En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Gamma^2).$
-Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Gamma$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (c'est ce qui est fait par défaut dans `rjd3filters::confint_filter()`, voir @sec-df-var).
-Le calcul de $\nu$ peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire davantage le temps de calcul. 
+Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Gamma$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (voir @sec-df-var) :
+$$
+\tr((\boldsymbol \Gamma\transp{\boldsymbol \Gamma})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
+$$
+où $L_0,\dots,L_{p+f}$ sont définis par :
+$$
+\begin{pmatrix}w_{-p} & \cdots & w_f\end{pmatrix}
+\begin{pmatrix}
+w_{-p} &0 & 0 &\cdots& 0 \\
+w_{-p+1} & w_{-p} & 0 & \ddots & \vdots \\
+w_{-p+2} & w_{-p+1}& w_{-p} & \ddots & \vdots\\
+\vdots & \vdots & \vdots & \ddots &\vdots \\
+w_f & w_{f-1} & w_{f-2}&\ddots&w_{-p}\\
+\end{pmatrix}=\begin{pmatrix} L_0 & \cdots & L_{p+f} \end{pmatrix}
+$$
+avec $\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}$ la moyenne mobile telle que $w_0=1-\theta_0$ et $w_i=-\theta_i$ pour $i\ne0$.
+C'est la méthode de calcul utilisée par défaut dans `rjd3filters`.
+Le calcul de $\nu$ peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire davantage le temps de calcul^[
+Sur une série mensuelle de 19 ans ($n=228$), en utilisant la moyenne mobile de Henderson de 13 termes ($p=f=6$), le temps de calcul $\nu$ est d'en moyenne 0,11 seconde (sur 1 000 évaluations).
+Il est divisé d'environ 350 en utilisant la formule proposée dans cet article (environ 0,31 milliseconde) et d'environ 5 800 en utilisant l'approximation $\nu\simeq \tr(\boldsymbol \Gamma)$ (environ 0,02 milliseconde).
+]. 
 
 # Résultats
 
@@ -1193,27 +1213,7 @@ ggdemetra3::ggplot_coef(robust_ff$lsls$`t-1`, q= 0:7)
 
 ## Calcul du degré de liberté de la variance {#sec-df-var}
 
-Soit $y_1,\dots,y_n$ une série chronologique observée.
-On suppose qu'elle peut être décomposée en 
-$$
-y_t=\mu_t+\varepsilon_t,
-$$
-où $\mu_t$ est une composante déterministe à estimer et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
-
-Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
-Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
-
-Notons $\boldsymbol H$ la *matrice chapeau* de taille $n\times n$ permettant de faire correspondre les données aux valeurs estimées :
-$$
-\begin{pmatrix}
-\hat{\mu}_1\\ \vdots \\ \hat{\mu}_n
-\end{pmatrix} = \boldsymbol H \boldsymbol Y
-\text{ avec }
-\boldsymbol Y = \begin{pmatrix}
-y_1\\ \vdots \\ y_n
-\end{pmatrix}.
-$$
-En considérant par convention que $\hat\mu_1=\dots=\hat{\mu}_p=\hat\mu_{n-f+1}=\dots=\hat\mu_n=0$ (puisque l'on ne peut pas estimer ces quantités avec la moyenne mobile $\boldsymbol \theta$), on a donc :
+Soient $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ et $\boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\$ avec :
 $$
 \boldsymbol H=\begin{pmatrix}
 &&\boldsymbol0_{p\times n} \\
@@ -1221,45 +1221,68 @@ $$
 0 & \theta_{-p} & \cdots & \theta_f  & 0 & \cdots
 \\ & \ddots &&&\ddots\\
 0 &\cdots&0& \theta_{-p} & \cdots & \theta_f \\
-&&\boldsymbol0_{f\times n} 
-\end{pmatrix},
-$$
-Notons également :
-$$
-\boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
+&&\boldsymbol0_{f\times n}
+\end{pmatrix}\text{ et }
 \boldsymbol I = \begin{pmatrix}
 &\boldsymbol0_{p\times n} \\
 \boldsymbol 0_{(n-p-f)\times p} &\boldsymbol I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
-&\boldsymbol0_{f\times n} 
-\end{pmatrix}
+&\boldsymbol0_{f\times n}
+\end{pmatrix},
 $$
-et $\boldsymbol I_{n-p-f}$ la matrice identité de taille $n-p-f.$
-L'objectif de cette annexe est de simplifier le calcul de $\tr(\boldsymbol \Gamma^2)$
-On a donc :
-$$
-\hat\sigma^2=\frac{1}{\tr{\boldsymbol \Gamma}}\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y
-$$
-et 
-$$
-\begin{cases}
-\E{\hat\sigma^2}=\sigma^2\tr(\boldsymbol \Gamma)\\
-\V{\hat\sigma^2}=2\sigma^4\frac{\tr(\boldsymbol \Gamma^2)}{\tr(\boldsymbol \Gamma)^2}
-\end{cases}.
-$$
-En notant $\nu = \tr(\boldsymbol \Gamma)^2 / \tr(\boldsymbol \Gamma^2)$, on a donc :
-$$
-\begin{cases}
-\E{\nu\frac{\hat\sigma^2}{\sigma^2}}=\nu\\
-\V{\nu\frac{\hat\sigma^2}{\sigma^2}}=2\nu
-\end{cases}.
-$$
-Les deux premiers moments de $\nu \hat\sigma^2/\sigma^2$ sont donc identiques à ceux d'un loi du chi-deux avec $\nu$ degrés de liberté : on peut donc approximer la distribution de $\hat\sigma^2$ par une loi du chi-deux.
+où $\boldsymbol 0_{p\times n}$ est la matrice de taille $p\times n$ ne contenant que de zéros et $\boldsymbol I_{n-p-f}$ la matrice identité de taille $n-p-f.$
 
-Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on a donc :
+L'objectif de cette annexe est de montrer que le calcul de $\tr(\boldsymbol \Gamma^2)$ peut se simplifier par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$, ce qui permet de réduire le temps de calcul du degré de liberté de la loi de Student utilisée pour la construction d'intervalles de confiance :
 $$
-\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu)
+\tr((\boldsymbol \Gamma\transp{\boldsymbol \Gamma})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
-Le numérateur de $\nu$ se calcule facilement puisque l'on a :
+où $L_0,\dots,L_{p+f}$ sont définis par :
 $$
-\tr(\boldsymbol \Gamma) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
+\begin{pmatrix}w_{-p} & \cdots & w_f\end{pmatrix}
+\begin{pmatrix}
+w_{-p} &0 & 0 &\cdots& 0 \\
+w_{-p+1} & w_{-p} & 0 & \ddots & \vdots \\
+w_{-p+2} & w_{-p+1}& w_{-p} & \ddots & \vdots\\
+\vdots & \vdots & \vdots & \ddots &\vdots \\
+w_f & w_{f-1} & w_{f-2}&\ddots&w_{-p}\\
+\end{pmatrix}=\begin{pmatrix} L_0 & \cdots & L_{p+f} \end{pmatrix}
 $$
+avec $\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}$ la moyenne mobile telle que $w_i=\1_{i=0}-\theta_i$.
+
+
+Soient $i,j\in\{1,\dots,n\},$ posons par convention $w_i=0$ pour $i\notin[-p,f].$
+On a ${\boldsymbol \Gamma}_{i,j}=w_{i-j}\1_{i\in[p,n-f]}$ et :
+\begin{align*}
+({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j} &=\sum_{k=1}^n{\boldsymbol \Gamma}_{i,k}{\boldsymbol \Gamma}_{j,k}=\sum_{k=1}^nw_{i-k}w_{j-k} \1_{(i,j)\in[p,n-f]^2}\\
+&=\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}.
+\end{align*}
+L'ensemble des termes de $({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}$ se calcule par le produit matriciel :
+$$
+\begin{pmatrix}w_{-p} & \cdots & w_f\end{pmatrix}
+\begin{pmatrix}
+w_{-p} &0 & 0 &\cdots& 0 \\
+w_{-p+1} & w_{-p} & 0 & \ddots & \vdots \\
+w_{-p+2} & w_{-p+1}& w_{-p} & \ddots & \vdots\\
+\vdots & \vdots & \vdots & \ddots &\vdots \\
+w_f & w_{f-1} & w_{f-2}&\ddots&w_p\\
+\end{pmatrix}=\begin{pmatrix} L_0 & \cdots & L_{p+f} \end{pmatrix}.
+$$
+Puis :
+\begin{align*}
+(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)_{i,i} &= \sum_{j=1}^n({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{j,i}\\
+&=\sum_{j=1}^n({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}^2\text{ car la matrice }{\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}}\text{ est symétrique} \\
+&=\sum_{j=1}^n\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}\right)^2\\
+&=\sum_{j=p}^{n-f}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2\1_{i\in[p,n-f]}.
+\end{align*}
+Donc $(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)_{i,i} = 0$ si $i\notin \in[p,n-f].$
+Pour $i\in[p,n-f],$ comme pour tout $k\in [-p,f]$ on a $w_{i-j-k} =0$ si $j<i-(f+p)$ ou si $j>i-(f+p)$, il vient :
+\begin{align*}
+(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)_{i,i} &= \sum_{j=\max(i-(f+p),1)}^{\min(i+(f+p),n)}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2 \\
+&=\sum_{j=-(f+p)}^{f+p}\left(\sum_{k=-p}^fw_{k}w_{k-j}\right)^2\1_{j\in [1-i,n-i]} \\
+&=\sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]}\text{ par symétrie autour de }0.
+\end{align*}
+En somme :
+\begin{align*}
+\tr(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)& = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
+&= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + +2(n-(p+f)-2)L_2^2 +\dots+2(n-2(p+f))L_{p+f}^2 \\
+&=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2.
+\end{align*}
