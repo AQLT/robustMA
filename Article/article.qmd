@@ -47,11 +47,16 @@ robust_ff <- readRDS("../data/robust_ff.rds")
 y_as_plot <- FALSE
 add_y <- FALSE
 apply_consistent_y_lims <- function(this_plot){
-    num_plots <- length(this_plot$layers)
-    y_lims <- lapply(1:num_plots, function(x) ggplot_build(this_plot[[x]])$layout$panel_scales_y[[1]]$range$range)
+    num_plots <- length(this_plot)
+    y_lims <- lapply(this_plot, function(p) ggplot_build(p)$layout$panel_scales_y[[1]]$range$range)
+    x_lims <- lapply(this_plot, function(p) ggplot_build(this_plot[[1]])$layout$panel_params[[1]]$x.range)
     min_y <- min(unlist(y_lims))
     max_y <- max(unlist(y_lims))
-    this_plot & coord_cartesian(ylim = c(min_y, max_y))
+    for(i in seq_along(this_plot)) {
+    	this_plot[[i]] <- this_plot[[i]] + coord_cartesian(ylim = c(min_y, max_y), xlim = NULL#x_lims[[i]]
+    													   )
+    }
+    this_plot
 }
 ```
 
@@ -235,6 +240,13 @@ et $L^-(i)$ et $R^+(i)$ définis de manière analogue.
 
 Pour l'estimation en temps réel, le package `robfilter` utilise les mêmes algorithmes mais en n'utilisant que les données disponibles (donc en utilisant plus de points avant $t$ qu'après $t$).
 
+Dans le cadre de l'analyse conjoncturelle, il n'est généralement pas plausible de modéliser, autour des points de retournement, une tendance de degré 1.
+Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement ces méthodes^[
+Les méthodes LTS et LMS sont implémentées dans le package `MASS` [@MASS], il est nécessaire de réimplémenter le processus d'estimation locale.
+Nous n'avons pas trouvé d'autres fonctions permettant d'utiliser les autres méthodes mais elles pourraient être implémentées facilement.
+].
+Même si cette modélisation n'est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d'utilisation de `robfilter` font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle et présentées dans la section suivante.
+
 ## Moyennes mobiles linéaires {#sec-methodes-lineaires}
 
 ### Moyenne mobile de Henderson et de Musgrave {#sec-lp}
@@ -290,7 +302,7 @@ $$
 $$ {#eq-mmsym}
 En somme, l'estimation de la tendance $\hat{m}_{t}$ est obtenue en appliquant une moyenne mobile symétrique $\boldsymbol \theta$ à $y_t$.
 
-On retrouve la moyenne mobile de Henderson en utilisant les noyaux :
+On retrouve la moyenne mobile de Henderson avec $d=2$ (ou $d=3$) et en utilisant les noyaux :
 $$
 \kappa_{j}=\left[1-\frac{j^2}{(h+1)^2}\right]
 \left[1-\frac{j^2}{(h+2)^2}\right]
@@ -329,7 +341,6 @@ Pour des données mensuelles :
 - Si le rapport est faible ($R<1$), un filtre symétrique à 9 termes est utilisé et le rapport $R=1$ est utilisé dans X-11 pour définir le filtre de Musgrave.
 
 - Dans le cas contraire (la plupart des cas), un filtre symétrique à 13 termes est utilisé et le rapport $R=3,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
-
 
 Dans cet article, seules des séries mensuelles sont étudiés et le filtre de Henderson à 13 termes sera utilisé comme filtre symétrique.
 Par simplification et par cohérence avec ce qui est utilisé dans X-11, le ratio $\delta_1/\sigma$ sera fixé de sorte à avoir $R=3,5$.
@@ -380,7 +391,14 @@ $$
 \boldsymbol O_{t-h} \\ \vdots\\\boldsymbol O_{t+h}
 \end{pmatrix}.
 $$
+
 La moyenne mobile $\boldsymbol \theta_t^{(r)}$ est centrée (autant de points avant et après $t$ sont utilisées pour estimer $\widehat{TC}_t$) mais n'est plus forcément symétrique (pour au moins un $i\in\{1,\dots,h\}$ on a : $\theta_{-i,t}^{(r)}\ne\theta_{i,t}^{(r)}$).
+
+Le filtre de Henderson peut être obtenu par approximation locale d'un polynôme de degré 2.
+Puisqu'il est symétrique, il préserve également les tendances de degré 3 et peut également être obtenu par approximation locale d'un polynôme de degré 3.
+En revanche, même si la moyenne mobile $\boldsymbol \theta_t^{(r)}$ est centrée (autant de points avant et après $t$ sont utilisées pour estimer $\widehat{TC}_t$), elle n'est plus forcément symétrique (pour au moins un $i\in\{1,\dots,h\}$ on a : $\theta_{-i,t}^{(r)}\ne\theta_{i,t}^{(r)}$).
+Pour construire une moyenne mobile robuste associée au filtre de Henderson, le choix entre modélisation d'un polynôme local de degré 2 ($d=2$) ou 3 ($d=3$) aura donc un impact sur la moyenne mobile finale.
+Dans cet article nous utiliserons par convention la valeur $d=3$ afin de préserver les mêmes tendances que la moyenne mobile de Henderson.
 
 <!-- Comme $\transp{\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}}\boldsymbol \theta_t^{(r)}=\boldsymbol e_{1}$ -->
 
@@ -409,6 +427,7 @@ Si le choc le choc apparaît à la date $t_0$ il peut être modélisé par le r�
 Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'irrégulier.
 Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t< t_0}$ si $t<t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t\geq t_0}$ si $t\geq t_0$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
 
+
 L'inconvénient de cette approche, par rapport aux méthodes robustes présentées dans la @sec-methodes-robustes, est que cela suppose de connaître la date et la nature du point atypique.
 Une approche en deux temps peut être utilisée :
 
@@ -423,6 +442,7 @@ Ces révisions seront par ailleurs plus importantes que si, avant de décider de
 
 
 
+Dans la suite ces moyennes mobiles seront appelées moyenne mobile de Henderson ou de Musgrave robuste.
 
 ### Construction d'intervalles de confiance pour des moyennes mobiles {#sec-ic}
 
@@ -500,11 +520,11 @@ L'estimateur $\hat\sigma^2$ est donc sans biais si $\hat\mu_t$ l'est aussi.
 La somme des carrés des résidus peut s'écrire sous forme quadratique :
 $$
 \sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2 =
-\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y 
+\transp{\boldsymbol Y}\boldsymbol \Delta\boldsymbol Y 
 $$
 où :
 $$
-\boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
+\boldsymbol \Delta = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
 \boldsymbol I = \begin{pmatrix}
 &\boldsymbol0_{p\times n} \\
 \boldsymbol 0_{(n-p-f)\times p} &\boldsymbol I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
@@ -514,23 +534,29 @@ $$
 et $\boldsymbol I_{n-p-f}$ la matrice identité de taille $n-p-f.$
 On a donc :
 $$
-\hat\sigma^2=\frac{1}{\tr{\boldsymbol \Gamma}}\transp{\boldsymbol Y}\boldsymbol \Gamma\boldsymbol Y
+\hat\sigma^2=\frac{1}{\tr{\boldsymbol \Delta}}\transp{\boldsymbol Y}\boldsymbol \Delta\boldsymbol Y.
 $$
-et 
+Si les bruits $\varepsilon_t$ sont normalement distribués indépendants et $\hat\sigma^2$, la distribution est :
+$$
+\transp{\boldsymbol Y}\boldsymbol \Delta\boldsymbol Y\overset{\mathcal L}{=}\sigma^2\sum_{j=1}^n\lambda_jZ_j,
+$$
+où les $\lambda_j$ sont les valeurs propres de $\boldsymbol\Delta$ et les $Z_j$ soit des lois indépendantes $\chi_1^2.$
+Il vient :
 $$
 \begin{cases}
-\E{\hat\sigma^2}=\sigma^2\tr(\boldsymbol \Gamma)\\
-\V{\hat\sigma^2}=2\sigma^4\frac{\tr(\boldsymbol \Gamma^2)}{\tr(\boldsymbol \Gamma)^2}
+\E{\hat\sigma^2}=\sigma^2\frac{1}{\tr{\boldsymbol \Delta}}\underbrace{\sum_{j=1}^n\lambda_j}_{=\tr{\boldsymbol \Delta}}=\sigma^2\\
+\V{\hat\sigma^2}=\sigma^4\frac{1}{\tr{(\boldsymbol \Delta)}^2}\sum_{j=1}^n2\lambda_j^2=2\sigma^4\frac{\tr(\boldsymbol \Delta^2)}{\tr(\boldsymbol \Delta)^2}
 \end{cases}.
 $$
-En notant $\nu = \tr(\boldsymbol \Gamma)^2 / \tr(\boldsymbol \Gamma^2)$, on a donc :
+En notant $\nu = \tr(\boldsymbol \Delta)^2 / \tr(\boldsymbol \Delta^2)$, on a donc :
 $$
 \begin{cases}
 \E{\nu\frac{\hat\sigma^2}{\sigma^2}}=\nu\\
 \V{\nu\frac{\hat\sigma^2}{\sigma^2}}=2\nu
 \end{cases}.
 $$
-Les deux premiers moments de $\nu \hat\sigma^2/\sigma^2$ sont donc identiques à ceux d'un loi du chi-deux avec $\nu$ degrés de liberté : on peut donc approximer la distribution de $\hat\sigma^2$ par une loi du chi-deux.
+Les deux premiers moments de $\nu \hat\sigma^2/\sigma^2$ sont donc identiques à ceux d'un loi du chi-deux avec $\nu$ degrés de liberté.
+La loi $\hat\sigma^2$ étant difficile à calculer dans le cadre de la régression locale, on donc approximer sa distribution de $\hat\sigma^2$ par une loi du chi-deux.
 
 Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on a donc :
 $$
@@ -538,12 +564,12 @@ $$
 $$
 Le numérateur de $\nu$ se calcule facilement puisque l'on a :
 $$
-\tr(\boldsymbol \Gamma) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
+\tr(\boldsymbol \Delta) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
 $$
-En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Gamma^2).$
-Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Gamma$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (voir @sec-df-var) :
+En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Delta^2).$
+Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (voir @sec-df-var) :
 $$
-\tr((\boldsymbol \Gamma\transp{\boldsymbol \Gamma})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
+\tr((\boldsymbol \Delta\transp{\boldsymbol \Delta})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
 où $L_0,\dots,L_{p+f}$ sont définis par :
 $$
@@ -558,433 +584,262 @@ w_f & w_{f-1} & w_{f-2}&\ddots&w_{-p}\\
 $$
 avec $\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}$ la moyenne mobile telle que $w_0=1-\theta_0$ et $w_i=-\theta_i$ pour $i\ne0$.
 C'est la méthode de calcul utilisée par défaut dans `rjd3filters`.
-Le calcul de $\nu$ peut aussi être approximé par $\tr(\boldsymbol \Gamma)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire davantage le temps de calcul^[
+Le calcul de $\nu$ peut aussi être approximé par $\tr(\boldsymbol \Delta)$ (`rjd3filters::confint_filter(exact_df = FALSE)`) ce qui permet de réduire davantage le temps de calcul^[
 Sur une série mensuelle de 19 ans ($n=228$), en utilisant la moyenne mobile de Henderson de 13 termes ($p=f=6$), le temps de calcul $\nu$ est d'en moyenne 0,11 seconde (sur 1 000 évaluations).
-Il est divisé d'environ 350 en utilisant la formule proposée dans cet article (environ 0,31 milliseconde) et d'environ 5 800 en utilisant l'approximation $\nu\simeq \tr(\boldsymbol \Gamma)$ (environ 0,02 milliseconde).
+Il est divisé d'environ 350 en utilisant la formule proposée dans cet article (environ 0,31 milliseconde) et d'environ 5 800 en utilisant l'approximation $\nu\simeq \tr(\boldsymbol \Delta)$ (environ 0,02 milliseconde).
 ]. 
 
 # Résultats
 
-Les différentes méthodes sont tout d'abord comparées sur des séries simulées (choc de 10 %, tendance de degré 0, 1 ou 2) puis sur des séries réelles
+Les différentes méthodes sont tout d'abord comparées sur des séries simulées (choc de 10 %, tendance de degré 0, 1 ou 2, @sec-res-series-simul) puis sur des séries réelles (@sec-res-series-reelles).
 
-## Additive outlier (A0)
+## Séries simulées {#sec-res-series-simul}
 
-### Données simulées
-
-#### Tendance de degré 0
 
 ```{r}
-res <- readRDS(file.path("..", "results", "simul", "simul_ao_td0.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
+##########
+### AO ###
+##########
+res_ao_td0 <- readRDS(file.path("..", "results", "simul", "simul_ao_td0.RDS"))
+graph_est_ao_td0 <- get_all_plots(res_ao_td0, y_as_plot = y_as_plot, add_y = add_y)
+graph_est_ao_td0$CLF <- NULL
+graph_y_ao_td0 <- plot_y(res_ao_td0) + 
+	ggplot2::ggtitle("AO - tendance degré 0")
+graph_ci_ao_td0 <- plot_confint(
+	res_ao_td0,
 	default_filter = lc_f,
 	robust_f = list(
-		"MM robuste AO" = robust_ff[["ao"]],
-		"MM robuste LS" = robust_ff[["ls"]]
+		"MM robuste AO" = robust_ff[["ao"]]
+		)
+	)
+res_ao_td1 <- readRDS(file.path("..", "results", "simul", "simul_ao_td1.RDS"))
+graph_est_ao_td1 <- get_all_plots(res_ao_td1, y_as_plot = y_as_plot, add_y = add_y)
+graph_est_ao_td1$CLF <- NULL
+graph_y_ao_td1 <- plot_y(res_ao_td1) + 
+	ggplot2::ggtitle("AO - tendance degré 1")
+graph_ci_ao_td1 <- plot_confint(
+	res_ao_td1,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste AO" = robust_ff[["ao"]]
+		)
+	)
+res_ao_td2 <- readRDS(file.path("..", "results", "simul", "simul_ao_td2.RDS"))
+graph_est_ao_td2 <- get_all_plots(res_ao_td2, y_as_plot = y_as_plot, add_y = add_y)
+graph_est_ao_td2$CLF <- NULL
+graph_y_ao_td2 <- plot_y(res_ao_td2) + 
+	ggplot2::ggtitle("AO - tendance degré 2")
+graph_ci_ao_td2 <- plot_confint(
+	res_ao_td2,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste AO" = robust_ff[["ao"]]
+		)
+	)
+
+##########
+### LS ###
+##########
+
+res_ls_td0 <- readRDS(file.path("..", "results", "simul", "simul_ls_td0.RDS"))
+graph_est_ls_td0 <- get_all_plots(res_ls_td0, y_as_plot = y_as_plot, add_y = add_y)
+graph_est_ls_td0$CLF <- NULL
+graph_y_ls_td0 <- plot_y(res_ls_td0) + 
+	ggplot2::ggtitle("LS - tendance degré 0")
+graph_ci_ls_td0 <- plot_confint(
+	res_ls_td0,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste LS" = robust_ff[["ls"]],
+		"MM robuste AO-AO" = robust_ff[["aoao"]]
+		)
+	)
+res_ls_td1 <- readRDS(file.path("..", "results", "simul", "simul_ls_td1.RDS"))
+graph_est_ls_td1 <- get_all_plots(res_ls_td1, y_as_plot = y_as_plot, add_y = add_y)
+graph_est_ls_td1$CLF <- NULL
+graph_y_ls_td1 <- plot_y(res_ls_td1) + 
+	ggplot2::ggtitle("LS - tendance degré 1")
+graph_ci_ls_td1 <- plot_confint(
+	res_ls_td1,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste LS" = robust_ff[["ls"]],
+		"MM robuste AO-AO" = robust_ff[["aoao"]]
+		)
+	)
+res_ls_td2 <- readRDS(file.path("..", "results", "simul", "simul_ls_td2.RDS"))
+graph_est_ls_td2 <- get_all_plots(res_ls_td2, y_as_plot = y_as_plot, add_y = add_y)
+graph_est_ls_td2$CLF <- NULL
+graph_y_ls_td2 <- plot_y(res_ls_td2) + 
+	ggplot2::ggtitle("LS - tendance degré 2")
+graph_ci_ls_td2 <- plot_confint(
+	res_ls_td2,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste LS" = robust_ff[["ls"]],
+		"MM robuste AO-AO" = robust_ff[["aoao"]]
 		)
 	)
 ```
 
 
+Afin d'illustrer les performances des différentes méthodes, les différentes estimations sont comparées sur des séries simulées dans un cas extrême : lorsque l'irrégulier est nul.
+Trois tendances sont simulées, de degré 0, 1 ou 2, et un choc positif de 10 % est introduit en janvier 2022 : soit un choc ponctuel (*additive outlier*, affectant l'irrégulier) soit un choc permanent (*level shift*, affectant la tendance-cycle).
+Les séries simulées commencent en janvier 2018, soit 4 ans avant le choc afin de limiter l'impact des points atypiques sur le calcul des intervalles de confiance (puisque l'irrégulier est nul, l'intervalle de confiance est également nul avant l'introduction du choc).
+La @fig-simul-y montre les différentes séries simulées.
+
+
 ```{r}
-#| label: fig-simul-ao-out-td0-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
+#| label: fig-simul-y
+#| fig.cap: "Séries simulées avec un choc ponctuel (*additive outlier*, AO) ou permanent (*level shift*, LS) en janvier 2022"
+#| fig-height: 4
+graph_y_ao_td0 + graph_y_ao_td1 + graph_y_ao_td2 +
+	graph_y_ls_td0 + graph_y_ls_td1 + graph_y_ls_td2 +
+	plot_layout(guides = 'collect', axes = "collect", nrow = 2) &
+	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
+											  vjust=1.1, hjust=1))
 ```
+
+
+Pour les chocs ponctuels (*additive outlier*, AO), lorsque la tendance est de degré 0, aucune des méthodes robustes n'est influencée par la présence de l'AO, tout comme la moyenne mobile de Musgrave robuste (@fig-simul-ao-out-td0-est).
+Les estimations avec les moyennes mobiles de Musgrave et CLF sont biaisées avec des révisions importantes à la date du choc, légèrement plus petites pour la méthode CLF.
+L'analyse des intervalles de confiance valident clairement la présence du point atypique (@fig-simul-ao-out-td0-ci).\
+Lorsque la tendance est de degré 1 (figures [-@fig-simul-ao-out-td1-est] et [-@fig-simul-ao-out-td1-ci]) les résultats sont similaires sauf pour la médiane mobile qui en temps réel conduit à des estimations peu réalistes.
+Comme notamment indiqué par @gather2006online, cela suggère d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
+Un léger biais négatif s'observe pour la méthode de Musgrave robuste : cela provient du fait que pour la création de ces moyennes mobiles la pente est fixé (ratio $\delta_1/\sigma$ fixé et $\sigma$ a priori fixé) à une valeur différente de la pente simulée.
+Cela suggère de préférer une paramétrisation locale de ce paramètre, comme proposé par @jos2024AQLT.\
+Lorsque la tendance est de degré 2 (figures [-@fig-simul-ao-out-td2-est] et [-@fig-simul-ao-out-td2-ci]), les résultats avec les moyennes mobiles sont similaires (révisions importantes autour du choc pour Musgrave et CLF et faibles pour Musgrave robuste).
+Pour les méthodes robustes, les estimations finale modélisent bien le retournement de tendance malgré le fait que juste une tendance de degré 1 est modélisée.
+En revanche, contrairement aux moyennes mobiles de Musgrave (classiques et robustes) qui modélisent également en fin de période des tendances de degré 1, les estimations intermédiaires sont peu réalistes et conduisent à des révisions importantes.
+Cela suggère que pour l'estimation en temps réel avec les méthodes robustes, il faudrait, autour des points de retournement, modéliser une tendance de degré 2 (ce qui n'est pas possible dans `robfilter`).
+
 
 ```{r}
 #| label: fig-simul-ao-out-td0-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 #| fig-height: 6
 #|
-patchwork::wrap_plots(graph_est, ncol = 3)
+patchwork::wrap_plots(graph_est_ao_td0, ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-simul-ao-out-td0-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave et filtres de musgrave robuste pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td0, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
 
-#### Tendance de degré 1
-
-
-```{r}
-res <- readRDS(file.path("..", "results", "simul", "simul_ao_td1.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list(
-		"MM robuste AO" = robust_ff[["ao"]],
-		"MM robuste LS" = robust_ff[["ls"]]
-		)
-	)
-```
-
-
-```{r}
-#| label: fig-simul-ao-out-td1-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
-```
 
 ```{r}
 #| label: fig-simul-ao-out-td1-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 #| fig-height: 6
 #|
-patchwork::wrap_plots(graph_est, ncol = 3)
+patchwork::wrap_plots(graph_est_ao_td1, ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-simul-ao-out-td1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de musgrave et filtres de musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td1, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
 
-#### Tendance de degré 2
-
-
-```{r}
-res <- readRDS(file.path("..", "results", "simul", "simul_ao_td2.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list(
-		"MM robuste AO" = robust_ff[["ao"]],
-		"MM robuste LS" = robust_ff[["ls"]]
-		)
-	)
-```
-
-
-```{r}
-#| label: fig-simul-ao-out-td2-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
-```
-
 ```{r}
 #| label: fig-simul-ao-out-td2-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 2 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 #| fig-height: 6
 #|
-patchwork::wrap_plots(graph_est, ncol = 3)
+patchwork::wrap_plots(graph_est_ao_td2, ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-simul-ao-out-td2-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td2, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
 
-
-### IPI voitures
-
-#### Août 1998
-
-
-```{r}
-res <- readRDS(file.path("..", "results", "AO", "ipi_voitures98.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est <- lapply(graph_est,function(p){
-	p$CLF <- NULL
-	p
-})
-graph_y <- plot_y(res)
-graph_ci <- lapply(
-	res$out, plot_confint,
-	data = res,
-	default_filter = lc_f,
-	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
-```
-
-
-```{r}
-#| label: fig-ipi-voitures98-out1-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y[[1]]
-```
-
-```{r}
-#| label: fig-ipi-voitures98-out1-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 6
-#|
-patchwork::wrap_plots(graph_est[[1]], ncol = 3)
-```
-
-
-```{r}
-#| label: fig-ipi-voitures98-out1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-
-patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
-```
-
-#### Août 1999
-
-
-```{r}
-#| label: fig-ipi-voitures98-out2-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y[[2]]
-```
-
-```{r}
-#| label: fig-ipi-voitures98-out2-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 6
-#|
-patchwork::wrap_plots(graph_est[[2]], ncol = 3)
-```
-
-
-```{r}
-#| label: fig-ipi-voitures98-out2-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-
-patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
-```
-
-
-#### 2004
-
-
-```{r}
-res <- readRDS(file.path("..", "results", "AO", "ipi_voitures2004.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
-```
-
-```{r}
-#| label: fig-ipi-voitures2004-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
-```
-
-```{r}
-#| label: fig-ipi-voitures2004-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 6
-#|
-patchwork::wrap_plots(graph_est, ncol = 3)
-```
-
-
-```{r}
-#| label: fig-ipi-voitures2004-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
-	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
-```
-
-## Level shift (LS)
-
-### Données simulées
-
-#### Tendance de degré 0
-```{r}
-res <- readRDS(file.path("..", "results", "simul", "simul_ls_td0.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list(
-		"MM robuste LS" = robust_ff[["ls"]],
-		"MM robuste AO-AO" = robust_ff[["aoao"]]
-		)
-	)
-```
-
-
-```{r}
-#| label: fig-simul-ls-out-td0-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
-```
+Pour les chocs permanents (*level shift*, LS), à l'exception de la régression profonde (DR) et de la régression médiane répétée (RM), les estimations finales de la tendance-cycle avec les méthodes robustes ne sont pas influencées par la présence du choc (figures [-@fig-simul-ls-out-td0-est],  [-@fig-simul-ls-out-td1-est] et [-@fig-simul-ls-out-td2-est]).
+En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date (il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte). 
+Les méthodes sont en quelque sorte "trop robustes" et cela suggère encore d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.\
+Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
+Il y a également d'importantes révisions pour la première estimation de janvier 2022 (date du choc).
+Il n'y a en revanche quasiment aucune révision pour les moyennes mobile de Musgrave robuste à un choc permanent en janvier 2022.\
+Les intervalles de confiance des estimations de la moyenne mobile de Musgrave sont comparés à la moyenne mobile de Musgrave robuste au choc permanent et à la moyenne mobile de Musgrave robuste à un choc ponctuel en janvier et février 2022  (figures [-@fig-simul-ls-out-td0-ci],  [-@fig-simul-ls-out-td1-ci] et [-@fig-simul-ls-out-td2-ci]).
+Cela permet de simuler le cas où on ne sait pas, en temps réel, trancher sur la nature du choc : soit un choc permanent, soit un choc ponctuel (lorsque l'on se place en janvier 2022), soit deux chocs ponctuels (lorsque l'on se place en février 2022).
+En mars 2022, l'observation de 3 chocs de même ampleur confirme qu'il s'agit d'un choc permanent et non ponctuel.
+Si l'on s'est trompé dans la nature du choc, jusqu'en février 2022 les révisions sont nulles pour les estimations avant le choc mais importantes pour celles après (janvier et février, puisque le choc est affecté à l'irrégulier et non pas à la tendance-cycle).
 
 ```{r}
 #| label: fig-simul-ls-out-td0-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 0 et un choc permanent (*level shift*, LS) en janvier 2022"
 #| fig-height: 6
 #|
-patchwork::wrap_plots(graph_est, ncol = 3)
+patchwork::wrap_plots(graph_est_ls_td0, ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-simul-ls-out-td0-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 0 et un choc permanent (*level shift*, LS) en janvier 2022"
 
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td0, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
-#### Tendance de degré 1
-```{r}
-res <- readRDS(file.path("..", "results", "simul", "simul_ls_td1.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list(
-		"MM robuste LS" = robust_ff[["ls"]],
-		"MM robuste AO-AO" = robust_ff[["aoao"]]
-		)
-	)
-```
-
-
-```{r}
-#| label: fig-simul-ls-out-td1-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
-```
 
 ```{r}
 #| label: fig-simul-ls-out-td1-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 1 et un choc permanent (*level shift*, LS) en janvier 2022"
 #| fig-height: 6
 #|
-patchwork::wrap_plots(graph_est, ncol = 3)
+patchwork::wrap_plots(graph_est_ls_td1, ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-simul-ls-out-td1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc permanent (*level shift*, LS) en janvier 2022"
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td1, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
 
-#### Tendance de degré 2
-```{r}
-res <- readRDS(file.path("..", "results", "simul", "simul_ls_td2.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list(
-		"MM robuste LS" = robust_ff[["ls"]],
-		"MM robuste AO-AO" = robust_ff[["aoao"]]
-		)
-	)
-```
-
-
-```{r}
-#| label: fig-simul-ls-out-td2-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
-```
-
 ```{r}
 #| label: fig-simul-ls-out-td2-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 2 et un choc permanent (*level shift*, LS) en janvier 2022"
 #| fig-height: 6
 #|
-patchwork::wrap_plots(graph_est, ncol = 3)
+patchwork::wrap_plots(graph_est_ls_td2, ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-simul-ls-out-td2-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 2 et un choc permanent (*level shift*, LS) en janvier 2022"
 
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
-	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
-```
-
-### IPI petrole brut
-
-```{r}
-res <- readRDS(file.path("..", "results", "LS", "ipi_petrole_brut10.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list("MM robuste LS" = robust_ff[["ls"]]))
-```
-
-```{r}
-#| label: fig-ipi-petrole-brut10-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
-graph_y
-```
-
-```{r}
-#| label: fig-ipi-petrole-brut10-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 6
-#|
-patchwork::wrap_plots(graph_est, ncol = 3)
-```
-
-
-```{r}
-#| label: fig-ipi-petrole-brut10-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
-
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td2, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
 
+## Séries réelles {#sec-res-series-reelles}
 
 ## Deux LS
 
@@ -994,7 +849,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res)
+graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
@@ -1024,7 +879,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-retailx2008-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1040,7 +895,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res)
+graph_y <- plot_y(res, n_xlabel = 6)
 # graph_ci <- plot_confint(
 # 	res,
 # 	default_filter = lc_f,
@@ -1073,7 +928,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-imat2018-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1088,7 +943,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res)
+graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
@@ -1114,7 +969,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-retailx2007-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1127,7 +982,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 res <- readRDS(file.path("..", "results", "AO", "ce160v2001.rds"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res)
+graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
@@ -1153,7 +1008,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-ce160v2001-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1171,7 +1026,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ```{r}
 #| label: fig-mm-musgrave
-#| fig.cap: "Henderson et filtre de musgrave"
+#| fig.cap: "Henderson et filtre de Musgrave"
 ggdemetra3::ggplot_coef(lp_filter(), q= 0:6)
 ```
 
@@ -1213,7 +1068,7 @@ ggdemetra3::ggplot_coef(robust_ff$lsls$`t-1`, q= 0:7)
 
 ## Calcul du degré de liberté de la variance {#sec-df-var}
 
-Soient $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ et $\boldsymbol \Gamma = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\$ avec :
+Soient $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ et $\boldsymbol \Delta = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)$ avec :
 $$
 \boldsymbol H=\begin{pmatrix}
 &&\boldsymbol0_{p\times n} \\
@@ -1231,9 +1086,9 @@ $$
 $$
 où $\boldsymbol 0_{p\times n}$ est la matrice de taille $p\times n$ ne contenant que de zéros et $\boldsymbol I_{n-p-f}$ la matrice identité de taille $n-p-f.$
 
-L'objectif de cette annexe est de montrer que le calcul de $\tr(\boldsymbol \Gamma^2)$ peut se simplifier par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$, ce qui permet de réduire le temps de calcul du degré de liberté de la loi de Student utilisée pour la construction d'intervalles de confiance :
+L'objectif de cette annexe est de montrer que le calcul de $\tr(\boldsymbol \Delta^2)$ peut se simplifier par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$, ce qui permet de réduire le temps de calcul du degré de liberté de la loi de Student utilisée pour la construction d'intervalles de confiance :
 $$
-\tr((\boldsymbol \Gamma\transp{\boldsymbol \Gamma})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
+\tr((\boldsymbol \Delta\transp{\boldsymbol \Delta})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
 où $L_0,\dots,L_{p+f}$ sont définis par :
 $$
@@ -1250,12 +1105,12 @@ avec $\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}$ la moyenne m
 
 
 Soient $i,j\in\{1,\dots,n\},$ posons par convention $w_i=0$ pour $i\notin[-p,f].$
-On a ${\boldsymbol \Gamma}_{i,j}=w_{i-j}\1_{i\in[p,n-f]}$ et :
+On a ${\boldsymbol \Delta}_{i,j}=w_{i-j}\1_{i\in[p,n-f]}$ et :
 \begin{align*}
-({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j} &=\sum_{k=1}^n{\boldsymbol \Gamma}_{i,k}{\boldsymbol \Gamma}_{j,k}=\sum_{k=1}^nw_{i-k}w_{j-k} \1_{(i,j)\in[p,n-f]^2}\\
+({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j} &=\sum_{k=1}^n{\boldsymbol \Delta}_{i,k}{\boldsymbol \Delta}_{j,k}=\sum_{k=1}^nw_{i-k}w_{j-k} \1_{(i,j)\in[p,n-f]^2}\\
 &=\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}.
 \end{align*}
-L'ensemble des termes de $({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}$ se calcule par le produit matriciel :
+L'ensemble des termes de $({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}$ se calcule par le produit matriciel :
 $$
 \begin{pmatrix}w_{-p} & \cdots & w_f\end{pmatrix}
 \begin{pmatrix}
@@ -1268,21 +1123,176 @@ w_f & w_{f-1} & w_{f-2}&\ddots&w_p\\
 $$
 Puis :
 \begin{align*}
-(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)_{i,i} &= \sum_{j=1}^n({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{j,i}\\
-&=\sum_{j=1}^n({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}^2\text{ car la matrice }{\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}}\text{ est symétrique} \\
+(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} &= \sum_{j=1}^n({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{j,i}\\
+&=\sum_{j=1}^n({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}^2\text{ car la matrice }{\boldsymbol \Delta}\transp{{\boldsymbol \Delta}}\text{ est symétrique} \\
 &=\sum_{j=1}^n\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}\right)^2\\
 &=\sum_{j=p}^{n-f}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2\1_{i\in[p,n-f]}.
 \end{align*}
-Donc $(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)_{i,i} = 0$ si $i\notin \in[p,n-f].$
+Donc $(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} = 0$ si $i\notin \in[p,n-f].$
 Pour $i\in[p,n-f],$ comme pour tout $k\in [-p,f]$ on a $w_{i-j-k} =0$ si $j<i-(f+p)$ ou si $j>i-(f+p)$, il vient :
 \begin{align*}
-(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)_{i,i} &= \sum_{j=\max(i-(f+p),1)}^{\min(i+(f+p),n)}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2 \\
+(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} &= \sum_{j=\max(i-(f+p),1)}^{\min(i+(f+p),n)}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2 \\
 &=\sum_{j=-(f+p)}^{f+p}\left(\sum_{k=-p}^fw_{k}w_{k-j}\right)^2\1_{j\in [1-i,n-i]} \\
 &=\sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]}\text{ par symétrie autour de }0.
 \end{align*}
 En somme :
 \begin{align*}
-\tr(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})^2)& = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
-&= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + +2(n-(p+f)-2)L_2^2 +\dots+2(n-2(p+f))L_{p+f}^2 \\
+\tr(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)& = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
+&= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + 2(n-(p+f)-2)L_2^2 +\dots+2(n-2(p+f))L_{p+f}^2 \\
 &=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2.
 \end{align*}
+
+## Autres exemples
+
+### IPI voitures
+
+#### Août 1998
+
+
+```{r}
+res <- readRDS(file.path("..", "results", "AO", "ipi_voitures98.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est <- lapply(graph_est,function(p){
+	p$CLF <- NULL
+	p
+})
+graph_y <- plot_y(res, n_xlabel = 6)
+graph_ci <- lapply(
+	res$out, plot_confint,
+	data = res,
+	default_filter = lc_f,
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
+```
+
+
+```{r}
+#| label: fig-ipi-voitures98-out1-y
+#| fig.cap: "Série brute"
+#| fig-height: 2
+graph_y[[1]]
+```
+
+```{r}
+#| label: fig-ipi-voitures98-out1-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 6
+#|
+patchwork::wrap_plots(graph_est[[1]], ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ipi-voitures98-out1-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+
+patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
+```
+
+#### Août 1999
+
+
+```{r}
+#| label: fig-ipi-voitures98-out2-y
+#| fig.cap: "Série brute"
+#| fig-height: 2
+graph_y[[2]]
+```
+
+```{r}
+#| label: fig-ipi-voitures98-out2-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 6
+#|
+patchwork::wrap_plots(graph_est[[2]], ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ipi-voitures98-out2-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+
+patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
+```
+
+
+#### 2004
+
+
+```{r}
+res <- readRDS(file.path("..", "results", "AO", "ipi_voitures2004.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res, n_xlabel = 6)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
+```
+
+```{r}
+#| label: fig-ipi-voitures2004-y
+#| fig.cap: "Série brute"
+#| fig-height: 2
+graph_y
+```
+
+```{r}
+#| label: fig-ipi-voitures2004-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 6
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ipi-voitures2004-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
+
+## Level shift (LS)
+
+
+### IPI petrole brut
+
+```{r}
+res <- readRDS(file.path("..", "results", "LS", "ipi_petrole_brut10.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res, n_xlabel = 6)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list("MM robuste LS" = robust_ff[["ls"]]))
+```
+
+```{r}
+#| label: fig-ipi-petrole-brut10-y
+#| fig.cap: "Série brute"
+#| fig-height: 2
+graph_y
+```
+
+```{r}
+#| label: fig-ipi-petrole-brut10-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig-height: 6
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ipi-petrole-brut10-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
+
+
