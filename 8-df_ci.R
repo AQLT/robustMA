@@ -47,9 +47,9 @@ mb_delta <- microbenchmark::microbenchmark(
 )
 saveRDS(
 	mb_delta,
-	file = "data/microbenchmark_df_ci.RDS"
+	file = "results/microbenchmark_df_ci.RDS"
 )
-mb_delta <- readRDS("data/microbenchmark_df_ci.RDS")
+mb_delta <- readRDS("results/microbenchmark_df_ci.RDS")
 mb_delta
 ggplot2::autoplot(mb_delta)
 
