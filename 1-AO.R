@@ -19,7 +19,8 @@ ipi_voitures <- data[["ipi_voitures"]]
 date_out <- c(1998 + (8-1)/12, 1999 + (8-1)/12)
 y_vintage <- create_vintage(ipi_voitures, date_out)
 
-res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
+res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out,
+			  suff_robust_mm = " (AO)")
 
 saveRDS(list(data = res,
 			 out = date_out,
@@ -29,17 +30,23 @@ saveRDS(list(data = res,
 
 date_out <- c(2004 + (8-1)/12)
 y_vintage <- create_vintage(ipi_voitures, date_out)
-res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
+res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out,
+			  suff_robust_mm = " (AO)")
 saveRDS(list(data = res,
 			 out = date_out,
 			 y = ipi_voitures),
 		file.path(dir_exports, "ipi_voitures2004.rds")
 )
 
+##################################
+##### Points de retournement #####
+##################################
+
 CE16OV <- data[["CE16OV"]]
 date_out <- 2001 + (2 - 1) / 12
 y_vintage <- create_vintage(CE16OV, date_out)
-res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
+res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out,
+			  suff_robust_mm = " (AO)")
 saveRDS(list(data = res,
 			 out = date_out,
 			 y = data[["CE16OV"]]),
@@ -53,7 +60,8 @@ saveRDS(list(data = res,
 RETAILx <- data[["RETAILx"]]
 date_out <- 2007 + (11 - 1) / 12
 y_vintage <- create_vintage(RETAILx, date_out)
-res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out)
+res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_out,
+			  suff_robust_mm = " (AO)")
 saveRDS(list(data = res,
 			 out = date_out,
 			 y = data[["RETAILx"]]),

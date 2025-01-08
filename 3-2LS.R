@@ -18,7 +18,8 @@ data <- readRDS("data/data.rds")
 date_out <- c(2008 + (10-1)/12)
 y_vintage <- create_vintage(data[["RETAILx"]], date_out)
 
-res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["lsls"]], date_out)
+res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["lsls"]], date_out,
+			  suff_robust_mm = " (LS-LS)")
 
 saveRDS(list(data = res,
 			 out = date_out,
