@@ -1,8 +1,8 @@
-sym_filter <- function(X = NULL, X_full = NULL, kernel = "Henderson") {
+sym_filter <- function(X = NULL, X_full = NULL, kernel = "Henderson", degree_max = 3) {
 	kernel <- rjd3filters::get_kernel(kernel, horizon = 6)
 	K <- diag(sapply(-6:6, function(i) kernel[i]))
 	if (is.null(X_full))
-		X_full <- cbind(rjd3filters::polynomial_matrix(l = -6, u = 6, d0 = 0, d1 = 3), X)
+		X_full <- cbind(rjd3filters::polynomial_matrix(l = -6, u = 6, d0 = 0, d1 = degree_max), X)
 	e_1 <- rep(0, ncol(X_full))
 	e_1[1] <- 1
 	rjd3filters::moving_average(K %*% X_full %*% solve(t(X_full) %*% K %*% X_full, e_1),lags = -6)
@@ -81,6 +81,7 @@ CLF_CN <- rjd3filters::finite_filters(CLF_CN)
 all_filtered <- function(
 		x, robust_length = 13, default_filter, out_filter, date_out,
 		order_robust = c("MED", "RM", "LMS", "LTS", "LQD", "DR"),
+		suff_robust_mm = "",
 		...) {
 	data_rob <- robfilter::robreg.filter(x, robust_length)
 	data_rob_level <- ts(data_rob$level[,order_robust],
@@ -92,7 +93,8 @@ all_filtered <- function(
 	CLF_CN_level <- x * CLF_CN
 	lc_out_level <- filtered_out(x, default_filter, out_filter, date_out)
 	res <- ts.union(x, lc_level, lc_out_level, CLF_level, CLF_CN_level, data_rob_level)
-	colnames(res) <- c("y", "LC", "LC robust", "CLF", "CLF CN", colnames(data_rob_level))
+	colnames(res) <- c("y", "Musgrave", paste0("Musgrave robuste", suff_robust_mm),
+					   "CLF", "CLF (coupe et normalise)", colnames(data_rob_level))
 	res
 }
 
@@ -118,9 +120,11 @@ to_ff <- function(out_filters, default_filter) {
 }
 
 create_vintage <- function(x, date_out, ny_before = 2, ny_after = ny_before, nb_removed = 18) {
-	y <- window(x,
-				start = min(date_out) - ny_before,
-				end = max(date_out) + ny_after)
+	y <- window(
+		x,
+		start = max(min(date_out) - ny_before, time(x)[1]),
+		end = min(max(date_out) + ny_after, time(x)[length(x)])
+	)
 	dates_studied <- time(y)[-(1:nb_removed)]
 	y_vintage <- lapply(dates_studied, window, x = y, start = NULL)
 	names(y_vintage) <- dates_studied
