@@ -52,15 +52,23 @@ format_data_plot  <- function(data){
 	na.omit(reshape2::melt(dataGraph, id = "date"))
 }
 
-plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_before = 10, nest = 6, add_y = FALSE, gaussian_distribution = FALSE, exact_df = TRUE,
+plot_confint <- function(data, out = NULL, default_filter, robust_f,
+						 nb_dates_before = 8, nest = 6, add_y = FALSE,
+						 gaussian_distribution = FALSE, exact_df = TRUE,
 						 names_robust_f = NULL,
-						 show.legend = FALSE) {
+						 show.legend = FALSE,
+						 same_x_limit = TRUE,
+						 date_outlier = TRUE,
+						 n_xlabel = 5) {
 	if (is.null(out)) {
 		out <- data$out
 	}
-	n_xlabel <- 5
-	if (!is.null(data$data))
+	y_long <- NULL
+	if (!is.null(data$data)) {
+		y_long <- data$y
 		data <- data$data
+	}
+
 	first_date <- min(out) - nb_dates_before * deltat(data[[1]])
 	lagest <- seq(0, by = 1, length.out = nest)
 
@@ -69,24 +77,46 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 	}
 	if (is.null(names_robust_f))
 		names_robust_f <- names(robust_f)
+	if (same_x_limit) {
+		limits_x <- c(first_date - 10^-9,
+					  max(out) + (nest - 1) * deltat(data[[1]]) +  10^-9)
+
+		dates <- seq(from = first_date, to = max(out) + (nest - 1) * deltat(data[[1]]),
+					 by = deltat(data[[1]]))
+		x_breaks <- dates[seq.int(1, length((dates)), by = length((dates)) %/% n_xlabel)]
+		if (date_outlier)
+			x_breaks <- unique(c(x_breaks, out))
+	} else {
+		limits_x <- NULL
+	}
 	all_plots <- lapply(lagest, function(i){
 		y <- data[[which(round(out,3) == round(as.numeric(names(data)),3)) + i]][,"y"]
+		if (is.null(y_long)) {
+			y_confint <- y
+		} else {
+			# we use all the data to compute the confindence interval to avoid begin influence
+			# by the length of the data
+			y_confint <- window(y_long, end = end(y))
+		}
 		est_robust <- do.call(ts.union, lapply(robust_f, function(x){
 			y * x[[sprintf("t%i", -i)]]
 		}))
-		# confint_robust <- confint_filter(y, robust_f[[sprintf("t%i", -i)]], gaussian_distribution = gaussian_distribution, exact_df = exact_df)
-		confint_default <- confint_filter(y, lc_f, gaussian_distribution = gaussian_distribution, exact_df = exact_df)
+		# confint_robust <- confint_filter(y_confint, robust_f[[sprintf("t%i", -i)]], gaussian_distribution = gaussian_distribution, exact_df = exact_df)
+		confint_default <- confint_filter(y_confint, lc_f, gaussian_distribution = gaussian_distribution, exact_df = exact_df)
 		data_plot <- ts.union(confint_default, est_robust, y)
 		data_plot <- window(data_plot, start = first_date)
-		colnames(data_plot) <- c("Henderson", "Confint_m", "Confint_p", names_robust_f,"y")
-		dates <- time(data_plot)
-		x_breaks <- dates[seq.int(1, length((dates)), by = length((dates)) %/% n_xlabel)]
+		colnames(data_plot) <- c("Musgrave", "Confint_m", "Confint_p", names_robust_f,"y")
+		if (!same_x_limit) {
+			dates <- window(time(data_plot), start = first_date)
+			x_breaks <- dates[seq.int(1, length((dates)), by = length((dates)) %/% n_xlabel)]
+		}
 		data_plot_wide <- data.frame(date = as.numeric(time(data_plot)), data_plot)
 		data_plot_long <- format_data_plot(data_plot)
 		data_plot_long <- data_plot_long[data_plot_long$variable %in% c(colnames(data_plot)[1], names_robust_f), ]
+		data_plot_long$variable <- factor(data_plot_long$variable, levels = c(colnames(data_plot)[1], names_robust_f), ordered = TRUE)
 		p <- ggplot2::ggplot(data = data_plot_wide, ggplot2::aes(x = date)) +
 			ggplot2::geom_ribbon(
-				ggplot2::aes(ymin = Confint_m, ymax = Confint_p, fill = "IC 95 %")) +
+				ggplot2::aes(ymin = Confint_m, ymax = Confint_p, fill = "Intervalle de confiance 95 %")) +
 			scale_fill_manual(values=c("grey")) +
 			ggplot2::geom_vline(xintercept = out,linetype= 2, alpha = 0.5)
 			# ggplot2::geom_line(ggplot2::aes(y = Default), col = "blue")
@@ -94,16 +124,21 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 			p <- p +
 				ggplot2::geom_line(ggplot2::aes(y = y), col = "black")
 		}
-		p <- p +
+		p <- suppressMessages({
+			 p +
 			ggplot2::geom_line(data = data_plot_long,
 							   ggplot2::aes(y = value, color = variable)) +
-			ggplot2::labs(x = NULL, y = NULL, title = as.character(zoo::as.yearmon(out + i*deltat(y))),
+			ggplot2::labs(x = NULL, y = NULL,
+						  title = as.character(zoo::as.yearmon(out + i*deltat(y))),
 						  color = NULL,
 						  fill = NULL) +
 			ggplot2::scale_color_manual(values = c("blue", "red", "darkgreen")) +
 			ggplot2::theme_bw() +
 			ggplot2::scale_x_continuous(breaks = x_breaks,
-										labels = zoo::as.yearmon) +
+										labels = zoo::as.yearmon,
+										limits = limits_x) +
+			# ggplot2::coord_cartesian(xlim = limits_x,
+			# 						 default = TRUE) +
 			ggplot2::theme(
 				plot.title = ggplot2::element_text(hjust = 0.5),
 				panel.grid.minor.x = ggplot2::element_blank(),
@@ -112,6 +147,7 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f, nb_dates_be
 													vjust=1.1, hjust=1),
 				axis.text.y = ggplot2::element_text(size=8)
 			)
+		})
 		if (!show.legend)
 			p <- p + ggplot2::theme(legend.position = "none")
 		p
@@ -216,9 +252,10 @@ get_all_plots <- function(
 plot_y <- function(res, out = NULL, vline = TRUE,
 				   titre = NULL, sous_titre = NULL,
 				   nb_dates_before = 6, nb_after = 10,
-				   outDec = ".") {
+				   outDec = ".",
+				   n_xlabel = 5) {
 	x_lab = y_lab= NULL
-	n_xlabel = 6 ;n_ylabel = 6;
+    n_ylabel = 6;
 	if (is.null(out)) {
 		out <- res$out
 	}
