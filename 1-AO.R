@@ -50,7 +50,7 @@ res <- lapply(y_vintage, all_filtered, 13, lc_f, robust_filters[["ao"]], date_ou
 saveRDS(list(data = res,
 			 out = date_out,
 			 y = data[["CE16OV"]]),
-		file.path(dir_exports, "ce160v2001.rds")
+		file.path(dir_exports, "ce16ov2001.rds")
 )
 # plot(window(res[[20]][,1], start = 2000))
 # lines(res[[20]][,2], col = "orange")

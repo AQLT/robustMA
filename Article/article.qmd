@@ -6,6 +6,8 @@ format:
     toc-depth: 3
     include-before-body: template/preambule.html
     output-file: index
+    crossref: 
+      title-delim: "&nbsp;-"
   pdf:
     include-in-header: template/preambule.tex
     keep-tex: true
@@ -365,7 +367,7 @@ C'est ainsi que le *Nonlinear Dagum Filter* (NLDF) a été développé et consis
 Les *cascade linear filter* [CLF, @clf], correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$
     
 C'est cette moyenne mobile qui est utilisée par Statistique Canada pour l'estimation de la tendance-cycle^[
-Voir par exemple <https://www.statcan.gc.ca/fr/quo/bdd/tendance-cycle>.
+Voir par exemple <https://www.statcxan.gc.ca/fr/quo/bdd/tendance-cycle>.
 ].
 Pour l'estimation en temps réel, Statistique Canada utilise la méthode « couper-et-normaliser » qui consiste à recalculer les poids, à partir de la moyenne mobile symétrique, en n'utilisant que les poids associées aux observations disponibles (couper) et en renormalisant pour que la somme des coefficients soit égale à 1 (normaliser).
 C'est l'approche qui sera utilisé dans cet article.
@@ -421,11 +423,12 @@ Dans cette étude, les deux types de points atypiques les plus couramment rencon
 
 - Les points atypiques additifs (AO, *additive outlier*) : un choc ponctuelle à une date particulière puis un retour à la normal (grève, mesure exceptionnelle, erreur de mesure par exemple liée à de la non réponse, etc.).
 Le choc affecte donc l'irrégulier et ne devrait pas avoir d'impact sur la tendance-cycle.
-Si le choc le choc apparaît à la date $t_0$ il peut être modélisé par le régresseur $O_t=\1_{t=t_0}$ qui vaut $1$ à la date $t_0$ et $0$ sinon.
+Si le choc apparaît à la date $t_0$ il peut être modélisé par le régresseur $O_t^{AO}=\1_{t=t_0}$ qui vaut $1$ à la date $t_0$ et $0$ sinon.
+Si l'on souhaite que le choc soit affecté à la tendance-cycle et non pas à l'irrégulier, il faut utiliser le régresseur $O_{t+j}=O_{t+j}^{AO}=\1_{t+j=t_0}$ lorsque $t>t_0$ et $O_{t+j}=-O_{t+j}^{AO}=\1_{t+j\ne t_0}$ lorsque $t\leq 0$
 
 - Les ruptures en niveau (LS, *level shift*) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.).
 Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'irrégulier.
-Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t< t_0}$ si $t<t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t\geq t_0}$ si $t\geq t_0$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
+Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t+j< t_0}$ si $t\leq t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t+j\geq t_0}$ si $t>t_0$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
 
 
 L'inconvénient de cette approche, par rapport aux méthodes robustes présentées dans la @sec-methodes-robustes, est que cela suppose de connaître la date et la nature du point atypique.
@@ -440,7 +443,7 @@ Toutefois, pour l'estimation en temps réel, sauf à avoir une information exté
 Le choix du type de point atypique aura une influence forte sur l'estimation (puisque les LS affectent la tendance-cycle et les AO l'irrégulier) et passer d'une spécification à l'autre entraînera des révisions importantes.
 Ces révisions seront par ailleurs plus importantes que si, avant de décider de la bonne modélisation à adopter, les premières estimations avaient été faites avec des moyennes moyennes mobiles classiques.
 
-
+Par rapport au préajustement des points atypiques par un modèle ad-hoc, comme le module de pré-ajustement de X-13ARIMA basé sur un modèle RegARIMA), l'approche ici présentée a l'avantage de ne pas être dépendante de l'identification d'un modèle et de la période d'estimation (pas de biais lié à l'identification des paramètres ou à l'utilisation d'une période d'estimation trop courte ou trop longue).
 
 Dans la suite ces moyennes mobiles seront appelées moyenne mobile de Henderson ou de Musgrave robuste.
 
@@ -854,8 +857,7 @@ graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = list(
-		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO" = robust_ff[["aoao"]]
+		"MM robuste LS-LS" = robust_ff[["lsls"]]
 		),
 	show.legend = TRUE
 )
@@ -936,6 +938,10 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 ```
 
 ## Point de retournement
+
+Les points de retournement sont illustrées à partir de données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
+Les séries étudiées correspondent à la base publiée en novembre 2022.
+] : la série étudiée est le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme)
 
 ### Retailx
 
