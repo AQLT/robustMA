@@ -81,13 +81,26 @@ CLF_CN <- rjd3filters::finite_filters(CLF_CN)
 all_filtered <- function(
 		x, robust_length = 13, default_filter, out_filter, date_out,
 		order_robust = c("MED", "RM", "LMS", "LTS", "LQD", "DR"),
+		extend_series_robust = TRUE,
 		suff_robust_mm = "",
 		...) {
-	data_rob <- robfilter::robreg.filter(x, robust_length)
-	data_rob_level <- ts(data_rob$level[,order_robust],
-						 start = start(x),
-						 frequency = frequency(x))
 
+	h <- trunc((robust_length - 1) / 2)
+	if (extend_series_robust) {
+		x_rob <- window(x,
+						start = time(x)[1] - h / frequency(x),
+						end = time(x)[length(x)] + h / frequency(x),
+						extend = TRUE
+						)
+	} else {
+		x_rob <- x
+	}
+	capture.output(data_rob <- robfilter::robreg.filter(x_rob, robust_length))
+	data_rob_level <- ts(data_rob$level[,order_robust],
+						 start = start(x_rob),
+						 frequency = frequency(x))
+	data_rob_level <- window(data_rob_level, start = start(x),
+							 end = end(x))
 	lc_level <- x * default_filter
 	CLF_level <- x * CLF
 	CLF_CN_level <- x * CLF_CN
@@ -103,7 +116,7 @@ to_ff <- function(out_filters, default_filter) {
 		last_out_ma <- max(as.numeric(names(out_filter)))
 		if (last_out_ma < 0) {
 			out_filter <- c(out_filter,
-							default_filter@rfilters[rev(seq(6, by = -1, length.out = -last_out_ma))]
+							default_filter@rfilters[rev(seq(6, by = -1, length.out = min(-last_out_ma, 6)))]
 			)
 		}
 		nrep <- length(out_filter) - 6
