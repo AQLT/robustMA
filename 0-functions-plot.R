@@ -11,8 +11,11 @@ plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits
 		dplyr::filter(date == max(date)) |>
 		data.frame()
 	p <- ggplot2::ggplot(data = dataGraph)
-	if (!is.null(vline))
-		p <- p + ggplot2::geom_vline(xintercept = vline, linetype = "dotted", alpha = 0.5)
+	if (!is.null(vline)) {
+		for (xintercept in vline) {
+			p <- p + ggplot2::geom_vline(xintercept = xintercept, linetype = "dotted", alpha = 0.5)
+		}
+	}
 	if (!is.null(extra_series))
 		p <- p + ggplot2::geom_line(data = format_data_plot(extra_series),
 									ggplot2::aes(x = date, y = value),
@@ -132,7 +135,7 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f,
 						  title = as.character(zoo::as.yearmon(out + i*deltat(y))),
 						  color = NULL,
 						  fill = NULL) +
-			ggplot2::scale_color_manual(values = c("blue", "red", "darkgreen")) +
+			ggplot2::scale_color_manual(values = c("blue", "red", "darkgreen", "orange")) +
 			ggplot2::theme_bw() +
 			ggplot2::scale_x_continuous(breaks = x_breaks,
 										labels = zoo::as.yearmon,
@@ -164,11 +167,12 @@ get_all_plots <- function(
 		vline = TRUE,
 		add_y = FALSE,
 		y_as_plot = FALSE,
-		share_y_lim = TRUE){
+		share_y_lim = TRUE,
+		multiple_vline_out = FALSE){
 	if (is.null(out)) {
 		out <- res$out
 	}
-	if (length(out) > 1) {
+	if (length(out) > 1 & !multiple_vline_out) {
 		all_plots <- lapply(out, get_all_plots, res = res, nb_est = nb_est,
 							nb_dates_before = nb_dates_before, vline = vline, add_y = add_y,
 							y_as_plot = y_as_plot, share_y_lim = share_y_lim)
@@ -179,12 +183,12 @@ get_all_plots <- function(
 	y <- all_est$y[,ncol(all_est$y)]
 	all_est$y <- NULL
 	cols <- seq.int(
-		which(!is.na(window(all_est[[1]], start = out, end = out))),
+		which(!is.na(window(all_est[[1]], start = out[1], end = out[1]))),
 		length.out = nb_est)
 	data_plots <- lapply(all_est, `[`,, cols)
 	data_plots <- lapply(data_plots, window,
-						 start  = out - nb_dates_before * deltat(y),
-						 end  = out + (nb_est - 1) * deltat(y))
+						 start  = out[1] - nb_dates_before * deltat(y),
+						 end  = out[1] + (nb_est - 1) * deltat(y))
 	y <- window(y, start = start(data_plots[[1]]), end = end(data_plots[[1]]))
 	if (vline) {
 		vline <- out
@@ -253,13 +257,14 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 				   titre = NULL, sous_titre = NULL,
 				   nb_dates_before = 6, nb_after = 10,
 				   outDec = ".",
-				   n_xlabel = 5) {
+				   n_xlabel = 5,
+				   multiple_vline_out = FALSE) {
 	x_lab = y_lab= NULL
     n_ylabel = 6;
 	if (is.null(out)) {
 		out <- res$out
 	}
-	if (length(out) > 1) {
+	if (length(out) > 1 & !multiple_vline_out) {
 		all_plots <- lapply(out, plot_y, res = res, vline = vline,
 							titre = titre, sous_titre = sous_titre,
 							nb_dates_before = nb_dates_before, nb_after = nb_after,
