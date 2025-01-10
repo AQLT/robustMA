@@ -48,9 +48,11 @@ lc_f <- lp_filter()
 robust_ff <- readRDS("../data/robust_ff.rds")
 y_as_plot <- FALSE
 add_y <- FALSE
-apply_consistent_y_lims <- function(this_plot){
+apply_consistent_y_lims <- function(this_plot, y_lims = NULL){
     num_plots <- length(this_plot)
-    y_lims <- lapply(this_plot, function(p) ggplot_build(p)$layout$panel_scales_y[[1]]$range$range)
+    if (is.null(y_lims)) {
+    	y_lims <- lapply(this_plot, function(p) ggplot_build(p)$layout$panel_scales_y[[1]]$range$range)
+    }
     x_lims <- lapply(this_plot, function(p) ggplot_build(this_plot[[1]])$layout$panel_params[[1]]$x.range)
     min_y <- min(unlist(y_lims))
     max_y <- max(unlist(y_lims))
@@ -240,7 +242,16 @@ R^-(i) = R^-_{\tilde\beta_{0},\tilde\beta_{1}}(i) = cardinal \left\{ j\in\{i+1,\
 $$
 et $L^-(i)$ et $R^+(i)$ définis de manière analogue.
 
-Pour l'estimation en temps réel, le package `robfilter` utilise les mêmes algorithmes mais en n'utilisant que les données disponibles (donc en utilisant plus de points avant $t$ qu'après $t$).
+Pour les estimations intermédiaires (i.e. : lorsque pour estimer la tendance-cycle à la date $t$ on ne possède pas $h$ observations avant ou après $t$), le package `robfilter` extrapole les données à partir du dernier modèle estimé.
+C'est-à-dire que si les données observées sont $y_1, \dots, y_n$, alors pour $q\in \{1,\dots, 6\}$ :
+$$
+\widehat{TC}_{n-h+q} = \widehat{TC}_{n-h}+q\times\hat\beta_{1,n-h}.
+$$
+Pour la médiane mobile, cela revient à prolonger par la dernière valeur connue.
+Cette méthode ne pas pertinente pour l'analyse conjoncturelle puisque les points de retournement sont dès lors détectés avec $h$ périodes de retard.
+Une approche alternative serait d'appliquer les mêmes méthodes mais en utilisant tout simplement que les observations disponibles (pour estimer $\widehat{TC}_{n-h+1}$ on utilise les $2h$ observations entre $n-2h+1$ et $n$, ..., et pour estimer $\widehat{TC}_{n}$ on utilise les $h+1$ observations entre $n-h$ et $n$).
+Cette approche n'est pas implémentée dans `robfilter` mais peut être obtenue en ajoutant $h$ valeurs manquantes au début et à la fin de la série : c'est ce qui sera effectué dans cet article.
+
 
 Dans le cadre de l'analyse conjoncturelle, il n'est généralement pas plausible de modéliser, autour des points de retournement, une tendance de degré 1.
 Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement ces méthodes^[
@@ -252,6 +263,7 @@ Même si cette modélisation n'est pas toujours optimale, elle reste plausible d
 ## Moyennes mobiles linéaires {#sec-methodes-lineaires}
 
 ### Moyenne mobile de Henderson et de Musgrave {#sec-lp}
+
 Les moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale.
 En reprenant les notations de @proietti2008, on suppose que notre série chronologique $y_t$ peut être décomposée en :
 $$
@@ -570,7 +582,7 @@ $$
 \tr(\boldsymbol \Delta) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
 $$
 En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Delta^2).$
-Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (voir @sec-df-var) :
+Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (voir annexe [-@sec-df-var]) :
 $$
 \tr((\boldsymbol \Delta\transp{\boldsymbol \Delta})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
@@ -707,14 +719,13 @@ graph_y_ao_td0 + graph_y_ao_td1 + graph_y_ao_td2 +
 Pour les chocs ponctuels (*additive outlier*, AO), lorsque la tendance est de degré 0, aucune des méthodes robustes n'est influencée par la présence de l'AO, tout comme la moyenne mobile de Musgrave robuste (@fig-simul-ao-out-td0-est).
 Les estimations avec les moyennes mobiles de Musgrave et CLF sont biaisées avec des révisions importantes à la date du choc, légèrement plus petites pour la méthode CLF.
 L'analyse des intervalles de confiance valident clairement la présence du point atypique (@fig-simul-ao-out-td0-ci).\
-Lorsque la tendance est de degré 1 (figures [-@fig-simul-ao-out-td1-est] et [-@fig-simul-ao-out-td1-ci]) les résultats sont similaires sauf pour la médiane mobile qui en temps réel conduit à des estimations peu réalistes.
+Lorsque la tendance est de degré 1 (figures [-@fig-simul-ao-out-td1-est] et [-@fig-simul-ao-out-td1-ci]) les résultats sont similaires sauf pour la médiane mobile qui sous-estime la tendance pour les estimations intermédiaires.
 Comme notamment indiqué par @gather2006online, cela suggère d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
 Un léger biais négatif s'observe pour la méthode de Musgrave robuste : cela provient du fait que pour la création de ces moyennes mobiles la pente est fixé (ratio $\delta_1/\sigma$ fixé et $\sigma$ a priori fixé) à une valeur différente de la pente simulée.
 Cela suggère de préférer une paramétrisation locale de ce paramètre, comme proposé par @jos2024AQLT.\
 Lorsque la tendance est de degré 2 (figures [-@fig-simul-ao-out-td2-est] et [-@fig-simul-ao-out-td2-ci]), les résultats avec les moyennes mobiles sont similaires (révisions importantes autour du choc pour Musgrave et CLF et faibles pour Musgrave robuste).
-Pour les méthodes robustes, les estimations finale modélisent bien le retournement de tendance malgré le fait que juste une tendance de degré 1 est modélisée.
-En revanche, contrairement aux moyennes mobiles de Musgrave (classiques et robustes) qui modélisent également en fin de période des tendances de degré 1, les estimations intermédiaires sont peu réalistes et conduisent à des révisions importantes.
-Cela suggère que pour l'estimation en temps réel avec les méthodes robustes, il faudrait, autour des points de retournement, modéliser une tendance de degré 2 (ce qui n'est pas possible dans `robfilter`).
+Pour les méthodes robustes les estimations finale modélisent bien le retournement de tendance malgré le fait que juste une tendance de degré 1 est modélisée.
+Pour les estimations en temps réel, les tendances sont surestimées mais les révisions faibles : cela s'explique par le faible degré de courbure de la série simulée.
 
 
 ```{r}
@@ -728,7 +739,7 @@ patchwork::wrap_plots(graph_est_ao_td0, ncol = 3)
 
 ```{r}
 #| label: fig-simul-ao-out-td0-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave et filtres de musgrave robuste pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td0, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -748,7 +759,7 @@ patchwork::wrap_plots(graph_est_ao_td1, ncol = 3)
 
 ```{r}
 #| label: fig-simul-ao-out-td1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de musgrave et filtres de musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td1, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -776,12 +787,12 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td2, ncol = 3)) +
 
 
 Pour les chocs permanents (*level shift*, LS), à l'exception de la régression profonde (DR) et de la régression médiane répétée (RM), les estimations finales de la tendance-cycle avec les méthodes robustes ne sont pas influencées par la présence du choc (figures [-@fig-simul-ls-out-td0-est],  [-@fig-simul-ls-out-td1-est] et [-@fig-simul-ls-out-td2-est]).
-En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date (il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte). 
-Les méthodes sont en quelque sorte "trop robustes" et cela suggère encore d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.\
+En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date : il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte  à la bonne date pour la méthode LQD et juillet 2022 (soit l'estimation finale) pour les autres méthodes, même lorsque la tendance est de degré 0. 
+Cela suggère encore d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.\
 Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
 Il y a également d'importantes révisions pour la première estimation de janvier 2022 (date du choc).
 Il n'y a en revanche quasiment aucune révision pour les moyennes mobile de Musgrave robuste à un choc permanent en janvier 2022.\
-Les intervalles de confiance des estimations de la moyenne mobile de Musgrave sont comparés à la moyenne mobile de Musgrave robuste au choc permanent et à la moyenne mobile de Musgrave robuste à un choc ponctuel en janvier et février 2022  (figures [-@fig-simul-ls-out-td0-ci],  [-@fig-simul-ls-out-td1-ci] et [-@fig-simul-ls-out-td2-ci]).
+Les intervalles de confiance des estimations de la moyenne mobile de Musgrave sont comparés à la moyenne mobile de Musgrave robuste au choc permanent et à la moyenne mobile de Musgrave robuste à un choc ponctuel en janvier et février 2022 (figures [-@fig-simul-ls-out-td0-ci],  [-@fig-simul-ls-out-td1-ci] et [-@fig-simul-ls-out-td2-ci]).
 Cela permet de simuler le cas où on ne sait pas, en temps réel, trancher sur la nature du choc : soit un choc permanent, soit un choc ponctuel (lorsque l'on se place en janvier 2022), soit deux chocs ponctuels (lorsque l'on se place en février 2022).
 En mars 2022, l'observation de 3 chocs de même ampleur confirme qu'il s'agit d'un choc permanent et non ponctuel.
 Si l'on s'est trompé dans la nature du choc, jusqu'en février 2022 les révisions sont nulles pour les estimations avant le choc mais importantes pour celles après (janvier et février, puisque le choc est affecté à l'irrégulier et non pas à la tendance-cycle).
@@ -844,56 +855,22 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td2, ncol = 3)) +
 
 ## Séries réelles {#sec-res-series-reelles}
 
-## Deux LS
+Puisque les résultats sont similaires à ceux sur les données simulées, les performances des différentes méthodes sur des séries réelles lors d'un choc ponctuel (AO) et d'un choc permanent (LS) sont données dans l'annexe [-@sec-autres-ex] : les moyennes mobiles classiques (Henderson/Musgrave et CLF) donnent de fortes révisions autour des chocs et ces révisions sont faibles avec les moyennes mobiles robustes.
+Contrairement aux données simulées, sur les données réelles, même lorsque la tendance semble être linéaire, les estimations intermédiaires issues des méthodes robustes peuvent être très erratiques, conduisant à des estimations parfois peu plausibles et des révisions importantes.
 
-### Retailx
 
-```{r}
-res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res, n_xlabel = 6)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list(
-		"MM robuste LS-LS" = robust_ff[["lsls"]]
-		),
-	show.legend = TRUE
-)
-```
+### Choc ponctuel (AO) suivi d'un choc permanent (LS)
+
+L'entrée en vigueur de la procédure d'essai mondiale harmonisée pour les véhicules légers (*Worldwide harmonized Light vehicles Test Procedures*, WLTP) en septembre 2018 a eu pour effet une forte hausse des immatriculations de voitures particulières neuves^[
+Série étudiée corrigée des variations saisonnières et des jours ouvrables, téléchargée fin octobre 2024 à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010756763>. 
+] en août 2018 (choc ponctuel, @fig-imat2018-y), les constructeurs ayant déstocké des modèles qui n'étaient plus autorisés à la vente à partir de cette date.
+À partir du mois de septembre, le niveau des immatriculations était plus faible par contre-coup de la hausse du mois d'août (choc permanent).
+
 
 ```{r}
-#| label: fig-retailx2008-y
-#| fig.cap: "Série brute"
+#| label: fig-imat2018-y
+#| fig.cap: "Immatriculations de voitures particulières neuves CVS-CJO autour des chocs en août et septembre 2018"
 #| fig-height: 2
-graph_y
-```
-
-```{r}
-#| label: fig-retailx2008-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
-#| fig-height: 6
-#|
-patchwork::wrap_plots(graph_est, ncol = 3)
-```
-
-
-```{r}
-#| label: fig-retailx2008-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
-
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
-	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
-```
-
-
-## AO puis LS
-
-### Immatriculation de véhicules neufs
-
-```{r}
 res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
@@ -909,12 +886,6 @@ graph_ci <- plot_confint(
 					"Robust AO" = robust_ff[["ao"]]),
 	show.legend = TRUE
 )
-```
-
-```{r}
-#| label: fig-imat2018-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
 graph_y
 ```
 
@@ -922,7 +893,7 @@ graph_y
 
 ```{r}
 #| label: fig-imat2018-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle des immatriculations de voitures particulières neuves à partir d'août 2018"
 #| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
@@ -930,23 +901,67 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-imat2018-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les immatriculations de voitures particulières neuves à partir d'août 2018"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
-## Point de retournement
+### Crise financière de 2008 (deux chocs permanents consécutifs)
+
+
+```{r}
+#| label: fig-retailx2008-y
+#| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour d'octobre 2008"
+#| fig-height: 2
+
+res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res, n_xlabel = 6)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste LS-LS" = robust_ff[["lsls"]]
+		),
+	show.legend = TRUE
+)
+graph_y
+```
+
+```{r}
+#| label: fig-retailx2008-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008"
+#| fig-height: 6
+#|
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-retailx2008-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008"
+
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
+
+
+### Point de retournement et COVID-19
 
 Les points de retournement sont illustrées à partir de données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
 Les séries étudiées correspondent à la base publiée en novembre 2022.
-] : la série étudiée est le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme)
+] : le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme)
 
-### Retailx
 
 ```{r}
-res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
+#| label: fig-ce16ov2001-y
+#| fig.cap: "Emploi (en logarithme) aux États-Unis autour du point de retournement de février 2001"
+#| fig-height: 2
+res <- readRDS(file.path("..", "results", "AO", "ce16ov2001.rds"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
 graph_y <- plot_y(res, n_xlabel = 6)
@@ -954,72 +969,73 @@ graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
-```
-
-```{r}
-#| label: fig-retailx2007-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
 graph_y
 ```
 
 
 
 ```{r}
-#| label: fig-retailx2007-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| label: fig-ce16ov2001-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle de l'emploi (en logarithme) aux États-Unis à partir de février 2001"
 #| fig-height: 6
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-retailx2007-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+#| label: fig-ce16ov2001-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'emploi (en logarithme) aux États-Unis à partir de février 2001"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
-### ce160v
 
 ```{r}
-res <- readRDS(file.path("..", "results", "AO", "ce160v2001.rds"))
+#| label: fig-ipi-manuf-covid-y
+#| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière autour de mars 2020"
+#| fig-height: 2
+
+res <- readRDS(file.path("..", "results", "LSLS", "ipi_manufcovid.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res, n_xlabel = 6)
+graph_y <- plot_y(res, n_xlabel = 6
+				  # out = res$out + c(0, 1)/12,
+				  #multiple_vline_out = TRUE
+				  )
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
-```
-
-```{r}
-#| label: fig-ce160v2001-y
-#| fig.cap: "Série brute"
-#| fig-height: 2
+	robust_f = list(
+		"MM robuste LS-LS" = robust_ff[["lsls"]],
+		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]
+		),
+	show.legend = TRUE
+)
 graph_y
 ```
 
-
-
 ```{r}
-#| label: fig-ce160v2001-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| label: fig-ipi-manuf-covid-est
+#| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière à partir de mars 2020"
 #| fig-height: 6
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
 
 ```{r}
-#| label: fig-ce160v2001-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+#| label: fig-ipi-manuf-covid-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans l'industrie manufacturière à partir de mars 2020"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
+
+
+
+# Conclusion
 
 \newpage
 \appendix
@@ -1148,11 +1164,15 @@ En somme :
 &=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2.
 \end{align*}
 
-## Autres exemples
+## Autres exemples sur des séries réelles {#sec-autres-ex}
 
-### IPI voitures
+### Chocs ponctuels (*additive outlier*, AO) {#sec-autres-ex-ao}
 
-#### Août 1998
+Les chocs ponctuels (*additive outlier*, AO) sont illustrés sur l'indice de la production industrielle (IPI) dans la construction de véhicules automobiles, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l'Insee^[
+<https://www.insee.fr/fr/statistiques/serie/010768140>.
+] le 04 octobre 2024 (données alors disponibles jusqu'en août 2024).
+Trois chocs ponctuels s'observent clairement sur les mois d'août de 1998, 1999 et 2004.
+
 
 
 ```{r}
@@ -1173,55 +1193,48 @@ graph_ci <- lapply(
 
 ```{r}
 #| label: fig-ipi-voitures98-out1-y
-#| fig.cap: "Série brute"
+#| fig.cap: "IPI CVS-CJO dans la construction de véhicules automobiles autour du point atypique d'août 1998"
 #| fig-height: 2
 graph_y[[1]]
 ```
 
 ```{r}
 #| label: fig-ipi-voitures98-out1-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 1998"
 #| fig-height: 6
-#|
 patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-ipi-voitures98-out1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 1998"
 
 patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
 ```
 
-#### Août 1999
-
 
 ```{r}
 #| label: fig-ipi-voitures98-out2-y
-#| fig.cap: "Série brute"
+#| fig.cap: "IPI CVS-CJO dans la construction de véhicules automobiles autour du point atypique d'août 1999"
 #| fig-height: 2
 graph_y[[2]]
 ```
 
 ```{r}
 #| label: fig-ipi-voitures98-out2-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 1999"
 #| fig-height: 6
-#|
 patchwork::wrap_plots(graph_est[[2]], ncol = 3)
 ```
 
 
 ```{r}
 #| label: fig-ipi-voitures98-out2-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 1999"
 
 patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
 ```
-
-
-#### 2004
 
 
 ```{r}
@@ -1237,14 +1250,14 @@ graph_ci <- plot_confint(
 
 ```{r}
 #| label: fig-ipi-voitures2004-y
-#| fig.cap: "Série brute"
+#| fig.cap: "IPI CVS-CJO dans la construction de véhicules automobiles autour du point atypique d'août 2004"
 #| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-ipi-voitures2004-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 2004"
 #| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
@@ -1253,17 +1266,20 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-ipi-voitures2004-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 2004"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom')
 ```
 
-## Level shift (LS)
+### Choc permanent (*level shift*, LS) {#sec-autres-ex-ls}
 
-
-### IPI petrole brut
+Les chocs permanents (*level shift*, LS) sont illustrés sur l'indice de la production industrielle (IPI) dans l'extraction de pétrole brut, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l'Insee^[
+<https://www.insee.fr/fr/statistiques/serie/010767578>.
+] le 04 octobre 2024 (données alors disponibles jusqu'en août 2024).
+Un choc permanent s'observe en juin 2010.
+Pour la construction des intervalles de confiance, la série est tronquée pour ne prendre que les valeurs après janvier 2001 avant d'éviter que le début de la série, dont le profil est assez différent de celui sur la fin de la série, n'augmente l'estimation de la variance de l'irrégulier.
 
 ```{r}
 res <- readRDS(file.path("..", "results", "LS", "ipi_petrole_brut10.RDS"))
@@ -1278,14 +1294,14 @@ graph_ci <- plot_confint(
 
 ```{r}
 #| label: fig-ipi-petrole-brut10-y
-#| fig.cap: "Série brute"
+#| fig.cap: "IPI CVS-CJO dans l'extraction de pétrole brut autour du choc permanent de juin 2010"
 #| fig-height: 2
 graph_y
 ```
 
 ```{r}
 #| label: fig-ipi-petrole-brut10-est
-#| fig.cap: "Estimations en temps réel de la tendance-cycle"
+#| fig.cap: "Estimations en temps réel de la tendance-cycle pour l'IPI dans l'extraction de pétrole brut à partir de juin 2010"
 #| fig-height: 6
 #|
 patchwork::wrap_plots(graph_est, ncol = 3)
@@ -1294,7 +1310,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-ipi-petrole-brut10-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave"
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans l'extraction de pétrole brut à partir de juin 2010"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1302,3 +1318,154 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 ```
 
 
+### Points de retournement
+
+Un autre exemple de point de retournement est illustré à partir d'une autre série de la base FRED-MD : les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme) autour du point de retournement de novembre 2007.
+
+```{r}
+res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res, n_xlabel = 6)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
+```
+
+```{r}
+#| label: fig-retailx2007-y
+#| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour du point de retournement de novembre 2007"
+#| fig-height: 2
+graph_y
+```
+
+```{r}
+#| label: fig-retailx2007-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007"
+#| fig-height: 6
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-retailx2007-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007"
+
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
+
+
+### COVID-19 {#sec-autres-ex-covid}
+
+Deux autres exemples de la performance des différentes pendantes pendant le COVID-19 sont issus de la base FRED-MD : le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme).
+Les points de retournement officiels de la datation du National Bureau of Economic Research (NBER) sont en février et avril 2020^[
+<https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions>
+].
+Pour l'emploi le retour à la normal est progressif à partir d'avril 2020 (@fig-ce16ov-covid-y) alors qu'il est rapide pour les ventes au détail et services de restauration (@fig-retailx-covid-y).
+
+Comme pour l'IPI dans l'industrie manufacturière, les méthodes robustes effacent complètement le choc (figures [-@fig-ce16ov-covid-est] et [-@fig-retailx-covid-est]), ce qui ne permet pas d'analyser les points de retournement.
+Les moyennes mobiles linéaires classiques (Henderson/Musgrave et CLF) détectent les points de retournements avec un décalage : pic en octobre 2019 et creux en avril 2020 pour les ventes au détail et services de restauration et juin 2020 pour l'emploi.
+Pour les moyennes mobiles robustes, le choc est modélisé par deux chocs permanents en mars et avril 2020.
+Les révisions sont faibles et cela permet de bien détecter les deux retournement conjoncturels contrairement aux moyennes mobiles robustes où l'on considère mars et avril 2020 comme des chocs ponctuels et associant le choc à la tendance-cycle (figures [-@fig-ce16ov-covid-ci] et [-@fig-retailx-covid-ci]).
+
+```{r}
+res <- readRDS(file.path("..", "results", "LSLS", "ce16ovcovid.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res, n_xlabel = 6
+				  # out = res$out + c(0, 1)/12,
+				  #multiple_vline_out = TRUE
+				  )
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste LS-LS" = robust_ff[["lsls"]],
+		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]
+		),
+	show.legend = TRUE
+)
+```
+
+```{r}
+#| label: fig-ce16ov-covid-y
+#| fig.cap: "Emploi (en logarithme) aux États-Unis autour de mars 2020"
+#| fig-height: 2
+graph_y
+```
+
+```{r}
+#| label: fig-ce16ov-covid-est
+#| fig.cap: "Emploi (en logarithme) aux États-Unis à partir de mars 2020"
+#| fig-height: 6
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-ce16ov-covid-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'emploi (en logarithme) aux États-Unis à partir de mars 2020"
+
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
+
+
+
+```{r}
+res <- readRDS(file.path("..", "results", "LSLS", "retailxcovid.RDS"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res, n_xlabel = 6
+				  # out = res$out + c(0, 1)/12,
+				  #multiple_vline_out = TRUE
+				  )
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list(
+		"MM robuste LS-LS" = robust_ff[["lsls"]],
+		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]
+		),
+	show.legend = TRUE
+)
+```
+
+```{r}
+#| label: fig-retailx-covid-y
+#| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour de mars 2020"
+#| fig-height: 2
+graph_y
+```
+
+```{r}
+#| label: fig-retailx-covid-est
+#| fig.cap: "Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020"
+#| fig-height: 6
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+
+
+```{r}
+#| label: fig-retailx-covid-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020"
+
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom')
+```
+
+
+
+
+<!-- ici clearpage plutôt que newpage car clearpage permet de prendre en compte les figures qui peuvent aller sur plusieurs pages -->
+\clearpage
+
+# Bibliographie {-}
+
+::: {#refs}
+:::
