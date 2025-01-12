@@ -75,16 +75,21 @@ En effet, afin d'estimer la composante saisonnière, les algorithmes de désaiso
 Ainsi, même si les méthodes d'extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également également des méthodes d'estimation de la tendance-cycle.
 
 Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d'extraction du cycle économique et d'ajustement saisonnier^[
-Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série chronologique : à chaque date $t$ on calcule une moyenne pondérée de $p$ points passés et $q$ points futurs où $p,q\geq0$ dépend de la moyenne mobile.
+Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série chronologique : à chaque date $t$ on calcule une moyenne pondérée de $p$ points passés et $f$ points futurs où $p,f\geq0$ dépend de la moyenne mobile.
 ]. 
-Ainsi, la méthode de désaisonnalisation X-13ARIMA-SEATS utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d'une série chronologique. 
+Par exemple, la méthode de désaisonnalisation X-11 [@ladiray2011seasonal], utilisée dans le logiciel X-13ARIMA-SEATS [@x13], utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d'une série chronologique. 
 Au centre de la série, des filtres symétriques sont appliqués. 
 Pour l'extraction de la tendance-cycle, le filtre symétrique le plus connu est celui de @henderson1916note, notamment utilisé dans l'algorithme de désaisonnalisation X-13ARIMA. 
+En revanche, pour les estimations en temps réel, en raison de l'absence d'observations futures, toutes ces méthodes doivent s'appuyer sur des filtres asymétriques pour estimer les points les plus récents. 
+Par exemple, pour l'extraction de la tendance-cycle tendances-cycles, X-11 utilise le filtre symétrique de Henderson et les filtres asymétriques de @musgrave1964set sur une série étendue utilisant un modèle ARIMA.
+Comme les valeurs prédites sont des combinaisons linéaires des valeurs passées, cela revient à appliquer des moyennes mobiles asymétriques à la fin de la série.
 
-Toutefois, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques.
-L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
+Par ailleurs, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques.
+L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence.
+alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
 
-D'autre part, les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques.
+
+Par, les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques.
 L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
 
 <!-- Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-13ARIMA pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle). -->
@@ -316,7 +321,7 @@ $$
 $$ {#eq-mmsym}
 En somme, l'estimation de la tendance $\hat{m}_{t}$ est obtenue en appliquant une moyenne mobile symétrique $\boldsymbol \theta$ à $y_t$.
 
-On retrouve la moyenne mobile de Henderson avec $d=2$ (ou $d=3$) et en utilisant les noyaux :
+On retrouve la moyenne mobile de Henderson avec $d=2$ (ou $d=3$) et en utilisant les noyaux\ :
 $$
 \kappa_{j}=\left[1-\frac{j^2}{(h+1)^2}\right]
 \left[1-\frac{j^2}{(h+2)^2}\right]
@@ -584,7 +589,7 @@ $$
 En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Delta^2).$
 Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (voir annexe [-@sec-df-var]) :
 $$
-\tr((\boldsymbol \Delta\transp{\boldsymbol \Delta})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
+\tr(\boldsymbol \Delta^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
 où $L_0,\dots,L_{p+f}$ sont définis par :
 $$
@@ -707,7 +712,7 @@ La @fig-simul-y montre les différentes séries simulées.
 ```{r}
 #| label: fig-simul-y
 #| fig.cap: "Séries simulées avec un choc ponctuel (*additive outlier*, AO) ou permanent (*level shift*, LS) en janvier 2022"
-#| fig-height: 4
+#| fig-height: 3
 graph_y_ao_td0 + graph_y_ao_td1 + graph_y_ao_td2 +
 	graph_y_ls_td0 + graph_y_ls_td1 + graph_y_ls_td2 +
 	plot_layout(guides = 'collect', axes = "collect", nrow = 2) &
@@ -731,11 +736,11 @@ Pour les estimations en temps réel, les tendances sont surestimées mais les r�
 
 ```{r}
 #| label: ffig-simul-ao-out-td0-est
-#| fig-height: 6
+#| fig-height: 5
 #|
 patchwork::wrap_plots(graph_est_ao_td0, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -748,7 +753,7 @@ Estimations en temps réel de la tendance-cycle pour une série simulée avec un
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td0, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -756,10 +761,10 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td0, ncol = 3)) +
 
 ```{r}
 #| label: ffig-simul-ao-out-td1-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est_ao_td1, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -772,17 +777,17 @@ Estimations en temps réel de la tendance-cycle pour une série simulée avec un
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td1, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 ::: {#fig-simul-ao-out-td2-est}
 
 ```{r}
 #| label: ffig-simul-ao-out-td2-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est_ao_td2, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -795,29 +800,29 @@ Estimations en temps réel de la tendance-cycle pour une série simulée avec un
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td2, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
 Pour les chocs permanents (*level shift*, LS), à l'exception de la régression profonde (DR) et de la régression médiane répétée (RM), les estimations finales de la tendance-cycle avec les méthodes robustes ne sont pas influencées par la présence du choc (figures [-@fig-simul-ls-out-td0-est],  [-@fig-simul-ls-out-td1-est] et [-@fig-simul-ls-out-td2-est]).
 En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date : il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte  à la bonne date pour la méthode LQD et juillet 2022 (soit l'estimation finale) pour les autres méthodes, même lorsque la tendance est de degré 0. 
 Cela suggère encore d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.\
-Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
+Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires\ : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
 Il y a également d'importantes révisions pour la première estimation de janvier 2022 (date du choc).
 Il n'y a en revanche quasiment aucune révision pour les moyennes mobile de Musgrave robuste à un choc permanent en janvier 2022.\
 Les intervalles de confiance des estimations de la moyenne mobile de Musgrave sont comparés à la moyenne mobile de Musgrave robuste au choc permanent et à la moyenne mobile de Musgrave robuste à un choc ponctuel en janvier et février 2022 (figures [-@fig-simul-ls-out-td0-ci],  [-@fig-simul-ls-out-td1-ci] et [-@fig-simul-ls-out-td2-ci]).
 Cela permet de simuler le cas où on ne sait pas, en temps réel, trancher sur la nature du choc : soit un choc permanent, soit un choc ponctuel (lorsque l'on se place en janvier 2022), soit deux chocs ponctuels (lorsque l'on se place en février 2022).
-En mars 2022, l'observation de 3 chocs de même ampleur confirme qu'il s'agit d'un choc permanent et non ponctuel.
+En mars 2022, l'observation de trois chocs de même ampleur confirme qu'il s'agit d'un choc permanent et non ponctuel.
 Si l'on s'est trompé dans la nature du choc, jusqu'en février 2022 les révisions sont nulles pour les estimations avant le choc mais importantes pour celles après (janvier et février, puisque le choc est affecté à l'irrégulier et non pas à la tendance-cycle).
 
 ::: {#fig-simul-ls-out-td0-est}
 
 ```{r}
 #| label: ffig-simul-ls-out-td0-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est_ls_td0, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -830,17 +835,17 @@ Estimations en temps réel de la tendance-cycle pour une série simulée avec un
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td0, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 ::: {#fig-simul-ls-out-td1-est}
 
 ```{r}
 #| label: ffig-simul-ls-out-td1-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est_ls_td1, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -852,17 +857,17 @@ Estimations en temps réel de la tendance-cycle pour une série simulée avec un
 #| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc permanent (*level shift*, LS) en janvier 2022"
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td1, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 ::: {#fig-simul-ls-out-td2-est}
 
 ```{r}
 #| label: ffig-simul-ls-out-td2-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est_ls_td2, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -875,7 +880,7 @@ Estimations en temps réel de la tendance-cycle pour une série simulée avec un
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td2, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -884,8 +889,10 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td2, ncol = 3)) +
 Puisque les résultats sont similaires à ceux sur les données simulées, les performances des différentes méthodes sur des séries réelles lors d'un choc ponctuel (AO) et d'un choc permanent (LS) sont données dans l'annexe [-@sec-autres-ex] : les moyennes mobiles classiques (Henderson/Musgrave et CLF) donnent de fortes révisions autour des chocs et ces révisions sont faibles avec les moyennes mobiles robustes.
 Contrairement aux données simulées, sur les données réelles, même lorsque la tendance semble être linéaire, les estimations intermédiaires issues des méthodes robustes peuvent être très erratiques, conduisant à des estimations parfois peu plausibles et des révisions importantes.
 
+Dans cette section, nous nous concentrerons sur l'illustration d'autres cas : un choc ponctuel suivi d'un choc permanent (@sec-ex-ao-ls), la crise financière de 2008 (@sec-ex-crise-financiere), la crise du COVID-19 (@sec-ex-covid}) et un autre point de retournement qui n'est pas associé à un choc (@sec-ex-retournement).
 
-### Choc ponctuel (AO) suivi d'un choc permanent (LS)
+
+### Choc ponctuel (AO) suivi d'un choc permanent (LS) {#sec-ex-ao-ls}
 
 L'entrée en vigueur de la procédure d'essai mondiale harmonisée pour les véhicules légers (*Worldwide harmonized Light vehicles Test Procedures*, WLTP) en septembre 2018 a eu pour effet une forte hausse des immatriculations de voitures particulières neuves^[
 Série étudiée corrigée des variations saisonnières et des jours ouvrables, téléchargée fin octobre 2024 à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010756763>. 
@@ -920,10 +927,10 @@ graph_y
 
 ```{r}
 #| label: ffig-imat2018-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -936,10 +943,10 @@ Estimations en temps réel de la tendance-cycle des immatriculations de voitures
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
-### Crise financière de 2008 (deux chocs permanents consécutifs)
+### Crise financière de 2008 (deux chocs permanents consécutifs) {#sec-ex-crise-financiere}
 
 
 ```{r}
@@ -965,10 +972,10 @@ graph_y
 
 ```{r}
 #| label: ffig-retailx2008-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -977,19 +984,15 @@ Estimations en temps réel de la tendance-cycle des ventes au détail et service
 
 ```{r}
 #| label: fig-retailx2008-ci
-
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008"
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
-\footnotesize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+### COVID-19 {#sec-ex-covid}
 
-Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008
-:::
-
-### Point de retournement et COVID-19
+### Point de retournement {#sec-ex-retournement}
 
 Les points de retournement sont illustrées à partir de données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
 Les séries étudiées correspondent à la base publiée en novembre 2022.
@@ -1016,10 +1019,10 @@ graph_y
 
 ```{r}
 #| label: ffig-ce16ov2001-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -1032,7 +1035,7 @@ Estimations en temps réel de la tendance-cycle de l'emploi (en logarithme) aux 
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -1062,7 +1065,7 @@ graph_y
 ```{r}
 #| label: fig-ipi-manuf-covid-est
 #| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière à partir de mars 2020"
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
@@ -1073,7 +1076,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -1091,21 +1094,18 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ```{r}
 #| label: fig-mm-musgrave
-#| fig.cap: "Henderson et filtre de Musgrave"
+#| fig.cap: "Henderson et filtre de Musgrave ($R=3,5$)"
+#| fig-height: 2
 ggdemetra3::ggplot_coef(lp_filter(), q= 0:6)
 ```
 
 ```{r}
 #| label: fig-clf
 #| fig.cap: "Cascade linear filter"
-ggdemetra3::ggplot_coef(CLF, q= 0:6)
+#| fig-height: 2
+ggdemetra3::ggplot_coef(CLF, q= 0:6) + ggdemetra3::ggplot_coef(CLF_CN, q= 0:6)
 ```
 
-```{r}
-#| label: fig-clfnn
-#| fig.cap: "Cascade linear filter et cut and normalize"
-ggdemetra3::ggplot_coef(CLF_CN, q= 0:6)
-```
 
 ```{r}
 #| label: fig-robust-ao
@@ -1153,7 +1153,7 @@ où $\boldsymbol 0_{p\times n}$ est la matrice de taille $p\times n$ ne contenan
 
 L'objectif de cette annexe est de montrer que le calcul de $\tr(\boldsymbol \Delta^2)$ peut se simplifier par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$, ce qui permet de réduire le temps de calcul du degré de liberté de la loi de Student utilisée pour la construction d'intervalles de confiance :
 $$
-\tr((\boldsymbol \Delta\transp{\boldsymbol \Delta})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
+\tr({\boldsymbol \Delta}^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
 où $L_0,\dots,L_{p+f}$ sont définis par :
 $$
@@ -1170,12 +1170,13 @@ avec $\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}$ la moyenne m
 
 
 Soient $i,j\in\{1,\dots,n\},$ posons par convention $w_i=0$ pour $i\notin[-p,f].$
-On a ${\boldsymbol \Delta}_{i,j}=w_{i-j}\1_{i\in[p,n-f]}$ et :
+Notons $\boldsymbol \Gamma=\boldsymbol I -\boldsymbol H.$
+On a ${\boldsymbol H}_{i,j}=\theta_{i-j}\1_{i\in[p+1,n-f]}$ et donc ${\boldsymbol \Gamma}_{i,j}=w_{i-j}\1_{i\in[p+1,n-f]}$ et ensuite :
 \begin{align*}
-({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j} &=\sum_{k=1}^n{\boldsymbol \Delta}_{i,k}{\boldsymbol \Delta}_{j,k}=\sum_{k=1}^nw_{i-k}w_{j-k} \1_{(i,j)\in[p,n-f]^2}\\
-&=\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}.
+(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j} &=\sum_{k=1}^n{\boldsymbol \Gamma}_{k,i}{\boldsymbol \Gamma}_{k,j}=\sum_{k=1}^nw_{k-i}w_{k-j} \1_{(i,j)\in[p+1,n-f]^2}\\
+&=\sum_{k=-p}^fw_{k}w_{i-j+k}\1_{(i,j)\in[p+1,n-f]^2}.
 \end{align*}
-L'ensemble des termes de $({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}$ se calcule par le produit matriciel :
+L'ensemble des termes de $({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}$ se calcule par le produit matriciel :
 $$
 \begin{pmatrix}w_{-p} & \cdots & w_f\end{pmatrix}
 \begin{pmatrix}
@@ -1188,22 +1189,23 @@ w_f & w_{f-1} & w_{f-2}&\ddots&w_p\\
 $$
 Puis :
 \begin{align*}
-(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} &= \sum_{j=1}^n({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{j,i}\\
-&=\sum_{j=1}^n({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}^2\text{ car la matrice }{\boldsymbol \Delta}\transp{{\boldsymbol \Delta}}\text{ est symétrique} \\
-&=\sum_{j=1}^n\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}\right)^2\\
-&=\sum_{j=p}^{n-f}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2\1_{i\in[p,n-f]}.
+((\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})^2)_{i,i} &= \sum_{j=1}^n(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j}(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{j,i}\\
+&=\sum_{j=1}^n(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j}^2\text{ car la matrice }\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma}\text{ est symétrique} \\
+&=\sum_{j=1}^n\left(\sum_{k=-p}^fw_{k}w_{i-j/k}\1_{(i,j)\in[p+1,n-f]^2}\right)^2\\
+&=\sum_{j=p}^{n-f}\left(\sum_{k=-p}^fw_{k}w_{i-j+k}\right)^2\1_{i\in[p+1,n-f]}.
 \end{align*}
-Donc $(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} = 0$ si $i\notin \in[p,n-f].$
-Pour $i\in[p,n-f],$ comme pour tout $k\in [-p,f]$ on a $w_{i-j-k} =0$ si $j<i-(f+p)$ ou si $j>i-(f+p)$, il vient :
+Donc $((\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})^2)_{i,i} = 0$ si $i\notin [p+1,n-f].$
+Pour $i\in[p+1,n-f],$ comme pour tout $k\in [-p,f]$ on a $w_{i-j+k} =0$ si $j<i-(f+p)$ ou si $j>i-(f+p)$, il vient :
 \begin{align*}
-(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} &= \sum_{j=\max(i-(f+p),1)}^{\min(i+(f+p),n)}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2 \\
+((\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})^2)_{i,i} &= \sum_{j=\max(i-(f+p),1)}^{\min(i+(f+p),n)}\left(\sum_{k=-p}^fw_{k}w_{i-j+k}\right)^2 \\
 &=\sum_{j=-(f+p)}^{f+p}\left(\sum_{k=-p}^fw_{k}w_{k-j}\right)^2\1_{j\in [1-i,n-i]} \\
 &=\sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]}\text{ par symétrie autour de }0.
 \end{align*}
 En somme :
 \begin{align*}
-\tr(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)& = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
-&= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + 2(n-(p+f)-2)L_2^2 +\dots+2(n-2(p+f))L_{p+f}^2 \\
+\tr({\boldsymbol \Delta^2}& = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
+&= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + 2(n-(p+f)-2)L_2^2 +\\
+&\phantom{=}\dots+2(n-2(p+f))L_{p+f}^2 \\
 &=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2.
 \end{align*}
 
@@ -1245,10 +1247,10 @@ graph_y[[1]]
 
 ```{r}
 #| label: ffig-ipi-voitures98-out1-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -1274,10 +1276,10 @@ graph_y[[2]]
 
 ```{r}
 #| label: ffig-ipi-voitures98-out2-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est[[2]], ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -1314,10 +1316,10 @@ graph_y
 
 ```{r}
 #| label: ffig-ipi-voitures2004-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -1330,7 +1332,7 @@ Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction 
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 ### Choc permanent (*level shift*, LS) {#sec-autres-ex-ls}
@@ -1363,10 +1365,10 @@ graph_y
 
 ```{r}
 #| label: ffig-ipi-petrole-brut10-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -1379,7 +1381,7 @@ Estimations en temps réel de la tendance-cycle pour l'IPI dans l'extraction de 
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -1406,10 +1408,10 @@ graph_y
 
 ```{r}
 #| label: ffig-retailx2007-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -1422,7 +1424,7 @@ Estimations en temps réel de la tendance-cycle des ventes au détail et service
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -1466,7 +1468,7 @@ graph_y
 ```{r}
 #| label: fig-ce16ov-covid-est
 #| fig.cap: "Emploi (en logarithme) aux États-Unis à partir de mars 2020"
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
@@ -1477,7 +1479,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -1510,11 +1512,11 @@ graph_y
 
 ```{r}
 #| label: ffig-retailx-covid-est
-#| fig-height: 6
+#| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 
-\footnotesize\raggedright
+\scriptsize\raggedright
 
 **Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
@@ -1527,7 +1529,7 @@ Estimations en temps réel de la tendance-cycle des ventes au détail et service
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
