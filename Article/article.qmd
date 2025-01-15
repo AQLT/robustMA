@@ -1002,6 +1002,11 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 La crise financière de 2008 est illustrée à partir des ventes au détail et services de restauration.
 Sur cette série, on observe deux chocs consécutifs en niveau : en octobre et en novembre 2008.
+Seules deux méthodes robustes (médiane mobile et LMS) reproduisent ces chocs dans les estimations finales (@fig-retailx2008-est) ; certaines estimations intermédiaires sont éloignées des estimations finales (par exemple pour les médianes mobiles ou les points de décembre 2008 et janvier 2009 RM, LMS, LTS et LQD) ce qui conduit à des révisions importantes.
+Les moyennes mobiles linéaires donnent des estimations avec relativement peu de révisions (en particulier pour les moyennes mobiles robustes) mais le retournement conjoncturel est détecté trop tôt pour Musgrave et CLF.
+En temps-réel, si l'on ne sait pas que ce sont des chocs permanents, les chocs peuvent être modélisés comme deux chocs ponctuels dont on attribuerait l'effet à la tendance-cycle.
+Cette modélisation conduit à des révisions importantes entre novembre et décembre 2008 (@fig-retailx2008-ci).
+En mars 2009 (où l'on sait que les chocs sont permanents et non ponctuels), l'utilisation de cette mauvaise spécifications donnent des estimations de la tendance-cycle proches des moyennes mobiles de Musgrave avant octobre 2008 (avec un point de retournement qui est donc détecté trop tôt) et proches des moyennes mobiles robustes à deux chocs permanents après octobre 2008.
 
 ```{r}
 ##| label: fig-retailx2008-y
@@ -1015,7 +1020,8 @@ graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = list(
-		"MM robuste LS-LS" = robust_ff[["lsls"]]
+		"MM robuste LS-LS" = robust_ff[["lsls"]],
+		"MM robuste AO-AO (sur TC)" = robust_ff[["aoaoinv"]]
 		),
 	show.legend = TRUE
 )
@@ -1066,7 +1072,7 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]
+		"MM robuste AO-AO (sur TC)" = robust_ff[["aoaoinv"]]
 		),
 	show.legend = TRUE
 )
