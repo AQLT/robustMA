@@ -717,7 +717,7 @@ graph_y_ao_td0 + graph_y_ao_td1 + graph_y_ao_td2 +
 	graph_y_ls_td0 + graph_y_ls_td1 + graph_y_ls_td2 +
 	plot_layout(guides = 'collect', axes = "collect", nrow = 2) &
 	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
-											  vjust=1.1, hjust=1))
+											  vjust=1.1, hjust=1)) 
 ```
 
 
@@ -889,25 +889,78 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td2, ncol = 3)) +
 Puisque les résultats sont similaires à ceux sur les données simulées, les performances des différentes méthodes sur des séries réelles lors d'un choc ponctuel (AO) et d'un choc permanent (LS) sont données dans l'annexe [-@sec-autres-ex] : les moyennes mobiles classiques (Henderson/Musgrave et CLF) donnent de fortes révisions autour des chocs et ces révisions sont faibles avec les moyennes mobiles robustes.
 Contrairement aux données simulées, sur les données réelles, même lorsque la tendance semble être linéaire, les estimations intermédiaires issues des méthodes robustes peuvent être très erratiques, conduisant à des estimations parfois peu plausibles et des révisions importantes.
 
-Dans cette section, nous nous concentrerons sur l'illustration d'autres cas : un choc ponctuel suivi d'un choc permanent (@sec-ex-ao-ls), la crise financière de 2008 (@sec-ex-crise-financiere), la crise du COVID-19 (@sec-ex-covid}) et un autre point de retournement qui n'est pas associé à un choc (@sec-ex-retournement).
+Dans cette section, nous nous concentrerons sur l'illustration d'autres cas : 
+
+- Un choc ponctuel suivi d'un choc permanent (@sec-ex-ao-ls) à partir de l'analyse des immatriculations de voitures particulières neuves, corrigée des variations saisonnières (CVS) et des jours ouvrables (CJO)^[
+Série téléchargée fin octobre 2024 à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010756763>. 
+].
+Le choc ponctuel s'observe en août 2018, suivi d'un choc permament en septembre 2018.
+
+- La crise financière de 2008 (@sec-ex-crise-financiere) à partir des ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme). Les données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
+Les séries étudiées correspondent à la base publiée en novembre 2022.
+].
+Pour cette série la crise financière de 2008 peut s'étudier comme deux chocs permanents consécutifs en octobre et novembre 2008.
+
+- La crise du COVID-19 (@sec-ex-covid) à partir l'indice de la production industrielle (IPI) dans l'industrie manufacturière CVS-CJO, publié par l'Insee^[
+La série étudiée correspond à celle publiée le 04 octobre 2024 (données alors disponibles jusqu'en août 2024) à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010768307>.
+].
+Deux autres exemples sont donnés dans l'annexe [-@sec-autres-ex].
+
+- Un point de retournement qui n'est pas associé à un choc (@sec-ex-retournement) à partir du niveau d'emploi aux États-Unis (série `CE16OV` de la base FRED-MD, utilisée en logarithme).
+Un autre exemple est donné dans l'annexe [-@sec-autres-ex].
+
+Toutes ces séries sont représentées dans la @fig-ex-y.
+
+```{r}
+#| label: fig-ex-y
+#| fig.cap: "Séries des immatriculations de voitures particulières neuves en France, ventes au détail et services de restauration aux États-Unis (en logarithme), IPI dans l'industrie manufacturière en France et niveau d'emploi aux États-Unis (en logarithme)"
+#| fig-height: 3
+graph_y_immat <- plot_y(
+	readRDS(file.path("..", "results", "AOLS", "immat2018.RDS")), 
+	n_xlabel = 6) + 
+	ggplot2::ggtitle("Immatriculations de voitures\nparticulières neuves")
+graph_y_2008 <- plot_y(
+	readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS")), 
+	n_xlabel = 6) + 
+	ggplot2::ggtitle("Ventes au détail et\nservices de restauration")
+graph_y_covid <- plot_y(
+	readRDS(file.path("..", "results", "LSLS", "ipi_manufcovid.RDS")), 
+	n_xlabel = 6) + 
+	ggplot2::ggtitle("IPI industrie manuf.")
+graph_y_retournement <- plot_y(
+	readRDS(file.path("..", "results", "AO", "ce16ov2001.rds")), 
+	n_xlabel = 6) + 
+	ggplot2::ggtitle("Emploi")
+
+graph_y_immat + graph_y_2008 + graph_y_covid +
+	graph_y_retournement +
+	plot_layout(guides = 'collect', axes = "collect", nrow = 2) &
+	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
+											  vjust=1.1, hjust=1)) 
+```
+
 
 
 ### Choc ponctuel (AO) suivi d'un choc permanent (LS) {#sec-ex-ao-ls}
 
-L'entrée en vigueur de la procédure d'essai mondiale harmonisée pour les véhicules légers (*Worldwide harmonized Light vehicles Test Procedures*, WLTP) en septembre 2018 a eu pour effet une forte hausse des immatriculations de voitures particulières neuves^[
-Série étudiée corrigée des variations saisonnières et des jours ouvrables, téléchargée fin octobre 2024 à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010756763>. 
-] en août 2018 (choc ponctuel, @fig-imat2018-y), les constructeurs ayant déstocké des modèles qui n'étaient plus autorisés à la vente à partir de cette date.
-À partir du mois de septembre, le niveau des immatriculations était plus faible par contre-coup de la hausse du mois d'août (choc permanent).
+L'entrée en vigueur de la procédure d'essai mondiale harmonisée pour les véhicules légers (*Worldwide harmonized Light vehicles Test Procedures*, WLTP) en septembre 2018 a eu pour effet une forte hausse des immatriculations de voitures particulières neuves en août 2018 (choc ponctuel), les constructeurs ayant déstocké des modèles qui n'étaient plus autorisés à la vente à partir de cette date.
+À partir du mois de septembre, le niveau des immatriculations était plus faible par contre-coup de la hausse du mois d'août.
+Même si ce choc en niveau semble temporaire sur 5 mois (retour au niveau de juillet 2018 à partir de février), il est modélisé dans la construction des moyennes mobiles robustes, par simplification, comme un choc permanent.
+
+Les méthodes robustes ne sont pas affectées par le choc ponctuel mais ne reproduisent pas le changement de niveau à la bonne date (@fig-imat2018-est).
+Les moyennes mobiles linéaires de Musgrave et CLF ont des résultats similaires : fortes révisions en août 2018, un point de retournement détecté en avance (juillet 2018).
+Les moyennes mobiles robustes conduisent à peu de révisions autour des chocs.
+Lorsque l'on ne modélise que le choc ponctuel d'août (@fig-imat2018-ci) un point de retournement est détecté en mars 2018, ce qui parait peu plausible.
 
 
 ```{r}
-#| label: fig-imat2018-y
-#| fig.cap: "Immatriculations de voitures particulières neuves CVS-CJO autour des chocs en août et septembre 2018"
+##| label: fig-imat2018-y
+##| fig.cap: "Immatriculations de voitures particulières neuves CVS-CJO autour des chocs en août et septembre 2018"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res, n_xlabel = 6)
+# graph_y <- plot_y(res, n_xlabel = 6)
 # graph_ci <- plot_confint(
 # 	res,
 # 	default_filter = lc_f,
@@ -915,11 +968,10 @@ graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
-	robust_f = list("Robust AO-LS" = robust_ff[["aols"]],
-					"Robust AO" = robust_ff[["ao"]]),
+	robust_f = list("Robuste AO-LS" = robust_ff[["aols"]],
+					"Robuste AO" = robust_ff[["ao"]]),
 	show.legend = TRUE
 )
-graph_y
 ```
 
 
@@ -948,18 +1000,17 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ### Crise financière de 2008 (deux chocs permanents consécutifs) {#sec-ex-crise-financiere}
 
-La crise financière de 2008 est illustrée à partir de données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
-Les séries étudiées correspondent à la base publiée en novembre 2022.
-] : les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme).
+La crise financière de 2008 est illustrée à partir des ventes au détail et services de restauration.
+Sur cette série, on observe deux chocs consécutifs en niveau : en octobre et en novembre 2008.
 
 ```{r}
-#| label: fig-retailx2008-y
-#| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour d'octobre 2008"
+##| label: fig-retailx2008-y
+##| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour d'octobre 2008"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res, n_xlabel = 6)
+# graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
@@ -968,7 +1019,7 @@ graph_ci <- plot_confint(
 		),
 	show.legend = TRUE
 )
-graph_y
+# graph_y
 ```
 
 ::: {#fig-retailx2008-est}
@@ -1000,16 +1051,16 @@ Le COVID-19 est illustré sur l'indice de la production industrielle (IPI) dans 
 ] le 04 octobre 2024 (données alors disponibles jusqu'en août 2024).
 
 ```{r}
-#| label: fig-ipi-manuf-covid-y
-#| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière autour de mars 2020"
+##| label: fig-ipi-manuf-covid-y
+##| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière autour de mars 2020"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "LSLS", "ipi_manufcovid.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res, n_xlabel = 6
-				  # out = res$out + c(0, 1)/12,
-				  #multiple_vline_out = TRUE
-				  )
+# graph_y <- plot_y(res, n_xlabel = 6
+# 				  # out = res$out + c(0, 1)/12,
+# 				  #multiple_vline_out = TRUE
+# 				  )
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
@@ -1019,7 +1070,7 @@ graph_ci <- plot_confint(
 		),
 	show.legend = TRUE
 )
-graph_y
+# graph_y
 ```
 
 ::: {#fig-ipi-manuf-covid-est}
@@ -1051,22 +1102,23 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 Les points de retournement sont illustrées à partir de données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
 Les séries étudiées correspondent à la base publiée en novembre 2022.
-] : le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme)
+] : le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme, voir annexe [-@sec-autres-ex-retournement]).
+Ces points de retournement ne sont pas associés à des chocs (contrairement à la crise financière de 2008 ou le COVID-) : cela permet donc de comparer les différentes méthodes lorsqu'il n'y a pas de choc.
 
 
 ```{r}
-#| label: fig-ce16ov2001-y
-#| fig.cap: "Emploi (en logarithme) aux États-Unis autour du point de retournement de février 2001"
+##| label: fig-ce16ov2001-y
+##| fig.cap: "Emploi (en logarithme) aux États-Unis autour du point de retournement de février 2001"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "AO", "ce16ov2001.rds"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
 graph_est$CLF <- NULL
-graph_y <- plot_y(res, n_xlabel = 6)
+# graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
 	default_filter = lc_f,
 	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
-graph_y
+# graph_y
 ```
 
 
@@ -1400,7 +1452,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 ```
 
 
-### Points de retournement
+### Points de retournement {#sec-autres-ex-retournement}
 
 Un autre exemple de point de retournement est illustré à partir d'une autre série de la base FRED-MD : les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme) autour du point de retournement de novembre 2007.
 
@@ -1452,7 +1504,7 @@ Les points de retournement officiels de la datation du National Bureau of Econom
 Pour l'emploi le retour à la normal est progressif à partir d'avril 2020 (@fig-ce16ov-covid-y) alors qu'il est rapide pour les ventes au détail et services de restauration (@fig-retailx-covid-y).
 
 Comme pour l'IPI dans l'industrie manufacturière, les méthodes robustes effacent complètement le choc (figures [-@fig-ce16ov-covid-est] et [-@fig-retailx-covid-est]), ce qui ne permet pas d'analyser les points de retournement.
-Les moyennes mobiles linéaires classiques (Henderson/Musgrave et CLF) détectent les points de retournements avec un décalage : pic en octobre 2019 et creux en avril 2020 pour les ventes au détail et services de restauration et juin 2020 pour l'emploi.
+Les moyennes mobiles linéaires classiques (Henderson/Musgrave et CLF) détectent les points de retournement avec un décalage : pic en octobre 2019 et creux en avril 2020 pour les ventes au détail et services de restauration et juin 2020 pour l'emploi.
 Pour les moyennes mobiles robustes, le choc est modélisé par deux chocs permanents en mars et avril 2020.
 Les révisions sont faibles et cela permet de bien détecter les deux retournement conjoncturels contrairement aux moyennes mobiles robustes où l'on considère mars et avril 2020 comme des chocs ponctuels et associant le choc à la tendance-cycle (figures [-@fig-ce16ov-covid-ci] et [-@fig-retailx-covid-ci]).
 
