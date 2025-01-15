@@ -199,7 +199,7 @@ filters_lsls <- lapply(6:-6, function(t) {
 		X <- X[,1,drop = FALSE]
 	sym <- sym_filter(X= X)
 	res <- list("q=6" = sym)
-	if (t == 6)
+	if (t == 6 | is.null(X))
 		return(res)
 	all_q <- 5:max(t, 0)
 	afilters <- lapply(all_q, function(q) {
