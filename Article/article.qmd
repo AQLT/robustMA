@@ -1052,16 +1052,24 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ### COVID-19 {#sec-ex-covid}
 
-Le COVID-19 est illustré sur l'indice de la production industrielle (IPI) dans l'industrie manufacturière, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l'Insee^[
-<https://www.insee.fr/fr/statistiques/serie/010768307>.
-] le 04 octobre 2024 (données alors disponibles jusqu'en août 2024).
+Le COVID-19 est illustré sur l'indice de la production industrielle (IPI) CVS-CJO dans l'industrie manufacturière.
+Sur cette série, on observe deux chocs négatifs en mars et avril 2020, suivis d'une remontée progressive jusqu'en juillet 2020 vers un niveau légèrement inférieur à celui d'avant crise.
+Pour cette période, il est attendu de l'estimation finale de la tendance-cycle qu'elle permette de détecter les deux points de retournement en février 2020 (pic) et avril 2020 (creux).
+Les méthodes robustes ne sont pas affectées par les chocs de cette période (@fig-ipi-manuf-covid-est) : ces méthodes ne permettent donc pas de reproduire la spécificité économique de cette période. 
+Certaines d'entre elles conduisent également à de fortes révisions.
+Les moyennes mobiles de Musgrave et CLF conduisent, encore une fois, à détecter les points de retournement avec un décalage.
+Pour la construction des moyennes mobiles robustes, même si l'on pourrait construire des régresseurs spécifiques, il a ici été choisi de rester sur la modélisation de chocs ponctuels et permanents ce qui permet de garder une approche simple et plus facilement généralisable à d'autres cas.
+La @fig-ipi-manuf-covid-ci compare les estimations des moyennes mobiles robustes construites en modélisant deux chocs ponctuels consécutifs (dont on attribuerait l'effet à la tendance-cycle plutôt qu'à l'irrégulier) et deux chocs permanents consécutifs.
+
+D'autres exemples sont donnés dans l'annexe [-@sec-autres-ex-covid].
 
 ```{r}
 ##| label: fig-ipi-manuf-covid-y
 ##| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière autour de mars 2020"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "LSLS", "ipi_manufcovid.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y,
+						   share_y_lim = FALSE)
 graph_est$CLF <- NULL
 # graph_y <- plot_y(res, n_xlabel = 6
 # 				  # out = res$out + c(0, 1)/12,
