@@ -19,6 +19,11 @@ format:
     fig-height: 3.5
     toc: false # to include abstract first
     fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2cm
+      - left = 2.5cm
+      - right = 2.5cm
 crossref:
   tbl-prefix: table
   fig-prefix: figure
@@ -1054,7 +1059,6 @@ Estimations en temps réel de la tendance-cycle des ventes au détail et service
 ```{r}
 #| label: fig-retailx2008-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008"
-#| fig-height: 6
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
@@ -1530,7 +1534,7 @@ graph_ci <- plot_confint(
 #| fig.cap: "Emploi et ventes au détail et services de restauration, en logarithme, aux États-Unis autour de mars 2020"
 #| fig-height: 2
 graph_y_covid1 + graph_y_covid2 +
-	plot_layout(guides = 'collect', axes = "collect", nrow = 2) &
+	plot_layout(guides = 'collect', axes = "collect", nrow = 1) &
 	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
 											  vjust=1.1, hjust=1))
 ```
