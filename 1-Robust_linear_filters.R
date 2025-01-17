@@ -26,7 +26,7 @@ gen_ao <- function(t, h = 6){
 gen_ao_inv <- function(t, h = 6){
 	X <- gen_ao(t, h)
 	if (abs(t) <= h) {
-		if (t <= 0) {
+		if (t <= 0 & t != -h) {
 			X <- 1-X
 		} else {
 			X <- X
@@ -192,6 +192,31 @@ filters_aols <- lapply(6:-6, function(t) {
 })
 names(filters_aols) <- paste0("t=", 6:-6)
 
+filters_aoinvls <- lapply(6:-6, function(t) {
+	# For t= -7 X = null
+	X <- cbind(gen_ao_inv(t), gen_ls(t+1))
+	if (ncol(X) == 2 && (length(unique(na.omit(X[,1]/X[,2]))) == 1 | length(unique(abs(X[,1]) + abs(X[,2]))) == 1))
+		X <- X[,1,drop = FALSE]
+	sym <- sym_filter(X= X)
+	res <- list("q=6" = sym)
+	if (t == 6)
+		return(res)
+	all_q <- 5:max(t, 0)
+	afilters <- lapply(all_q, function(q) {
+		X <- X[,!apply(X[1:(6+q+1),,drop = FALSE]==0, 2,all)]
+		mmsre_filter(
+			ref_filter = sym, q = q,
+			delta = 2 / (sqrt(pi) * 3.5),
+			U = cbind(polynomial_matrix(l = -6, d0 = 0, d1 = 0), X),
+			Z = polynomial_matrix(l = -6, d0 = 1, d1 = 1),
+		)
+	})
+	names(afilters) <- paste0("q=", all_q)
+	res <- c(res, afilters)
+	res
+})
+names(filters_aoinvls) <- paste0("t=", 6:-6)
+
 filters_lsls <- lapply(6:-6, function(t) {
 	# For t= -7 X = null
 	X <- cbind(gen_ls(t), gen_ls(t+1))
@@ -225,6 +250,7 @@ robust_filters <- list(
 	aoaoinv = filters_aoaoinv,
 	aoaoaoinv = filters_aoaoaoinv,
 	aols = filters_aols,
+	aoinvls = filters_aoinvls,
 	lsls = filters_lsls
 )
 robust_filters <- lapply(robust_filters, reorder_out_filters)

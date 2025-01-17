@@ -441,7 +441,9 @@ Dans cette étude, les deux types de points atypiques les plus couramment rencon
 - Les points atypiques additifs (AO, *additive outlier*) : un choc ponctuelle à une date particulière puis un retour à la normal (grève, mesure exceptionnelle, erreur de mesure par exemple liée à de la non réponse, etc.).
 Le choc affecte donc l'irrégulier et ne devrait pas avoir d'impact sur la tendance-cycle.
 Si le choc apparaît à la date $t_0$ il peut être modélisé par le régresseur $O_t^{AO}=\1_{t=t_0}$ qui vaut $1$ à la date $t_0$ et $0$ sinon.
-Si l'on souhaite que le choc soit affecté à la tendance-cycle et non pas à l'irrégulier, il faut utiliser le régresseur $O_{t+j}=O_{t+j}^{AO}=\1_{t+j=t_0}$ lorsque $t>t_0$ et $O_{t+j}=-O_{t+j}^{AO}=\1_{t+j\ne t_0}$ lorsque $t\leq 0$
+Si l'on souhaite que le choc soit affecté à la tendance-cycle et non pas à l'irrégulier, il faut utiliser le régresseur $O_{t+j}=O_{t+j}^{AO}=\1_{t+j= t_0}$ lorsque $t< t_0$ ou $t=t_0+h$ (estimations des points avant le choc et dernière moyenne mobile modifiée) et $O_{t+j}=1-O_{t+j}^{AO}=\1_{t+j\ne t_0}$ lorsque $t_0+h>t\geq t_0$ (estimations des points après le choc sauf dernière moyenne mobile modifiée).
+Une distinction est faite pour $t=t_0+h$ car dans ce cas le régresseur $\1_{t+j\ne t_0}$ est égal à $\1_{t+j> t_0}$ ce qui revient à créer une rupture en niveau (cf *infra*) et introduit un pic indésirable à l'estimation en $t_0+h$.
+
 
 - Les ruptures en niveau (LS, *level shift*) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.).
 Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'irrégulier.
@@ -520,8 +522,8 @@ où $\boldsymbol 0_{p\times n}$ est la matrice de taille $p\times n$ ne contenan
 On a :
 $$
 \begin{cases}
-\nu_1 =\tr (H) = (n-p-f)\theta_0\\
-\nu_2 = \tr (\transp{H}H) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
+\nu_1 =\tr (\boldsymbol H) = (n-p-f)\theta_0\\
+\nu_2 = \tr (\transp{\boldsymbol H}\boldsymbol H) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
 \end{cases}.
 $$
 Si les bruits $\varepsilon_t$ sont indépendants et de variance $\sigma^2$, alors :
@@ -560,7 +562,7 @@ Si les bruits $\varepsilon_t$ sont normalement distribués indépendants et $\ha
 $$
 \transp{\boldsymbol Y}\boldsymbol \Delta\boldsymbol Y\overset{\mathcal L}{=}\sigma^2\sum_{j=1}^n\lambda_jZ_j,
 $$
-où les $\lambda_j$ sont les valeurs propres de $\boldsymbol\Delta$ et les $Z_j$ soit des lois indépendantes $\chi_1^2.$
+où les $\lambda_j$ sont les valeurs propres de $\boldsymbol\Delta$ et les $Z_j$ sont des lois indépendantes du chi-deux à 1 degré de liberté.
 Il vient :
 $$
 \begin{cases}
@@ -580,7 +582,7 @@ La loi $\hat\sigma^2$ étant difficile à calculer dans le cadre de la régressi
 
 Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on a donc :
 $$
-\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu)
+\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu).
 $$
 Le numérateur de $\nu$ se calcule facilement puisque l'on a :
 $$
@@ -608,6 +610,10 @@ Le calcul de $\nu$ peut aussi être approximé par $\tr(\boldsymbol \Delta)$ (`r
 Sur une série mensuelle de 19 ans ($n=228$), en utilisant la moyenne mobile de Henderson de 13 termes ($p=f=6$), le temps de calcul $\nu$ est d'en moyenne 0,11 seconde (sur 1 000 évaluations).
 Il est divisé d'environ 350 en utilisant la formule proposée dans cet article (environ 0,31 milliseconde) et d'environ 5 800 en utilisant l'approximation $\nu\simeq \tr(\boldsymbol \Delta)$ (environ 0,02 milliseconde).
 ]. 
+
+<!-- ::: {.remark} -->
+<!-- Même si la majorité des moyennes mobiles @inseeDTM202401 -->
+<!-- ::: -->
 
 # Résultats
 
@@ -1045,6 +1051,7 @@ Estimations en temps réel de la tendance-cycle des ventes au détail et service
 ```{r}
 #| label: fig-retailx2008-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008"
+#| fig-height: 6
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
@@ -1055,11 +1062,15 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 Le COVID-19 est illustré sur l'indice de la production industrielle (IPI) CVS-CJO dans l'industrie manufacturière.
 Sur cette série, on observe deux chocs négatifs en mars et avril 2020, suivis d'une remontée progressive jusqu'en juillet 2020 vers un niveau légèrement inférieur à celui d'avant crise.
 Pour cette période, il est attendu de l'estimation finale de la tendance-cycle qu'elle permette de détecter les deux points de retournement en février 2020 (pic) et avril 2020 (creux).
-Les méthodes robustes ne sont pas affectées par les chocs de cette période (@fig-ipi-manuf-covid-est) : ces méthodes ne permettent donc pas de reproduire la spécificité économique de cette période. 
-Certaines d'entre elles conduisent également à de fortes révisions.
-Les moyennes mobiles de Musgrave et CLF conduisent, encore une fois, à détecter les points de retournement avec un décalage.
+Les méthodes robustes peinent à reproduire ces retournements : les estimations finales sont robustes aux chocs, les révisions sont importantes et les retournement conjoncturels détectés semblent plutôt provenir des périodes post-chocs, ce qui conduit à détecter les points de retournement avec décalage (@fig-ipi-manuf-covid-est)
+Les moyennes mobiles de Musgrave et CLF conduisent, encore une fois, à détecter les points de retournement avec un décalage ; les révisions sont importantes autour des chocs (mars, mai et juin) et plus faibles pour les autres mois.
+
 Pour la construction des moyennes mobiles robustes, même si l'on pourrait construire des régresseurs spécifiques, il a ici été choisi de rester sur la modélisation de chocs ponctuels et permanents ce qui permet de garder une approche simple et plus facilement généralisable à d'autres cas.
-La @fig-ipi-manuf-covid-ci compare les estimations des moyennes mobiles robustes construites en modélisant deux chocs ponctuels consécutifs (dont on attribuerait l'effet à la tendance-cycle plutôt qu'à l'irrégulier) et deux chocs permanents consécutifs.
+La @fig-ipi-manuf-covid-ci compare les estimations des moyennes mobiles robustes construites en modélisant deux chocs ponctuels consécutifs (dont on attribuerait l'effet à la tendance-cycle plutôt qu'à l'irrégulier), deux chocs permanents consécutifs ou un choc ponctuel suivi d'un choc permanent.
+La modélisation de deux chocs permanents consécutifs en mars et avril 2020 permet de détecter les points de retournement aux bonnes dates, la reprise de la production en mai est détecté dès la première estimation.
+Ce n'est pas le cas de la modélisation par deux chocs ponctuels consécutifs : il faut attendre les estimations de juin 2020 pour reproduire le creux d'avril (les estimations de mai et juin donne une baisse entre avril et mai) et le pic de février n'est pas conservé.
+La modélisation d'un choc ponctuel suivi d'un choc permanent permet bien de tracer le pic d'avril et le creux d'avril mais d'autres estimations ne semble
+C'est donc la modélisation par deux chocs permanents consécutifs qui donne ici les meilleurs résultats
 
 D'autres exemples sont donnés dans l'annexe [-@sec-autres-ex-covid].
 
@@ -1080,9 +1091,11 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (sur TC)" = robust_ff[["aoaoinv"]]
+		"MM robuste AO-AO (sur TC)" = robust_ff[["aoaoinv"]],
+		"MM robuste AO-LS (sur TC)" = robust_ff[["aoinvls"]]
 		),
-	show.legend = TRUE
+	show.legend = TRUE,
+	nest = 12
 )
 # graph_y
 ```
@@ -1105,7 +1118,7 @@ Estimations en temps réel de la tendance-cycle de l'IPI CVS-CJO dans l'industri
 ```{r}
 #| label: fig-ipi-manuf-covid-ci
 #| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans l'industrie manufacturière à partir de mars 2020"
-
+#| fig-height: 6
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
@@ -1284,7 +1297,7 @@ Pour $i\in[p+1,n-f],$ comme pour tout $k\in [-p,f]$ on a $w_{i-j+k} =0$ si $j<i-
 \end{align*}
 En somme :
 \begin{align*}
-\tr({\boldsymbol \Delta^2}& = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
+\tr({\boldsymbol \Delta^2})& = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
 &= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + 2(n-(p+f)-2)L_2^2 +\\
 &\phantom{=}\dots+2(n-2(p+f))L_{p+f}^2 \\
 &=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2.
@@ -1466,49 +1479,6 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 ```
 
 
-### Points de retournement {#sec-autres-ex-retournement}
-
-Un autre exemple de point de retournement est illustré à partir d'une autre série de la base FRED-MD : les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme) autour du point de retournement de novembre 2007.
-
-```{r}
-#| label: fig-retailx2007-y
-#| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour du point de retournement de novembre 2007"
-#| fig-height: 2
-res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
-graph_y <- plot_y(res, n_xlabel = 6)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
-graph_y
-```
-
-::: {#fig-retailx2007-est}
-
-```{r}
-#| label: ffig-retailx2007-est
-#| fig-height: 5
-patchwork::wrap_plots(graph_est, ncol = 3)
-```
-\scriptsize\raggedright
-
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
-
-Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
-:::
-
-```{r}
-#| label: fig-retailx2007-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007"
-
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
-	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
-```
-
-
 ### COVID-19 {#sec-autres-ex-covid}
 
 Deux autres exemples de la performance des différentes pendantes pendant le COVID-19 sont issus de la base FRED-MD : le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme).
@@ -1539,7 +1509,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]
+		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]],
+		"MM robuste AO-LS (sur TC)" = robust_ff[["aoinvls"]]
 		),
 	show.legend = TRUE
 )
@@ -1582,7 +1553,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]
+		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]],
+		"MM robuste AO-LS (sur TC)" = robust_ff[["aoinvls"]]
 		),
 	show.legend = TRUE
 )
@@ -1614,6 +1586,48 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 ```
 
 
+
+### Points de retournement {#sec-autres-ex-retournement}
+
+Un autre exemple de point de retournement est illustré à partir d'une autre série de la base FRED-MD : les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme) autour du point de retournement de novembre 2007.
+
+```{r}
+#| label: fig-retailx2007-y
+#| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour du point de retournement de novembre 2007"
+#| fig-height: 2
+res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
+graph_est$CLF <- NULL
+graph_y <- plot_y(res, n_xlabel = 6)
+graph_ci <- plot_confint(
+	res,
+	default_filter = lc_f,
+	robust_f = list("MM robuste AO" = robust_ff[["ao"]]))
+graph_y
+```
+
+::: {#fig-retailx2007-est}
+
+```{r}
+#| label: ffig-retailx2007-est
+#| fig-height: 5
+patchwork::wrap_plots(graph_est, ncol = 3)
+```
+\scriptsize\raggedright
+
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+
+Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
+:::
+
+```{r}
+#| label: fig-retailx2007-ci
+#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007"
+
+apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
+```
 
 
 <!-- ici clearpage plutôt que newpage car clearpage permet de prendre en compte les figures qui peuvent aller sur plusieurs pages -->
