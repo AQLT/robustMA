@@ -98,22 +98,23 @@ window.Quarto = {
   <li><a href="#méthodologie" id="toc-méthodologie" class="nav-link" data-scroll-target="#méthodologie"><span class="header-section-number">2</span> Méthodologie</a>
   <ul class="collapse">
   <li><a href="#sec-methodes-robustes" id="toc-sec-methodes-robustes" class="nav-link" data-scroll-target="#sec-methodes-robustes"><span class="header-section-number">2.1</span> Méthodes robustes</a></li>
-  <li><a href="#sec-methodes-lineaires" id="toc-sec-methodes-lineaires" class="nav-link" data-scroll-target="#sec-methodes-lineaires"><span class="header-section-number">2.2</span> Moyennes mobiles linéaires</a>
+  <li><a href="#sec-methodes-lineaires" id="toc-sec-methodes-lineaires" class="nav-link" data-scroll-target="#sec-methodes-lineaires"><span class="header-section-number">2.2</span> Moyennes mobiles linéaires classiques</a>
   <ul class="collapse">
   <li><a href="#sec-lp" id="toc-sec-lp" class="nav-link" data-scroll-target="#sec-lp"><span class="header-section-number">2.2.1</span> Moyenne mobile de Henderson et de Musgrave</a></li>
   <li><a href="#filtres-cascade" id="toc-filtres-cascade" class="nav-link" data-scroll-target="#filtres-cascade"><span class="header-section-number">2.2.2</span> Filtres cascade</a></li>
-  <li><a href="#construction-de-moyennes-mobiles-robustes" id="toc-construction-de-moyennes-mobiles-robustes" class="nav-link" data-scroll-target="#construction-de-moyennes-mobiles-robustes"><span class="header-section-number">2.2.3</span> Construction de moyennes mobiles robustes</a></li>
-  <li><a href="#sec-ic" id="toc-sec-ic" class="nav-link" data-scroll-target="#sec-ic"><span class="header-section-number">2.2.4</span> Construction d’intervalles de confiance pour des moyennes mobiles</a></li>
   </ul></li>
+  <li><a href="#construction-de-moyennes-mobiles-robustes" id="toc-construction-de-moyennes-mobiles-robustes" class="nav-link" data-scroll-target="#construction-de-moyennes-mobiles-robustes"><span class="header-section-number">2.3</span> Construction de moyennes mobiles robustes</a></li>
+  <li><a href="#sec-ic" id="toc-sec-ic" class="nav-link" data-scroll-target="#sec-ic"><span class="header-section-number">2.4</span> Construction d’intervalles de confiance pour des moyennes mobiles</a></li>
   </ul></li>
   <li><a href="#résultats" id="toc-résultats" class="nav-link" data-scroll-target="#résultats"><span class="header-section-number">3</span> Résultats</a>
   <ul class="collapse">
   <li><a href="#sec-res-series-simul" id="toc-sec-res-series-simul" class="nav-link" data-scroll-target="#sec-res-series-simul"><span class="header-section-number">3.1</span> Séries simulées</a></li>
   <li><a href="#sec-res-series-reelles" id="toc-sec-res-series-reelles" class="nav-link" data-scroll-target="#sec-res-series-reelles"><span class="header-section-number">3.2</span> Séries réelles</a>
   <ul class="collapse">
-  <li><a href="#choc-ponctuel-ao-suivi-dun-choc-permanent-ls" id="toc-choc-ponctuel-ao-suivi-dun-choc-permanent-ls" class="nav-link" data-scroll-target="#choc-ponctuel-ao-suivi-dun-choc-permanent-ls"><span class="header-section-number">3.2.1</span> Choc ponctuel (AO) suivi d’un choc permanent (LS)</a></li>
-  <li><a href="#crise-financière-de-2008-deux-chocs-permanents-consécutifs" id="toc-crise-financière-de-2008-deux-chocs-permanents-consécutifs" class="nav-link" data-scroll-target="#crise-financière-de-2008-deux-chocs-permanents-consécutifs"><span class="header-section-number">3.2.2</span> Crise financière de 2008 (deux chocs permanents consécutifs)</a></li>
-  <li><a href="#point-de-retournement-et-covid-19" id="toc-point-de-retournement-et-covid-19" class="nav-link" data-scroll-target="#point-de-retournement-et-covid-19"><span class="header-section-number">3.2.3</span> Point de retournement et COVID-19</a></li>
+  <li><a href="#sec-ex-ao-ls" id="toc-sec-ex-ao-ls" class="nav-link" data-scroll-target="#sec-ex-ao-ls"><span class="header-section-number">3.2.1</span> Choc ponctuel (AO) suivi d’un choc permanent (LS)</a></li>
+  <li><a href="#sec-ex-crise-financiere" id="toc-sec-ex-crise-financiere" class="nav-link" data-scroll-target="#sec-ex-crise-financiere"><span class="header-section-number">3.2.2</span> Crise financière de 2008 (deux chocs permanents consécutifs)</a></li>
+  <li><a href="#sec-ex-covid" id="toc-sec-ex-covid" class="nav-link" data-scroll-target="#sec-ex-covid"><span class="header-section-number">3.2.3</span> COVID-19</a></li>
+  <li><a href="#sec-ex-retournement" id="toc-sec-ex-retournement" class="nav-link" data-scroll-target="#sec-ex-retournement"><span class="header-section-number">3.2.4</span> Points de retournement</a></li>
   </ul></li>
   </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion"><span class="header-section-number">4</span> Conclusion</a></li>
@@ -125,8 +126,8 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#sec-autres-ex-ao" id="toc-sec-autres-ex-ao" class="nav-link" data-scroll-target="#sec-autres-ex-ao"><span class="header-section-number">5.3.1</span> Chocs ponctuels (<em>additive outlier</em>, AO)</a></li>
   <li><a href="#sec-autres-ex-ls" id="toc-sec-autres-ex-ls" class="nav-link" data-scroll-target="#sec-autres-ex-ls"><span class="header-section-number">5.3.2</span> Choc permanent (<em>level shift</em>, LS)</a></li>
-  <li><a href="#points-de-retournement" id="toc-points-de-retournement" class="nav-link" data-scroll-target="#points-de-retournement"><span class="header-section-number">5.3.3</span> Points de retournement</a></li>
-  <li><a href="#sec-autres-ex-covid" id="toc-sec-autres-ex-covid" class="nav-link" data-scroll-target="#sec-autres-ex-covid"><span class="header-section-number">5.3.4</span> COVID-19</a></li>
+  <li><a href="#sec-autres-ex-covid" id="toc-sec-autres-ex-covid" class="nav-link" data-scroll-target="#sec-autres-ex-covid"><span class="header-section-number">5.3.3</span> COVID-19</a></li>
+  <li><a href="#sec-autres-ex-retournement" id="toc-sec-autres-ex-retournement" class="nav-link" data-scroll-target="#sec-autres-ex-retournement"><span class="header-section-number">5.3.4</span> Points de retournement</a></li>
   </ul></li>
   </ul></li>
   <li><a href="#bibliographie" id="toc-bibliographie" class="nav-link" data-scroll-target="#bibliographie">Bibliographie</a></li>
@@ -192,9 +193,9 @@ window.Quarto = {
 <section id="introduction" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
 <p>L’analyse du cycle économique, et en particulier la détection rapide des points de retournement d’une série, est un sujet de première importance dans l’analyse de la conjoncture économique. Pour cela, les indicateurs économiques sont généralement corrigés des variations saisonnières. Toutefois, afin d’améliorer leur lisibilité, il peut être nécessaire d’effectuer un lissage supplémentaire afin de réduire le bruit, et ainsi analyser la composante tendance-cycle. Par construction, les méthodes d’extraction de tendance-cycle sont étroitement liées aux méthodes de désaisonnalisation. En effet, afin d’estimer la composante saisonnière, les algorithmes de désaisonnalisation estiment préalablement une composante tendance-cycle. Ainsi, même si les méthodes d’extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l’estimation de ces séries dépend également également des méthodes d’estimation de la tendance-cycle.</p>
-<p>Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d’extraction du cycle économique et d’ajustement saisonnier<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Ainsi, la méthode de désaisonnalisation X-13ARIMA-SEATS utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d’une série chronologique. Au centre de la série, des filtres symétriques sont appliqués. Pour l’extraction de la tendance-cycle, le filtre symétrique le plus connu est celui de <span class="citation" data-cites="henderson1916note">Henderson (<a href="#ref-henderson1916note" role="doc-biblioref">1916</a>)</span>, notamment utilisé dans l’algorithme de désaisonnalisation X-13ARIMA.</p>
-<p>Toutefois, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques. L’application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.</p>
-<p>D’autre part, les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques. L’application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.</p>
+<p>Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d’extraction du cycle économique et d’ajustement saisonnier<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Par exemple, la méthode de désaisonnalisation X-11 <span class="citation" data-cites="ladiray2011seasonal">(<a href="#ref-ladiray2011seasonal" role="doc-biblioref">Ladiray et Quenneville 2011</a>)</span>, utilisée dans le logiciel X-13ARIMA-SEATS <span class="citation" data-cites="x13">(<a href="#ref-x13" role="doc-biblioref">Monsell 2007</a>)</span>, utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d’une série chronologique. Au centre de la série, des filtres symétriques sont appliqués. Pour l’extraction de la tendance-cycle, le filtre symétrique le plus connu est celui de <span class="citation" data-cites="henderson1916note">Henderson (<a href="#ref-henderson1916note" role="doc-biblioref">1916</a>)</span>, notamment utilisé dans l’algorithme de désaisonnalisation X-13ARIMA. En revanche, pour les estimations en temps réel, en raison de l’absence d’observations futures, toutes ces méthodes doivent s’appuyer sur des filtres asymétriques pour estimer les points les plus récents. Par exemple, pour l’extraction de la tendance-cycle tendances-cycles, X-11 utilise le filtre symétrique de Henderson et les filtres asymétriques de <span class="citation" data-cites="musgrave1964set">Musgrave (<a href="#ref-musgrave1964set" role="doc-biblioref">1964</a>)</span> sur une série étendue utilisant un modèle ARIMA. Comme les valeurs prédites sont des combinaisons linéaires des valeurs passées, cela revient à appliquer des moyennes mobiles asymétriques à la fin de la série.</p>
+<p>Par ailleurs, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques. L’application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence. alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.</p>
+<p>Par, les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques. L’application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.</p>
 <!-- Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-13ARIMA pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle). -->
 <!-- Les filtres asymétriques finaux amplifient même les cycles de 9 ou 10 mois. -->
 <!-- Cela peut avoir pour conséquence l'introduction d'ondulations indésirables, c'est-à-dire la détection de faux points de retournement. -->
@@ -290,7 +291,7 @@ R^-(i) = R^-_{\tilde\beta_{0},\tilde\beta_{1}}(i) = cardinal \left\{ j\in\{i+1,\
 <p>Dans le cadre de l’analyse conjoncturelle, il n’est généralement pas plausible de modéliser, autour des points de retournement, une tendance de degré 1. Il n’est toutefois pas possible de changer cela dans le package <code>robfilter</code> et il n’existe pas d’autre package permettant d’appliquer simplement ces méthodes<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. Même si cette modélisation n’est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d’utilisation de <code>robfilter</code> font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l’estimation de la tendance-cycle et présentées dans la section suivante.</p>
 </section>
 <section id="sec-methodes-lineaires" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="sec-methodes-lineaires"><span class="header-section-number">2.2</span> Moyennes mobiles linéaires</h2>
+<h2 data-number="2.2" class="anchored" data-anchor-id="sec-methodes-lineaires"><span class="header-section-number">2.2</span> Moyennes mobiles linéaires classiques</h2>
 <section id="sec-lp" class="level3" data-number="2.2.1">
 <h3 data-number="2.2.1" class="anchored" data-anchor-id="sec-lp"><span class="header-section-number">2.2.1</span> Moyenne mobile de Henderson et de Musgrave</h3>
 <p>Les moyennes mobiles classiques peuvent être obtenues par analogie avec la régression polynomiale locale. En reprenant les notations de <span class="citation" data-cites="proietti2008">Proietti et Luati (<a href="#ref-proietti2008" role="doc-biblioref">2008</a>)</span>, on suppose que notre série chronologique <span class="math inline">\(y_t\)</span> peut être décomposée en : <span class="math display">\[
@@ -332,7 +333,7 @@ y_{t+h}
 <p>L’estimation des paramètres <span class="math inline">\(\boldsymbol \beta_t\)</span> peut être obtenue moindres carrés pondérés — <em>weighted least squares</em> (WLS) — à partir d’un ensemble de poids <span class="math inline">\((\kappa_j)_{-h\leq j \leq h}\)</span> appelés noyaux. En notant <span class="math inline">\(\boldsymbol K=diag(\kappa_{-h},\dots,\kappa_{h})\)</span> il vient <span class="math inline">\(\hat{\boldsymbol\beta_t}=(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\transp{\boldsymbol X}\boldsymbol K\boldsymbol y_t.\)</span> Avec <span class="math inline">\(\boldsymbol e_1=\transp{\begin{pmatrix}1 &amp;0 &amp;\cdots&amp;0 \end{pmatrix}}\)</span>, l’estimation de la tendance-cycle est : <span id="eq-mmsym"><span class="math display">\[
 \widehat{TC}_t=\widehat{\beta}_{0,t}=\boldsymbol e_{1}\hat{\boldsymbol \beta_t}=\transp{\boldsymbol \theta}\boldsymbol y_t=\sum_{j=-h}^{h}\theta_{j}y_{t-j}\text{ avec }\boldsymbol \theta=\boldsymbol K\boldsymbol X(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\boldsymbol e_{1}.
 \tag{2}\]</span></span> En somme, l’estimation de la tendance <span class="math inline">\(\hat{m}_{t}\)</span> est obtenue en appliquant une moyenne mobile symétrique <span class="math inline">\(\boldsymbol \theta\)</span> à <span class="math inline">\(y_t\)</span>.</p>
-<p>On retrouve la moyenne mobile de Henderson avec <span class="math inline">\(d=2\)</span> (ou <span class="math inline">\(d=3\)</span>) et en utilisant les noyaux : <span class="math display">\[
+<p>On retrouve la moyenne mobile de Henderson avec <span class="math inline">\(d=2\)</span> (ou <span class="math inline">\(d=3\)</span>) et en utilisant les noyaux&nbsp;: <span class="math display">\[
 \kappa_{j}=\left[1-\frac{j^2}{(h+1)^2}\right]
 \left[1-\frac{j^2}{(h+2)^2}\right]
 \left[1-\frac{j^2}{(h+3)^2}\right].
@@ -361,8 +362,9 @@ y_{t+h}
 <p>Les <em>cascade linear filter</em> <span class="citation" data-cites="clf">(CLF, <a href="#ref-clf" role="doc-biblioref">Dagum et Luati 2009</a>)</span>, correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d’un modèle ARIMA(0,1,1) où <span class="math inline">\(\theta=0,40.\)</span></p>
 <p>C’est cette moyenne mobile qui est utilisée par Statistique Canada pour l’estimation de la tendance-cycle<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>. Pour l’estimation en temps réel, Statistique Canada utilise la méthode « couper-et-normaliser » qui consiste à recalculer les poids, à partir de la moyenne mobile symétrique, en n’utilisant que les poids associées aux observations disponibles (couper) et en renormalisant pour que la somme des coefficients soit égale à 1 (normaliser). C’est l’approche qui sera utilisé dans cet article.</p>
 </section>
-<section id="construction-de-moyennes-mobiles-robustes" class="level3" data-number="2.2.3">
-<h3 data-number="2.2.3" class="anchored" data-anchor-id="construction-de-moyennes-mobiles-robustes"><span class="header-section-number">2.2.3</span> Construction de moyennes mobiles robustes</h3>
+</section>
+<section id="construction-de-moyennes-mobiles-robustes" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="construction-de-moyennes-mobiles-robustes"><span class="header-section-number">2.3</span> Construction de moyennes mobiles robustes</h2>
 <p>Une autre façon de construire des moyennes mobiles robustes aux points atypiques est d’exploiter l’approche polynomiale locale présentée dans la <a href="#sec-lp" class="quarto-xref">section&nbsp;2.2.1</a>. Pour la construire la moyenne mobile utilisée pour l’estimation finale de la tendance-cycle, il suffit pour cela d’ajouter dans l’<a href="#eq-lpp" class="quarto-xref">équation&nbsp;1</a> un ou plusieurs régresseurs <span class="math inline">\(\boldsymbol O_t\)</span> pour prendre en compte l’effet du point atypique modélisé : <span class="math display">\[
 y_{t+j}=\sum_{i=0}^{d}\beta_{i,t}j^{i} + \boldsymbol O_{t+j} \boldsymbol\zeta_t+\varepsilon_{t+j}.
 \]</span></p>
@@ -387,20 +389,20 @@ y_{t+j}=\sum_{i=0}^{d}\beta_{i,t}j^{i} + \boldsymbol O_{t+j} \boldsymbol\zeta_t+
 <p>Par convention, lorsque <span class="math inline">\(\mathcal O_{t}\)</span> ou <span class="math inline">\(\mathcal O_{p,t}\)</span> est la matrice nulle, on garde la modélisation de la <a href="#sec-lp" class="quarto-xref">section&nbsp;2.2.1</a>.</p>
 <p>Dans cette étude, les deux types de points atypiques les plus couramment rencontrés dans l’analyse de données macroéconomiqués sont étudiés :</p>
 <ul>
-<li><p>Les points atypiques additifs (AO, <em>additive outlier</em>) : un choc ponctuelle à une date particulière puis un retour à la normal (grève, mesure exceptionnelle, erreur de mesure par exemple liée à de la non réponse, etc.). Le choc affecte donc l’irrégulier et ne devrait pas avoir d’impact sur la tendance-cycle. Si le choc apparaît à la date <span class="math inline">\(t_0\)</span> il peut être modélisé par le régresseur <span class="math inline">\(O_t^{AO}=\1_{t=t_0}\)</span> qui vaut <span class="math inline">\(1\)</span> à la date <span class="math inline">\(t_0\)</span> et <span class="math inline">\(0\)</span> sinon. Si l’on souhaite que le choc soit affecté à la tendance-cycle et non pas à l’irrégulier, il faut utiliser le régresseur <span class="math inline">\(O_{t+j}=O_{t+j}^{AO}=\1_{t+j=t_0}\)</span> lorsque <span class="math inline">\(t&gt;t_0\)</span> et <span class="math inline">\(O_{t+j}=-O_{t+j}^{AO}=\1_{t+j\ne t_0}\)</span> lorsque <span class="math inline">\(t\leq 0\)</span></p></li>
+<li><p>Les points atypiques additifs (AO, <em>additive outlier</em>) : un choc ponctuelle à une date particulière puis un retour à la normal (grève, mesure exceptionnelle, erreur de mesure par exemple liée à de la non réponse, etc.). Le choc affecte donc l’irrégulier et ne devrait pas avoir d’impact sur la tendance-cycle. Si le choc apparaît à la date <span class="math inline">\(t_0\)</span> il peut être modélisé par le régresseur <span class="math inline">\(O_t^{AO}=\1_{t=t_0}\)</span> qui vaut <span class="math inline">\(1\)</span> à la date <span class="math inline">\(t_0\)</span> et <span class="math inline">\(0\)</span> sinon. Si l’on souhaite que le choc soit affecté à la tendance-cycle et non pas à l’irrégulier, il faut utiliser le régresseur <span class="math inline">\(O_{t+j}=O_{t+j}^{AO}=\1_{t+j= t_0}\)</span> lorsque <span class="math inline">\(t&lt; t_0\)</span> ou <span class="math inline">\(t=t_0+h\)</span> (estimations des points avant le choc et dernière moyenne mobile modifiée) et <span class="math inline">\(O_{t+j}=1-O_{t+j}^{AO}=\1_{t+j\ne t_0}\)</span> lorsque <span class="math inline">\(t_0+h&gt;t\geq t_0\)</span> (estimations des points après le choc sauf dernière moyenne mobile modifiée). Une distinction est faite pour <span class="math inline">\(t=t_0+h\)</span> car dans ce cas le régresseur <span class="math inline">\(\1_{t+j\ne t_0}\)</span> est égal à <span class="math inline">\(\1_{t+j&gt; t_0}\)</span> ce qui revient à créer une rupture en niveau (cf <em>infra</em>) et introduit un pic indésirable à l’estimation en <span class="math inline">\(t_0+h\)</span>.</p></li>
 <li><p>Les ruptures en niveau (LS, <em>level shift</em>) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.). Le choc affecte donc la tendance-cycle et ne devrait pas avoir d’irrégulier. Si le choc est à la date <span class="math inline">\(t_0\)</span> il peut être modélisé par le régresseur <span class="math inline">\(O_{t+j}=-\1_{t+j&lt; t_0}\)</span> si <span class="math inline">\(t\leq t_0\)</span> (l’estimation de <span class="math inline">\(\beta_{0,t}\)</span> ne prend pas en compte le choc en niveau) et <span class="math inline">\(O_{t+j}=\1_{t+j\geq t_0}\)</span> si <span class="math inline">\(t&gt;t_0\)</span> (l’estimation de <span class="math inline">\(\beta_{0,t}\)</span> prend en compte le choc en niveau).</p></li>
 </ul>
 <p>L’inconvénient de cette approche, par rapport aux méthodes robustes présentées dans la <a href="#sec-methodes-robustes" class="quarto-xref">section&nbsp;2.1</a>, est que cela suppose de connaître la date et la nature du point atypique. Une approche en deux temps peut être utilisée :</p>
 <ol type="1">
 <li><p>Partir sur un a priori basé sur une information économique (ex : baisse attendue de l’économie au moment des confinements durant le COVID-19, hausse attendue suite à une mise en place d’une politique…) ou sur des modèles statistiques (comme le module de détection des points atypiques de X-13ARIMA-SEATS basé sur un modèle RegARIMA).</p></li>
-<li><p>Valider la modélisation retenue en comparant l’intervalle de confiance de l’estimation de la tendance-cycle avec les moyennes mobiles de Henderson et de Musgrave avec l’estimation en utilisant les moyennes mobiles robustes. La <a href="#sec-ic" class="quarto-xref">section&nbsp;2.2.4</a> décrit la méthodologie pour la construction d’intervalles de confiance pour des estimations basées sur des moyennes mobiles.</p></li>
+<li><p>Valider la modélisation retenue en comparant l’intervalle de confiance de l’estimation de la tendance-cycle avec les moyennes mobiles de Henderson et de Musgrave avec l’estimation en utilisant les moyennes mobiles robustes. La <a href="#sec-ic" class="quarto-xref">section&nbsp;2.4</a> décrit la méthodologie pour la construction d’intervalles de confiance pour des estimations basées sur des moyennes mobiles.</p></li>
 </ol>
 <p>Toutefois, pour l’estimation en temps réel, sauf à avoir une information extérieure, il est difficile de distinguer un <em>level shift</em> (LS) d’un ou plusieurs <em>additive outlier</em> (AO) consécutifs. Le choix du type de point atypique aura une influence forte sur l’estimation (puisque les LS affectent la tendance-cycle et les AO l’irrégulier) et passer d’une spécification à l’autre entraînera des révisions importantes. Ces révisions seront par ailleurs plus importantes que si, avant de décider de la bonne modélisation à adopter, les premières estimations avaient été faites avec des moyennes moyennes mobiles classiques.</p>
 <p>Par rapport au préajustement des points atypiques par un modèle ad-hoc, comme le module de pré-ajustement de X-13ARIMA basé sur un modèle RegARIMA), l’approche ici présentée a l’avantage de ne pas être dépendante de l’identification d’un modèle et de la période d’estimation (pas de biais lié à l’identification des paramètres ou à l’utilisation d’une période d’estimation trop courte ou trop longue).</p>
 <p>Dans la suite ces moyennes mobiles seront appelées moyenne mobile de Henderson ou de Musgrave robuste.</p>
 </section>
-<section id="sec-ic" class="level3" data-number="2.2.4">
-<h3 data-number="2.2.4" class="anchored" data-anchor-id="sec-ic"><span class="header-section-number">2.2.4</span> Construction d’intervalles de confiance pour des moyennes mobiles</h3>
+<section id="sec-ic" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="sec-ic"><span class="header-section-number">2.4</span> Construction d’intervalles de confiance pour des moyennes mobiles</h2>
 <p>Soit <span class="math inline">\(y_1,\dots,y_n\)</span> une série chronologique observée. On suppose qu’elle peut être décomposée en <span class="math display">\[
 y_t=\mu_t+\varepsilon_t,
 \]</span> où <span class="math inline">\(\mu_t\)</span> est une composante déterministe à estimer et <span class="math inline">\(\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})\)</span> est le bruit.</p>
@@ -432,8 +434,8 @@ y_1\\ \vdots \\ y_n
 \end{pmatrix},
 \]</span> où <span class="math inline">\(\boldsymbol 0_{p\times n}\)</span> est la matrice de taille <span class="math inline">\(p\times n\)</span> ne contenant que de zéros. On a : <span class="math display">\[
 \begin{cases}
-\nu_1 =\tr (H) = (n-p-f)\theta_0\\
-\nu_2 = \tr (\transp{H}H) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
+\nu_1 =\tr (\boldsymbol H) = (n-p-f)\theta_0\\
+\nu_2 = \tr (\transp{\boldsymbol H}\boldsymbol H) = (n-p-f) \sum_{i=-p}^{+f} \theta_i^2
 \end{cases}.
 \]</span> Si les bruits <span class="math inline">\(\varepsilon_t\)</span> sont indépendants et de variance <span class="math inline">\(\sigma^2\)</span>, alors : <span class="math display">\[
 \V{Y_t-\hat{\mu}_t}=\sigma^2 -
@@ -456,7 +458,7 @@ y_1\\ \vdots \\ y_n
 \hat\sigma^2=\frac{1}{\tr{\boldsymbol \Delta}}\transp{\boldsymbol Y}\boldsymbol \Delta\boldsymbol Y.
 \]</span> Si les bruits <span class="math inline">\(\varepsilon_t\)</span> sont normalement distribués indépendants et <span class="math inline">\(\hat\sigma^2\)</span>, la distribution est : <span class="math display">\[
 \transp{\boldsymbol Y}\boldsymbol \Delta\boldsymbol Y\overset{\mathcal L}{=}\sigma^2\sum_{j=1}^n\lambda_jZ_j,
-\]</span> où les <span class="math inline">\(\lambda_j\)</span> sont les valeurs propres de <span class="math inline">\(\boldsymbol\Delta\)</span> et les <span class="math inline">\(Z_j\)</span> soit des lois indépendantes <span class="math inline">\(\chi_1^2.\)</span> Il vient : <span class="math display">\[
+\]</span> où les <span class="math inline">\(\lambda_j\)</span> sont les valeurs propres de <span class="math inline">\(\boldsymbol\Delta\)</span> et les <span class="math inline">\(Z_j\)</span> sont des lois indépendantes du chi-deux à 1 degré de liberté. Il vient : <span class="math display">\[
 \begin{cases}
 \E{\hat\sigma^2}=\sigma^2\frac{1}{\tr{\boldsymbol \Delta}}\underbrace{\sum_{j=1}^n\lambda_j}_{=\tr{\boldsymbol \Delta}}=\sigma^2\\
 \V{\hat\sigma^2}=\sigma^4\frac{1}{\tr{(\boldsymbol \Delta)}^2}\sum_{j=1}^n2\lambda_j^2=2\sigma^4\frac{\tr(\boldsymbol \Delta^2)}{\tr(\boldsymbol \Delta)^2}
@@ -468,11 +470,11 @@ y_1\\ \vdots \\ y_n
 \end{cases}.
 \]</span> Les deux premiers moments de <span class="math inline">\(\nu \hat\sigma^2/\sigma^2\)</span> sont donc identiques à ceux d’un loi du chi-deux avec <span class="math inline">\(\nu\)</span> degrés de liberté. La loi <span class="math inline">\(\hat\sigma^2\)</span> étant difficile à calculer dans le cadre de la régression locale, on donc approximer sa distribution de <span class="math inline">\(\hat\sigma^2\)</span> par une loi du chi-deux.</p>
 <p>Puisque <span class="math inline">\(\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2\)</span>, on a donc : <span class="math display">\[
-\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu)
+\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu).
 \]</span> Le numérateur de <span class="math inline">\(\nu\)</span> se calcule facilement puisque l’on a : <span class="math display">\[
 \tr(\boldsymbol \Delta) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
 \]</span> En revanche il est difficile d’avoir une formule simplifiée pour le dénominateur <span class="math inline">\(\tr(\boldsymbol \Delta^2).\)</span> Ce dernier peut être calculé en reconstruisant la matrice <span class="math inline">\(\boldsymbol \Delta\)</span> (produit de matrices de taille <span class="math inline">\(n\times n\)</span>) ou par le produit d’une matrice de taille <span class="math inline">\(1\times (p+f+1)\)</span> et d’une matrice de taille <span class="math inline">\((p+f+1)\times(p+f+1)\)</span> pour réduire le temps de calcul (voir annexe <a href="#sec-df-var" class="quarto-xref">5.2</a>) : <span class="math display">\[
-\tr((\boldsymbol \Delta\transp{\boldsymbol \Delta})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
+\tr(\boldsymbol \Delta^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 \]</span> où <span class="math inline">\(L_0,\dots,L_{p+f}\)</span> sont définis par : <span class="math display">\[
 \begin{pmatrix}w_{-p} &amp; \cdots &amp; w_f\end{pmatrix}
 \begin{pmatrix}
@@ -483,7 +485,9 @@ w_{-p+2} &amp; w_{-p+1}&amp; w_{-p} &amp; \ddots &amp; \vdots\\
 w_f &amp; w_{f-1} &amp; w_{f-2}&amp;\ddots&amp;w_{-p}\\
 \end{pmatrix}=\begin{pmatrix} L_0 &amp; \cdots &amp; L_{p+f} \end{pmatrix}
 \]</span> avec <span class="math inline">\(\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}\)</span> la moyenne mobile telle que <span class="math inline">\(w_0=1-\theta_0\)</span> et <span class="math inline">\(w_i=-\theta_i\)</span> pour <span class="math inline">\(i\ne0\)</span>. C’est la méthode de calcul utilisée par défaut dans <code>rjd3filters</code>. Le calcul de <span class="math inline">\(\nu\)</span> peut aussi être approximé par <span class="math inline">\(\tr(\boldsymbol \Delta)\)</span> (<code>rjd3filters::confint_filter(exact_df = FALSE)</code>) ce qui permet de réduire davantage le temps de calcul<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>.</p>
-</section>
+<!-- ::: {.remark} -->
+<!-- Même si la majorité des moyennes mobiles @inseeDTM202401 -->
+<!-- ::: -->
 </section>
 </section>
 <section id="résultats" class="level1" data-number="3">
@@ -609,8 +613,8 @@ Figure&nbsp;7&nbsp;- Intervalles de confiance pour les filtres de Musgrave et fi
 </div>
 </div>
 <p>Pour les chocs permanents (<em>level shift</em>, LS), à l’exception de la régression profonde (DR) et de la régression médiane répétée (RM), les estimations finales de la tendance-cycle avec les méthodes robustes ne sont pas influencées par la présence du choc (figures <a href="#fig-simul-ls-out-td0-est" class="quarto-xref">8</a>, <a href="#fig-simul-ls-out-td1-est" class="quarto-xref">10</a> et <a href="#fig-simul-ls-out-td2-est" class="quarto-xref">12</a>). En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date : il faut attendre l’estimation de juin 2022 pour que le changement de niveau soit pris en compte à la bonne date pour la méthode LQD et juillet 2022 (soit l’estimation finale) pour les autres méthodes, même lorsque la tendance est de degré 0. Cela suggère encore d’utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.<br>
-Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés. Il y a également d’importantes révisions pour la première estimation de janvier 2022 (date du choc). Il n’y a en revanche quasiment aucune révision pour les moyennes mobile de Musgrave robuste à un choc permanent en janvier 2022.<br>
-Les intervalles de confiance des estimations de la moyenne mobile de Musgrave sont comparés à la moyenne mobile de Musgrave robuste au choc permanent et à la moyenne mobile de Musgrave robuste à un choc ponctuel en janvier et février 2022 (figures <a href="#fig-simul-ls-out-td0-ci" class="quarto-xref">9</a>, <a href="#fig-simul-ls-out-td1-ci" class="quarto-xref">11</a> et <a href="#fig-simul-ls-out-td2-ci" class="quarto-xref">13</a>). Cela permet de simuler le cas où on ne sait pas, en temps réel, trancher sur la nature du choc : soit un choc permanent, soit un choc ponctuel (lorsque l’on se place en janvier 2022), soit deux chocs ponctuels (lorsque l’on se place en février 2022). En mars 2022, l’observation de 3 chocs de même ampleur confirme qu’il s’agit d’un choc permanent et non ponctuel. Si l’on s’est trompé dans la nature du choc, jusqu’en février 2022 les révisions sont nulles pour les estimations avant le choc mais importantes pour celles après (janvier et février, puisque le choc est affecté à l’irrégulier et non pas à la tendance-cycle).</p>
+Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires&nbsp;: la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés. Il y a également d’importantes révisions pour la première estimation de janvier 2022 (date du choc). Il n’y a en revanche quasiment aucune révision pour les moyennes mobile de Musgrave robuste à un choc permanent en janvier 2022.<br>
+Les intervalles de confiance des estimations de la moyenne mobile de Musgrave sont comparés à la moyenne mobile de Musgrave robuste au choc permanent et à la moyenne mobile de Musgrave robuste à un choc ponctuel en janvier et février 2022 (figures <a href="#fig-simul-ls-out-td0-ci" class="quarto-xref">9</a>, <a href="#fig-simul-ls-out-td1-ci" class="quarto-xref">11</a> et <a href="#fig-simul-ls-out-td2-ci" class="quarto-xref">13</a>). Cela permet de simuler le cas où on ne sait pas, en temps réel, trancher sur la nature du choc : soit un choc permanent, soit un choc ponctuel (lorsque l’on se place en janvier 2022), soit deux chocs ponctuels (lorsque l’on se place en février 2022). En mars 2022, l’observation de trois chocs de même ampleur confirme qu’il s’agit d’un choc permanent et non ponctuel. Si l’on s’est trompé dans la nature du choc, jusqu’en février 2022 les révisions sont nulles pour les estimations avant le choc mais importantes pour celles après (janvier et février, puisque le choc est affecté à l’irrégulier et non pas à la tendance-cycle).</p>
 <div id="fig-simul-ls-out-td0-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-simul-ls-out-td0-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -714,23 +718,32 @@ Figure&nbsp;13&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 <section id="sec-res-series-reelles" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="sec-res-series-reelles"><span class="header-section-number">3.2</span> Séries réelles</h2>
 <p>Puisque les résultats sont similaires à ceux sur les données simulées, les performances des différentes méthodes sur des séries réelles lors d’un choc ponctuel (AO) et d’un choc permanent (LS) sont données dans l’annexe <a href="#sec-autres-ex" class="quarto-xref">5.3</a> : les moyennes mobiles classiques (Henderson/Musgrave et CLF) donnent de fortes révisions autour des chocs et ces révisions sont faibles avec les moyennes mobiles robustes. Contrairement aux données simulées, sur les données réelles, même lorsque la tendance semble être linéaire, les estimations intermédiaires issues des méthodes robustes peuvent être très erratiques, conduisant à des estimations parfois peu plausibles et des révisions importantes.</p>
-<section id="choc-ponctuel-ao-suivi-dun-choc-permanent-ls" class="level3" data-number="3.2.1">
-<h3 data-number="3.2.1" class="anchored" data-anchor-id="choc-ponctuel-ao-suivi-dun-choc-permanent-ls"><span class="header-section-number">3.2.1</span> Choc ponctuel (AO) suivi d’un choc permanent (LS)</h3>
-<p>L’entrée en vigueur de la procédure d’essai mondiale harmonisée pour les véhicules légers (<em>Worldwide harmonized Light vehicles Test Procedures</em>, WLTP) en septembre 2018 a eu pour effet une forte hausse des immatriculations de voitures particulières neuves<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> en août 2018 (choc ponctuel, <a href="#fig-imat2018-y" class="quarto-xref">figure&nbsp;14</a>), les constructeurs ayant déstocké des modèles qui n’étaient plus autorisés à la vente à partir de cette date. À partir du mois de septembre, le niveau des immatriculations était plus faible par contre-coup de la hausse du mois d’août (choc permanent).</p>
+<p>Dans cette section, nous nous concentrerons sur l’illustration d’autres cas :</p>
+<ul>
+<li><p>Un choc ponctuel suivi d’un choc permanent (<a href="#sec-ex-ao-ls" class="quarto-xref">section&nbsp;3.2.1</a>) à partir de l’analyse des immatriculations de voitures particulières neuves, corrigée des variations saisonnières (CVS) et des jours ouvrables (CJO)<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>. Le choc ponctuel s’observe en août 2018, suivi d’un choc permament en septembre 2018.</p></li>
+<li><p>La crise financière de 2008 (<a href="#sec-ex-crise-financiere" class="quarto-xref">section&nbsp;3.2.2</a>) à partir des ventes au détail et services de restauration (série <code>RETAILx</code>, utilisée en logarithme). Les données issues de la base FRED-MD <span class="citation" data-cites="fredmd">(<a href="#ref-fredmd" role="doc-biblioref">McCracken et Ng 2016</a>)</span> contenant des séries économiques sur les États-Unis<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>. Pour cette série la crise financière de 2008 peut s’étudier comme deux chocs permanents consécutifs en octobre et novembre 2008.</p></li>
+<li><p>La crise du COVID-19 (<a href="#sec-ex-covid" class="quarto-xref">section&nbsp;3.2.3</a>) à partir l’indice de la production industrielle (IPI) dans l’industrie manufacturière CVS-CJO, publié par l’Insee<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>. Deux autres exemples sont donnés dans l’annexe <a href="#sec-autres-ex" class="quarto-xref">5.3</a>.</p></li>
+<li><p>Un point de retournement qui n’est pas associé à un choc (<a href="#sec-ex-retournement" class="quarto-xref">section&nbsp;3.2.4</a>) à partir du niveau d’emploi aux États-Unis (série <code>CE16OV</code> de la base FRED-MD, utilisée en logarithme). Un autre exemple est donné dans l’annexe <a href="#sec-autres-ex" class="quarto-xref">5.3</a>.</p></li>
+</ul>
+<p>Toutes ces séries sont représentées dans la <a href="#fig-ex-y" class="quarto-xref">figure&nbsp;14</a>.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-imat2018-y" class="quarto-figure quarto-figure-center quarto-float anchored">
+<div id="fig-ex-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-imat2018-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;14&nbsp;- Immatriculations de voitures particulières neuves CVS-CJO autour des chocs en août et septembre 2018
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ex-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14&nbsp;- Séries des immatriculations de voitures particulières neuves en France, ventes au détail et services de restauration aux États-Unis (en logarithme), IPI dans l’industrie manufacturière en France et niveau d’emploi aux États-Unis (en logarithme)
 </figcaption>
-<div aria-describedby="fig-imat2018-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-imat2018-y-1.png" class="img-fluid figure-img" width="864">
+<div aria-describedby="fig-ex-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-ex-y-1.png" class="img-fluid figure-img" width="864">
 </div>
 </figure>
 </div>
 </div>
 </div>
+<section id="sec-ex-ao-ls" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1" class="anchored" data-anchor-id="sec-ex-ao-ls"><span class="header-section-number">3.2.1</span> Choc ponctuel (AO) suivi d’un choc permanent (LS)</h3>
+<p>L’entrée en vigueur de la procédure d’essai mondiale harmonisée pour les véhicules légers (<em>Worldwide harmonized Light vehicles Test Procedures</em>, WLTP) en septembre 2018 a eu pour effet une forte hausse des immatriculations de voitures particulières neuves en août 2018 (choc ponctuel), les constructeurs ayant déstocké des modèles qui n’étaient plus autorisés à la vente à partir de cette date. À partir du mois de septembre, le niveau des immatriculations était plus faible par contre-coup de la hausse du mois d’août. Même si ce choc en niveau semble temporaire sur 5 mois (retour au niveau de juillet 2018 à partir de février), il est modélisé dans la construction des moyennes mobiles robustes, par simplification, comme un choc permanent.</p>
+<p>Les méthodes robustes ne sont pas affectées par le choc ponctuel mais ne reproduisent pas le changement de niveau à la bonne date (<a href="#fig-imat2018-est" class="quarto-xref">figure&nbsp;15</a>). Les moyennes mobiles linéaires de Musgrave et CLF ont des résultats similaires : fortes révisions en août 2018, un point de retournement détecté en avance (juillet 2018). Les moyennes mobiles robustes conduisent à peu de révisions autour des chocs. Lorsque l’on ne modélise que le choc ponctuel d’août (<a href="#fig-imat2018-ci" class="quarto-xref">figure&nbsp;16</a>) un point de retournement est détecté en mars 2018, ce qui parait peu plausible.</p>
 <div id="fig-imat2018-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-imat2018-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -765,26 +778,13 @@ Figure&nbsp;16&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 </div>
 </div>
 </section>
-<section id="crise-financière-de-2008-deux-chocs-permanents-consécutifs" class="level3" data-number="3.2.2">
-<h3 data-number="3.2.2" class="anchored" data-anchor-id="crise-financière-de-2008-deux-chocs-permanents-consécutifs"><span class="header-section-number">3.2.2</span> Crise financière de 2008 (deux chocs permanents consécutifs)</h3>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-retailx2008-y" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2008-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;17&nbsp;- Ventes au détail et services de restauration (en logarithme) aux États-Unis autour d’octobre 2008
-</figcaption>
-<div aria-describedby="fig-retailx2008-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-retailx2008-y-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
+<section id="sec-ex-crise-financiere" class="level3" data-number="3.2.2">
+<h3 data-number="3.2.2" class="anchored" data-anchor-id="sec-ex-crise-financiere"><span class="header-section-number">3.2.2</span> Crise financière de 2008 (deux chocs permanents consécutifs)</h3>
+<p>La crise financière de 2008 est illustrée à partir des ventes au détail et services de restauration. Sur cette série, on observe deux chocs consécutifs en niveau : en octobre et en novembre 2008. Seules deux méthodes robustes (médiane mobile et LMS) reproduisent ces chocs dans les estimations finales (<a href="#fig-retailx2008-est" class="quarto-xref">figure&nbsp;17</a>) ; certaines estimations intermédiaires sont éloignées des estimations finales (par exemple pour les médianes mobiles ou les points de décembre 2008 et janvier 2009 RM, LMS, LTS et LQD) ce qui conduit à des révisions importantes. Les moyennes mobiles linéaires donnent des estimations avec relativement peu de révisions (en particulier pour les moyennes mobiles robustes) mais le retournement conjoncturel est détecté trop tôt pour Musgrave et CLF. En temps-réel, si l’on ne sait pas que ce sont des chocs permanents, les chocs peuvent être modélisés comme deux chocs ponctuels dont on attribuerait l’effet à la tendance-cycle. Cette modélisation conduit à des révisions importantes entre novembre et décembre 2008 (<a href="#fig-retailx2008-ci" class="quarto-xref">figure&nbsp;18</a>). En mars 2009 (où l’on sait que les chocs sont permanents et non ponctuels), l’utilisation de cette mauvaise spécifications donnent des estimations de la tendance-cycle proches des moyennes mobiles de Musgrave avant octobre 2008 (avec un point de retournement qui est donc détecté trop tôt) et proches des moyennes mobiles robustes à deux chocs permanents après octobre 2008.</p>
 <div id="fig-retailx2008-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2008-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;18&nbsp;- Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d’octobre 2008
+Figure&nbsp;17&nbsp;- Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d’octobre 2008
 </figcaption>
 <div aria-describedby="fig-retailx2008-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell">
@@ -802,38 +802,62 @@ Figure&nbsp;18&nbsp;- Estimations en temps réel de la tendance-cycle des ventes
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-retailx2008-ci" class="quarto-figure quarto-figure-center quarto-float anchored" width="864">
+<div id="fig-retailx2008-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-retailx2008-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;19
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2008-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;18&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d’octobre 2008
 </figcaption>
 <div aria-describedby="fig-retailx2008-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-retailx2008-ci-1.png" id="fig-retailx2008-ci" class="img-fluid figure-img" width="864">
+<img src="article_files/figure-html/fig-retailx2008-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-ex-covid" class="level3" data-number="3.2.3">
+<h3 data-number="3.2.3" class="anchored" data-anchor-id="sec-ex-covid"><span class="header-section-number">3.2.3</span> COVID-19</h3>
+<p>Le COVID-19 est illustré sur l’indice de la production industrielle (IPI) CVS-CJO dans l’industrie manufacturière. Sur cette série, on observe deux chocs négatifs en mars et avril 2020, suivis d’une remontée progressive jusqu’en juillet 2020 vers un niveau légèrement inférieur à celui d’avant crise. Pour cette période, il est attendu de l’estimation finale de la tendance-cycle qu’elle permette de détecter les deux points de retournement en février 2020 (pic) et avril 2020 (creux). Les méthodes robustes peinent à reproduire ces retournements : les estimations finales sont robustes aux chocs, les révisions sont importantes et les retournement conjoncturels détectés semblent plutôt provenir des périodes post-chocs, ce qui conduit à détecter les points de retournement avec décalage (<a href="#fig-ipi-manuf-covid-est" class="quarto-xref">figure&nbsp;19</a>) Les moyennes mobiles de Musgrave et CLF conduisent, encore une fois, à détecter les points de retournement avec un décalage ; les révisions sont importantes autour des chocs (mars, mai et juin) et plus faibles pour les autres mois.</p>
+<p>Pour la construction des moyennes mobiles robustes, même si l’on pourrait construire des régresseurs spécifiques, il a ici été choisi de rester sur la modélisation de chocs ponctuels et permanents ce qui permet de garder une approche simple et plus facilement généralisable à d’autres cas. La <a href="#fig-ipi-manuf-covid-ci" class="quarto-xref">figure&nbsp;20</a> compare les estimations des moyennes mobiles robustes construites en modélisant deux chocs ponctuels consécutifs (dont on attribuerait l’effet à la tendance-cycle plutôt qu’à l’irrégulier), deux chocs permanents consécutifs ou un choc ponctuel suivi d’un choc permanent. La modélisation de deux chocs permanents consécutifs en mars et avril 2020 permet de détecter les points de retournement aux bonnes dates, la reprise de la production en mai est détecté dès la première estimation. Ce n’est pas le cas de la modélisation par deux chocs ponctuels consécutifs : il faut attendre les estimations de juin 2020 pour reproduire le creux d’avril (les estimations de mai et juin donne une baisse entre avril et mai) et le pic de février n’est pas conservé. La modélisation d’un choc ponctuel suivi d’un choc permanent permet bien de tracer le pic d’avril et le creux d’avril mais un pic indésirable est créé en juin 2020. C’est donc la modélisation par deux chocs permanents consécutifs qui donne ici les meilleurs résultats.</p>
+<p>D’autres exemples sont donnés dans l’annexe <a href="#sec-autres-ex-covid" class="quarto-xref">5.3.3</a>.</p>
+<div id="fig-ipi-manuf-covid-est" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-manuf-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;19&nbsp;- Estimations en temps réel de la tendance-cycle de l’IPI CVS-CJO dans l’industrie manufacturière à partir de mars 2020
+</figcaption>
+<div aria-describedby="fig-ipi-manuf-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<figcaption>IPI CVS-CJO dans l’industrie manufacturière à partir de mars 2020</figcaption>
+<p><img src="article_files/figure-html/ffig-ipi-manuf-covid-est-1.png" class="img-fluid figure-img" width="864"></p>
 </figure>
 </div>
 </div>
 </div>
 <p><strong>Note</strong> : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : <em>cascade linear filter</em> (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.</p>
-<p>Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d’octobre 2008 :::</p>
-</section>
-<section id="point-de-retournement-et-covid-19" class="level3" data-number="3.2.3">
-<h3 data-number="3.2.3" class="anchored" data-anchor-id="point-de-retournement-et-covid-19"><span class="header-section-number">3.2.3</span> Point de retournement et COVID-19</h3>
-<p>Les points de retournement sont illustrées à partir de données issues de la base FRED-MD <span class="citation" data-cites="fredmd">(<a href="#ref-fredmd" role="doc-biblioref">McCracken et Ng 2016</a>)</span> contenant des séries économiques sur les États-Unis<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> : le niveau d’emploi aux États-Unis (série <code>CE16OV</code>, utilisée en logarithme) et les ventes au détail et services de restauration (série <code>RETAILx</code>, utilisée en logarithme)</p>
+</div>
+</figure>
+</div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ce16ov2001-y" class="quarto-figure quarto-figure-center quarto-float anchored">
+<div id="fig-ipi-manuf-covid-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce16ov2001-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;20&nbsp;- Emploi (en logarithme) aux États-Unis autour du point de retournement de février 2001
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-manuf-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;20&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans l’industrie manufacturière à partir de mars 2020
 </figcaption>
-<div aria-describedby="fig-ce16ov2001-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ce16ov2001-y-1.png" class="img-fluid figure-img" width="864">
+<div aria-describedby="fig-ipi-manuf-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-ipi-manuf-covid-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
 </figure>
 </div>
 </div>
 </div>
+</section>
+<section id="sec-ex-retournement" class="level3" data-number="3.2.4">
+<h3 data-number="3.2.4" class="anchored" data-anchor-id="sec-ex-retournement"><span class="header-section-number">3.2.4</span> Points de retournement</h3>
+<p>Un point de retournement, non associé à un choc, est illustré à partir du niveau d’emploi aux États-Unis (utilisée en logarithme) autour de février 2001. Parmi les méthodes robustes, seule la régression profonde (DR) permet de détecter le point de retournement à la bonne date (à partir des estimations de juin 2021, <a href="#fig-ce16ov2001-est" class="quarto-xref">figure&nbsp;21</a>) : les médianes mobiles (MED) et les médianes répétées (RM) ne détectent aucun point de retournement et les autres méthodes le détecte en janvier 2001 (à partir des estimations de juillet 2001, pour les estimations antérieures il est bien détecté en février). Les révisions sont plus faibles pour les estimations issues de moyennes mobiles et le fait de considérer à tort le mois de février comme un choc ponctuel n’a pas d’impact sur les estimations. Les estimations issues des moyennes mobiles robustes restent dans l’intervalle de confiance des estimations des moyennes mobiles de Musgrave (<a href="#fig-ce16ov2001-ci" class="quarto-xref">figure&nbsp;22</a>).</p>
 <div id="fig-ce16ov2001-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce16ov2001-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -867,48 +891,6 @@ Figure&nbsp;22&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ipi-manuf-covid-y" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-manuf-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;23&nbsp;- IPI CVS-CJO dans l’industrie manufacturière autour de mars 2020
-</figcaption>
-<div aria-describedby="fig-ipi-manuf-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ipi-manuf-covid-y-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ipi-manuf-covid-est" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-manuf-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;24&nbsp;- IPI CVS-CJO dans l’industrie manufacturière à partir de mars 2020
-</figcaption>
-<div aria-describedby="fig-ipi-manuf-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ipi-manuf-covid-est-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ipi-manuf-covid-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-manuf-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;25&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans l’industrie manufacturière à partir de mars 2020
-</figcaption>
-<div aria-describedby="fig-ipi-manuf-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ipi-manuf-covid-ci-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
 </section>
 </section>
 </section>
@@ -925,7 +907,7 @@ Figure&nbsp;25&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 <div id="fig-mm-musgrave" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-mm-musgrave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;26&nbsp;- Henderson et filtre de Musgrave
+Figure&nbsp;23&nbsp;- Henderson et filtre de Musgrave (<span class="math inline">\(R=3,5\)</span>)
 </figcaption>
 <div aria-describedby="fig-mm-musgrave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-mm-musgrave-1.png" class="img-fluid figure-img" width="864">
@@ -939,7 +921,7 @@ Figure&nbsp;26&nbsp;- Henderson et filtre de Musgrave
 <div id="fig-clf" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-clf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;27&nbsp;- Cascade linear filter
+Figure&nbsp;24&nbsp;- Cascade linear filter
 </figcaption>
 <div aria-describedby="fig-clf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-clf-1.png" class="img-fluid figure-img" width="864">
@@ -950,24 +932,10 @@ Figure&nbsp;27&nbsp;- Cascade linear filter
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-clfnn" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-clfnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;28&nbsp;- Cascade linear filter et cut and normalize
-</figcaption>
-<div aria-describedby="fig-clfnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-clfnn-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
 <div id="fig-robust-ao" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-ao-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;29&nbsp;- Filtres robustes à la présence d’un <em>additive outlier</em> (AO) à la dernière date
+Figure&nbsp;25&nbsp;- Moyennes mobiles de Henderson et de Musgrave (<span class="math inline">\(R=3,5\)</span>) robustes à la présence d’un choc ponctuel (AO) à la dernière date
 </figcaption>
 <div aria-describedby="fig-robust-ao-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-robust-ao-1.png" class="img-fluid figure-img" width="864">
@@ -981,7 +949,7 @@ Figure&nbsp;29&nbsp;- Filtres robustes à la présence d’un <em>additive outli
 <div id="fig-robust-aols" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-aols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;30&nbsp;- Filtre robuste AO puis LS présent à la dernière date
+Figure&nbsp;26&nbsp;- Moyennes mobiles de Henderson et de Musgrave (<span class="math inline">\(R=3,5\)</span>) à un choc ponctuel (AO) suivi d’un choc permanent (LS) à la dernière date
 </figcaption>
 <div aria-describedby="fig-robust-aols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-robust-aols-1.png" class="img-fluid figure-img" width="864">
@@ -995,24 +963,10 @@ Figure&nbsp;30&nbsp;- Filtre robuste AO puis LS présent à la dernière date
 <div id="fig-robust-ls" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-ls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;31&nbsp;- Filtre robuste LS présent à la dernière date
+Figure&nbsp;27&nbsp;- Moyennes mobiles de Henderson et de Musgrave d’un ou deux chocs permanents (LS) présents à la dernière date (ou deux dernières dates)
 </figcaption>
 <div aria-describedby="fig-robust-ls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-robust-ls-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-robust-lsls" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-robust-lsls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;32&nbsp;- Filtre robuste deux LS présents aux deux dernières dates
-</figcaption>
-<div aria-describedby="fig-robust-lsls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-robust-lsls-1.png" class="img-fluid figure-img" width="864">
 </div>
 </figure>
 </div>
@@ -1037,7 +991,7 @@ Figure&nbsp;32&nbsp;- Filtre robuste deux LS présents aux deux dernières dates
 \end{pmatrix},
 \]</span> où <span class="math inline">\(\boldsymbol 0_{p\times n}\)</span> est la matrice de taille <span class="math inline">\(p\times n\)</span> ne contenant que de zéros et <span class="math inline">\(\boldsymbol I_{n-p-f}\)</span> la matrice identité de taille <span class="math inline">\(n-p-f.\)</span></p>
 <p>L’objectif de cette annexe est de montrer que le calcul de <span class="math inline">\(\tr(\boldsymbol \Delta^2)\)</span> peut se simplifier par le produit d’une matrice de taille <span class="math inline">\(1\times (p+f+1)\)</span> et d’une matrice de taille <span class="math inline">\((p+f+1)\times(p+f+1)\)</span>, ce qui permet de réduire le temps de calcul du degré de liberté de la loi de Student utilisée pour la construction d’intervalles de confiance : <span class="math display">\[
-\tr((\boldsymbol \Delta\transp{\boldsymbol \Delta})^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
+\tr({\boldsymbol \Delta}^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 \]</span> où <span class="math inline">\(L_0,\dots,L_{p+f}\)</span> sont définis par : <span class="math display">\[
 \begin{pmatrix}w_{-p} &amp; \cdots &amp; w_f\end{pmatrix}
 \begin{pmatrix}
@@ -1048,10 +1002,10 @@ w_{-p+2} &amp; w_{-p+1}&amp; w_{-p} &amp; \ddots &amp; \vdots\\
 w_f &amp; w_{f-1} &amp; w_{f-2}&amp;\ddots&amp;w_{-p}\\
 \end{pmatrix}=\begin{pmatrix} L_0 &amp; \cdots &amp; L_{p+f} \end{pmatrix}
 \]</span> avec <span class="math inline">\(\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}\)</span> la moyenne mobile telle que <span class="math inline">\(w_i=\1_{i=0}-\theta_i\)</span>.</p>
-<p>Soient <span class="math inline">\(i,j\in\{1,\dots,n\},\)</span> posons par convention <span class="math inline">\(w_i=0\)</span> pour <span class="math inline">\(i\notin[-p,f].\)</span> On a <span class="math inline">\({\boldsymbol \Delta}_{i,j}=w_{i-j}\1_{i\in[p,n-f]}\)</span> et : <span class="math display">\[\begin{align*}
-({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j} &amp;=\sum_{k=1}^n{\boldsymbol \Delta}_{i,k}{\boldsymbol \Delta}_{j,k}=\sum_{k=1}^nw_{i-k}w_{j-k} \1_{(i,j)\in[p,n-f]^2}\\
-&amp;=\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}.
-\end{align*}\]</span> L’ensemble des termes de <span class="math inline">\(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}\)</span> se calcule par le produit matriciel : <span class="math display">\[
+<p>Soient <span class="math inline">\(i,j\in\{1,\dots,n\},\)</span> posons par convention <span class="math inline">\(w_i=0\)</span> pour <span class="math inline">\(i\notin[-p,f].\)</span> Notons <span class="math inline">\(\boldsymbol \Gamma=\boldsymbol I -\boldsymbol H.\)</span> On a <span class="math inline">\({\boldsymbol H}_{i,j}=\theta_{i-j}\1_{i\in[p+1,n-f]}\)</span> et donc <span class="math inline">\({\boldsymbol \Gamma}_{i,j}=w_{i-j}\1_{i\in[p+1,n-f]}\)</span> et ensuite : <span class="math display">\[\begin{align*}
+(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j} &amp;=\sum_{k=1}^n{\boldsymbol \Gamma}_{k,i}{\boldsymbol \Gamma}_{k,j}=\sum_{k=1}^nw_{k-i}w_{k-j} \1_{(i,j)\in[p+1,n-f]^2}\\
+&amp;=\sum_{k=-p}^fw_{k}w_{i-j+k}\1_{(i,j)\in[p+1,n-f]^2}.
+\end{align*}\]</span> L’ensemble des termes de <span class="math inline">\(({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}\)</span> se calcule par le produit matriciel : <span class="math display">\[
 \begin{pmatrix}w_{-p} &amp; \cdots &amp; w_f\end{pmatrix}
 \begin{pmatrix}
 w_{-p} &amp;0 &amp; 0 &amp;\cdots&amp; 0 \\
@@ -1061,17 +1015,18 @@ w_{-p+2} &amp; w_{-p+1}&amp; w_{-p} &amp; \ddots &amp; \vdots\\
 w_f &amp; w_{f-1} &amp; w_{f-2}&amp;\ddots&amp;w_p\\
 \end{pmatrix}=\begin{pmatrix} L_0 &amp; \cdots &amp; L_{p+f} \end{pmatrix}.
 \]</span> Puis : <span class="math display">\[\begin{align*}
-(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} &amp;= \sum_{j=1}^n({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{j,i}\\
-&amp;=\sum_{j=1}^n({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})_{i,j}^2\text{ car la matrice }{\boldsymbol \Delta}\transp{{\boldsymbol \Delta}}\text{ est symétrique} \\
-&amp;=\sum_{j=1}^n\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\1_{(i,j)\in[p,n-f]^2}\right)^2\\
-&amp;=\sum_{j=p}^{n-f}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2\1_{i\in[p,n-f]}.
-\end{align*}\]</span> Donc <span class="math inline">\((({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} = 0\)</span> si <span class="math inline">\(i\notin \in[p,n-f].\)</span> Pour <span class="math inline">\(i\in[p,n-f],\)</span> comme pour tout <span class="math inline">\(k\in [-p,f]\)</span> on a <span class="math inline">\(w_{i-j-k} =0\)</span> si <span class="math inline">\(j&lt;i-(f+p)\)</span> ou si <span class="math inline">\(j&gt;i-(f+p)\)</span>, il vient : <span class="math display">\[\begin{align*}
-(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)_{i,i} &amp;= \sum_{j=\max(i-(f+p),1)}^{\min(i+(f+p),n)}\left(\sum_{k=-p}^fw_{k}w_{i-j-k}\right)^2 \\
+((\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})^2)_{i,i} &amp;= \sum_{j=1}^n(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j}(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{j,i}\\
+&amp;=\sum_{j=1}^n(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j}^2\text{ car la matrice }\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma}\text{ est symétrique} \\
+&amp;=\sum_{j=1}^n\left(\sum_{k=-p}^fw_{k}w_{i-j/k}\1_{(i,j)\in[p+1,n-f]^2}\right)^2\\
+&amp;=\sum_{j=p}^{n-f}\left(\sum_{k=-p}^fw_{k}w_{i-j+k}\right)^2\1_{i\in[p+1,n-f]}.
+\end{align*}\]</span> Donc <span class="math inline">\(((\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})^2)_{i,i} = 0\)</span> si <span class="math inline">\(i\notin [p+1,n-f].\)</span> Pour <span class="math inline">\(i\in[p+1,n-f],\)</span> comme pour tout <span class="math inline">\(k\in [-p,f]\)</span> on a <span class="math inline">\(w_{i-j+k} =0\)</span> si <span class="math inline">\(j&lt;i-(f+p)\)</span> ou si <span class="math inline">\(j&gt;i-(f+p)\)</span>, il vient : <span class="math display">\[\begin{align*}
+((\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})^2)_{i,i} &amp;= \sum_{j=\max(i-(f+p),1)}^{\min(i+(f+p),n)}\left(\sum_{k=-p}^fw_{k}w_{i-j+k}\right)^2 \\
 &amp;=\sum_{j=-(f+p)}^{f+p}\left(\sum_{k=-p}^fw_{k}w_{k-j}\right)^2\1_{j\in [1-i,n-i]} \\
 &amp;=\sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]}\text{ par symétrie autour de }0.
 \end{align*}\]</span> En somme : <span class="math display">\[\begin{align*}
-\tr(({\boldsymbol \Delta}\transp{{\boldsymbol \Delta}})^2)&amp; = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
-&amp;= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + 2(n-(p+f)-2)L_2^2 +\dots+2(n-2(p+f))L_{p+f}^2 \\
+\tr({\boldsymbol \Delta^2})&amp; = \sum_{i=p}^{n-f} \sum_{j=-(f+p)}^{f+p}\left(L_{|j|}\right)^2\1_{j\in [1-i,n-i]} \\
+&amp;= (n-(p+f))L_0^2+2(n-(p+f)-1)L_1^2 + 2(n-(p+f)-2)L_2^2 +\\
+&amp;\phantom{=}\dots+2(n-2(p+f))L_{p+f}^2 \\
 &amp;=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2.
 \end{align*}\]</span></p>
 </section>
@@ -1079,16 +1034,16 @@ w_f &amp; w_{f-1} &amp; w_{f-2}&amp;\ddots&amp;w_p\\
 <h2 data-number="5.3" class="anchored" data-anchor-id="sec-autres-ex"><span class="header-section-number">5.3</span> Autres exemples sur des séries réelles</h2>
 <section id="sec-autres-ex-ao" class="level3" data-number="5.3.1">
 <h3 data-number="5.3.1" class="anchored" data-anchor-id="sec-autres-ex-ao"><span class="header-section-number">5.3.1</span> Chocs ponctuels (<em>additive outlier</em>, AO)</h3>
-<p>Les chocs ponctuels (<em>additive outlier</em>, AO) sont illustrés sur l’indice de la production industrielle (IPI) dans la construction de véhicules automobiles, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l’Insee<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> le 04 octobre 2024 (données alors disponibles jusqu’en août 2024). Trois chocs ponctuels s’observent clairement sur les mois d’août de 1998, 1999 et 2004.</p>
+<p>Les chocs ponctuels (<em>additive outlier</em>, AO) sont illustrés sur l’indice de la production industrielle (IPI) dans la construction de véhicules automobiles, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l’Insee<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> le 04 octobre 2024 (données alors disponibles jusqu’en août 2024). Trois chocs ponctuels s’observent clairement sur les mois d’août de 1998, 1999 et 2004 (<a href="#fig-ipi-voitures-out-y" class="quarto-xref">figure&nbsp;28</a>).</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ipi-voitures98-out1-y" class="quarto-figure quarto-figure-center quarto-float anchored">
+<div id="fig-ipi-voitures-out-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures98-out1-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;33&nbsp;- IPI CVS-CJO dans la construction de véhicules automobiles autour du point atypique d’août 1998
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures-out-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;28&nbsp;- IPI CVS-CJO dans la construction de véhicules automobiles autour des points atypiques d’août 1998, 1999 et 2004
 </figcaption>
-<div aria-describedby="fig-ipi-voitures98-out1-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ipi-voitures98-out1-y-1.png" class="img-fluid figure-img" width="864">
+<div aria-describedby="fig-ipi-voitures-out-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-ipi-voitures-out-y-1.png" class="img-fluid figure-img" width="864">
 </div>
 </figure>
 </div>
@@ -1097,7 +1052,7 @@ Figure&nbsp;33&nbsp;- IPI CVS-CJO dans la construction de véhicules automobiles
 <div id="fig-ipi-voitures98-out1-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures98-out1-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;34&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans la construction de véhicules automobiles à partir d’août 1998
+Figure&nbsp;29&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans la construction de véhicules automobiles à partir d’août 1998
 </figcaption>
 <div aria-describedby="fig-ipi-voitures98-out1-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell">
@@ -1118,7 +1073,7 @@ Figure&nbsp;34&nbsp;- Estimations en temps réel de la tendance-cycle pour l’I
 <div id="fig-ipi-voitures98-out1-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures98-out1-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;35&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans la construction de véhicules automobiles à partir d’août 1998
+Figure&nbsp;30&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans la construction de véhicules automobiles à partir d’août 1998
 </figcaption>
 <div aria-describedby="fig-ipi-voitures98-out1-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi-voitures98-out1-ci-1.png" class="img-fluid figure-img" width="864">
@@ -1127,24 +1082,10 @@ Figure&nbsp;35&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ipi-voitures98-out2-y" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures98-out2-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;36&nbsp;- IPI CVS-CJO dans la construction de véhicules automobiles autour du point atypique d’août 1999
-</figcaption>
-<div aria-describedby="fig-ipi-voitures98-out2-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ipi-voitures98-out2-y-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
 <div id="fig-ipi-voitures98-out2-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures98-out2-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;37&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans la construction de véhicules automobiles à partir d’août 1999
+Figure&nbsp;31&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans la construction de véhicules automobiles à partir d’août 1999
 </figcaption>
 <div aria-describedby="fig-ipi-voitures98-out2-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell">
@@ -1165,7 +1106,7 @@ Figure&nbsp;37&nbsp;- Estimations en temps réel de la tendance-cycle pour l’I
 <div id="fig-ipi-voitures98-out2-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures98-out2-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;38&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans la construction de véhicules automobiles à partir d’août 1999
+Figure&nbsp;32&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans la construction de véhicules automobiles à partir d’août 1999
 </figcaption>
 <div aria-describedby="fig-ipi-voitures98-out2-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi-voitures98-out2-ci-1.png" class="img-fluid figure-img" width="864">
@@ -1174,24 +1115,10 @@ Figure&nbsp;38&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ipi-voitures2004-y" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures2004-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;39&nbsp;- IPI CVS-CJO dans la construction de véhicules automobiles autour du point atypique d’août 2004
-</figcaption>
-<div aria-describedby="fig-ipi-voitures2004-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ipi-voitures2004-y-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
 <div id="fig-ipi-voitures2004-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures2004-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;40&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans la construction de véhicules automobiles à partir d’août 2004
+Figure&nbsp;33&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans la construction de véhicules automobiles à partir d’août 2004
 </figcaption>
 <div aria-describedby="fig-ipi-voitures2004-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell">
@@ -1212,7 +1139,7 @@ Figure&nbsp;40&nbsp;- Estimations en temps réel de la tendance-cycle pour l’I
 <div id="fig-ipi-voitures2004-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-voitures2004-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;41&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans la construction de véhicules automobiles à partir d’août 2004
+Figure&nbsp;34&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans la construction de véhicules automobiles à partir d’août 2004
 </figcaption>
 <div aria-describedby="fig-ipi-voitures2004-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi-voitures2004-ci-1.png" class="img-fluid figure-img" width="864">
@@ -1224,13 +1151,13 @@ Figure&nbsp;41&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 </section>
 <section id="sec-autres-ex-ls" class="level3" data-number="5.3.2">
 <h3 data-number="5.3.2" class="anchored" data-anchor-id="sec-autres-ex-ls"><span class="header-section-number">5.3.2</span> Choc permanent (<em>level shift</em>, LS)</h3>
-<p>Les chocs permanents (<em>level shift</em>, LS) sont illustrés sur l’indice de la production industrielle (IPI) dans l’extraction de pétrole brut, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l’Insee<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> le 04 octobre 2024 (données alors disponibles jusqu’en août 2024). Un choc permanent s’observe en juin 2010. Pour la construction des intervalles de confiance, la série est tronquée pour ne prendre que les valeurs après janvier 2001 avant d’éviter que le début de la série, dont le profil est assez différent de celui sur la fin de la série, n’augmente l’estimation de la variance de l’irrégulier.</p>
+<p>Les chocs permanents (<em>level shift</em>, LS) sont illustrés sur l’indice de la production industrielle (IPI) dans l’extraction de pétrole brut, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l’Insee<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> le 04 octobre 2024 (données alors disponibles jusqu’en août 2024). Un choc permanent s’observe en juin 2010. Pour la construction des intervalles de confiance, la série est tronquée pour ne prendre que les valeurs après janvier 2001 avant d’éviter que le début de la série, dont le profil est assez différent de celui sur la fin de la série, n’augmente l’estimation de la variance de l’irrégulier.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-ipi-petrole-brut10-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-petrole-brut10-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;42&nbsp;- IPI CVS-CJO dans l’extraction de pétrole brut autour du choc permanent de juin 2010
+Figure&nbsp;35&nbsp;- IPI CVS-CJO dans l’extraction de pétrole brut autour du choc permanent de juin 2010
 </figcaption>
 <div aria-describedby="fig-ipi-petrole-brut10-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi-petrole-brut10-y-1.png" class="img-fluid figure-img" width="864">
@@ -1242,7 +1169,7 @@ Figure&nbsp;42&nbsp;- IPI CVS-CJO dans l’extraction de pétrole brut autour du
 <div id="fig-ipi-petrole-brut10-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-petrole-brut10-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;43&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans l’extraction de pétrole brut à partir de juin 2010
+Figure&nbsp;36&nbsp;- Estimations en temps réel de la tendance-cycle pour l’IPI dans l’extraction de pétrole brut à partir de juin 2010
 </figcaption>
 <div aria-describedby="fig-ipi-petrole-brut10-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell">
@@ -1263,7 +1190,7 @@ Figure&nbsp;43&nbsp;- Estimations en temps réel de la tendance-cycle pour l’I
 <div id="fig-ipi-petrole-brut10-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ipi-petrole-brut10-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;44&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans l’extraction de pétrole brut à partir de juin 2010
+Figure&nbsp;37&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’IPI dans l’extraction de pétrole brut à partir de juin 2010
 </figcaption>
 <div aria-describedby="fig-ipi-petrole-brut10-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ipi-petrole-brut10-ci-1.png" class="img-fluid figure-img" width="864">
@@ -1273,70 +1200,19 @@ Figure&nbsp;44&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 </div>
 </div>
 </section>
-<section id="points-de-retournement" class="level3" data-number="5.3.3">
-<h3 data-number="5.3.3" class="anchored" data-anchor-id="points-de-retournement"><span class="header-section-number">5.3.3</span> Points de retournement</h3>
-<p>Un autre exemple de point de retournement est illustré à partir d’une autre série de la base FRED-MD : les ventes au détail et services de restauration (série <code>RETAILx</code>, utilisée en logarithme) autour du point de retournement de novembre 2007.</p>
+<section id="sec-autres-ex-covid" class="level3" data-number="5.3.3">
+<h3 data-number="5.3.3" class="anchored" data-anchor-id="sec-autres-ex-covid"><span class="header-section-number">5.3.3</span> COVID-19</h3>
+<p>Deux autres exemples de la performance des différentes pendantes pendant le COVID-19 sont issus de la base FRED-MD : le niveau d’emploi aux États-Unis (série <code>CE16OV</code>, utilisée en logarithme) et les ventes au détail et services de restauration (série <code>RETAILx</code>, utilisée en logarithme). Les points de retournement officiels de la datation du National Bureau of Economic Research (NBER) sont en février et avril 2020<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>. Pour l’emploi le retour à la normal est progressif à partir d’avril 2020 alors qu’il est rapide pour les ventes au détail et services de restauration (<a href="#fig-autresex-covid-y" class="quarto-xref">figure&nbsp;38</a>).</p>
+<p>Comme pour l’IPI dans l’industrie manufacturière, les méthodes robustes effacent le choc (figures <a href="#fig-ce16ov-covid-est" class="quarto-xref">39</a> et <a href="#fig-retailx-covid-est" class="quarto-xref">41</a>), ce qui ne permet pas d’analyser les points de retournement. Les moyennes mobiles linéaires classiques (Henderson/Musgrave et CLF) détectent les points de retournement avec un décalage : pic en octobre 2019 et creux en avril 2020 pour les ventes au détail et services de restauration et juin 2020 pour l’emploi. Pour les moyennes mobiles robustes, le choc est modélisé par deux chocs permanents en mars et avril 2020. Les révisions sont faibles et cela permet de bien détecter les deux retournement conjoncturels contrairement aux moyennes mobiles robustes où l’on considère mars et avril 2020 comme des chocs ponctuels et associant le choc à la tendance-cycle (figures <a href="#fig-ce16ov-covid-ci" class="quarto-xref">40</a> et <a href="#fig-retailx-covid-ci" class="quarto-xref">42</a>).</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-retailx2007-y" class="quarto-figure quarto-figure-center quarto-float anchored">
+<div id="fig-autresex-covid-y" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;45&nbsp;- Ventes au détail et services de restauration (en logarithme) aux États-Unis autour du point de retournement de novembre 2007
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-autresex-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;38&nbsp;- Emploi et ventes au détail et services de restauration, en logarithme, aux États-Unis autour de mars 2020
 </figcaption>
-<div aria-describedby="fig-retailx2007-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-retailx2007-y-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
-<div id="fig-retailx2007-est" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;46&nbsp;- Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
-</figcaption>
-<div aria-describedby="fig-retailx2007-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell">
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="article_files/figure-html/ffig-retailx2007-est-1.png" class="img-fluid figure-img" width="864"></p>
-</figure>
-</div>
-</div>
-</div>
-<p><strong>Note</strong> : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : <em>cascade linear filter</em> (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.</p>
-</div>
-</figure>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-retailx2007-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;47&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
-</figcaption>
-<div aria-describedby="fig-retailx2007-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-retailx2007-ci-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="sec-autres-ex-covid" class="level3" data-number="5.3.4">
-<h3 data-number="5.3.4" class="anchored" data-anchor-id="sec-autres-ex-covid"><span class="header-section-number">5.3.4</span> COVID-19</h3>
-<p>Deux autres exemples de la performance des différentes pendantes pendant le COVID-19 sont issus de la base FRED-MD : le niveau d’emploi aux États-Unis (série <code>CE16OV</code>, utilisée en logarithme) et les ventes au détail et services de restauration (série <code>RETAILx</code>, utilisée en logarithme). Les points de retournement officiels de la datation du National Bureau of Economic Research (NBER) sont en février et avril 2020<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>. Pour l’emploi le retour à la normal est progressif à partir d’avril 2020 (<a href="#fig-ce16ov-covid-y" class="quarto-xref">figure&nbsp;48</a>) alors qu’il est rapide pour les ventes au détail et services de restauration (<a href="#fig-retailx-covid-y" class="quarto-xref">figure&nbsp;51</a>).</p>
-<p>Comme pour l’IPI dans l’industrie manufacturière, les méthodes robustes effacent complètement le choc (figures <a href="#fig-ce16ov-covid-est" class="quarto-xref">49</a> et <a href="#fig-retailx-covid-est" class="quarto-xref">52</a>), ce qui ne permet pas d’analyser les points de retournement. Les moyennes mobiles linéaires classiques (Henderson/Musgrave et CLF) détectent les points de retournements avec un décalage : pic en octobre 2019 et creux en avril 2020 pour les ventes au détail et services de restauration et juin 2020 pour l’emploi. Pour les moyennes mobiles robustes, le choc est modélisé par deux chocs permanents en mars et avril 2020. Les révisions sont faibles et cela permet de bien détecter les deux retournement conjoncturels contrairement aux moyennes mobiles robustes où l’on considère mars et avril 2020 comme des chocs ponctuels et associant le choc à la tendance-cycle (figures <a href="#fig-ce16ov-covid-ci" class="quarto-xref">50</a> et <a href="#fig-retailx-covid-ci" class="quarto-xref">53</a>).</p>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ce16ov-covid-y" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce16ov-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;48&nbsp;- Emploi (en logarithme) aux États-Unis autour de mars 2020
-</figcaption>
-<div aria-describedby="fig-ce16ov-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-ce16ov-covid-y-1.png" class="img-fluid figure-img" width="864">
+<div aria-describedby="fig-autresex-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-autresex-covid-y-1.png" class="img-fluid figure-img" width="864">
 </div>
 </figure>
 </div>
@@ -1347,7 +1223,7 @@ Figure&nbsp;48&nbsp;- Emploi (en logarithme) aux États-Unis autour de mars 2020
 <div id="fig-ce16ov-covid-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce16ov-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;49&nbsp;- Emploi (en logarithme) aux États-Unis à partir de mars 2020
+Figure&nbsp;39&nbsp;- Emploi (en logarithme) aux États-Unis à partir de mars 2020
 </figcaption>
 <div aria-describedby="fig-ce16ov-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ce16ov-covid-est-1.png" class="img-fluid figure-img" width="864">
@@ -1361,7 +1237,7 @@ Figure&nbsp;49&nbsp;- Emploi (en logarithme) aux États-Unis à partir de mars 2
 <div id="fig-ce16ov-covid-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-ce16ov-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;50&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’emploi (en logarithme) aux États-Unis à partir de mars 2020
+Figure&nbsp;40&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l’emploi (en logarithme) aux États-Unis à partir de mars 2020
 </figcaption>
 <div aria-describedby="fig-ce16ov-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-ce16ov-covid-ci-1.png" class="img-fluid figure-img" width="864">
@@ -1370,24 +1246,10 @@ Figure&nbsp;50&nbsp;- Intervalles de confiance pour les filtres de Musgrave et f
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-retailx-covid-y" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;51&nbsp;- Ventes au détail et services de restauration (en logarithme) aux États-Unis autour de mars 2020
-</figcaption>
-<div aria-describedby="fig-retailx-covid-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="article_files/figure-html/fig-retailx-covid-y-1.png" class="img-fluid figure-img" width="864">
-</div>
-</figure>
-</div>
-</div>
-</div>
 <div id="fig-retailx-covid-est" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;52&nbsp;- Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020
+Figure&nbsp;41&nbsp;- Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020
 </figcaption>
 <div aria-describedby="fig-retailx-covid-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell">
@@ -1408,10 +1270,61 @@ Figure&nbsp;52&nbsp;- Estimations en temps réel de la tendance-cycle des ventes
 <div id="fig-retailx-covid-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;53&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020
+Figure&nbsp;42&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020
 </figcaption>
 <div aria-describedby="fig-retailx-covid-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="article_files/figure-html/fig-retailx-covid-ci-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-autres-ex-retournement" class="level3" data-number="5.3.4">
+<h3 data-number="5.3.4" class="anchored" data-anchor-id="sec-autres-ex-retournement"><span class="header-section-number">5.3.4</span> Points de retournement</h3>
+<p>Un autre exemple de point de retournement est illustré à partir d’une autre série de la base FRED-MD : les ventes au détail et services de restauration (série <code>RETAILx</code>, utilisée en logarithme) autour du point de retournement de novembre 2007.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-retailx2007-y" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;43&nbsp;- Ventes au détail et services de restauration (en logarithme) aux États-Unis autour du point de retournement de novembre 2007
+</figcaption>
+<div aria-describedby="fig-retailx2007-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-retailx2007-y-1.png" class="img-fluid figure-img" width="864">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div id="fig-retailx2007-est" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;44&nbsp;- Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
+</figcaption>
+<div aria-describedby="fig-retailx2007-est-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="article_files/figure-html/ffig-retailx2007-est-1.png" class="img-fluid figure-img" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Note</strong> : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : <em>cascade linear filter</em> (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.</p>
+</div>
+</figure>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-retailx2007-ci" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-fig" id="fig-retailx2007-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;45&nbsp;- Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
+</figcaption>
+<div aria-describedby="fig-retailx2007-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="article_files/figure-html/fig-retailx2007-ci-1.png" class="img-fluid figure-img" width="864">
 </div>
 </figure>
 </div>
@@ -1434,7 +1347,7 @@ Dagum, Estela Bee. 1996. <span>«&nbsp;A new method to reduce unwanted ripples a
 Dagum, Estela Bee, et Alessandra Luati. 2009. <span>«&nbsp;<span>A Cascade Linear Filter to Reduce Revisions and False Turning Points for Real Time Trend-Cycle Estimation</span>&nbsp;»</span>. <em>Econometric Reviews</em> 28 (1-3): 40‑59. <a href="https://doi.org/10.1080/07474930802387837">https://doi.org/10.1080/07474930802387837</a>.
 </div>
 <div id="ref-robfilter" class="csl-entry" role="listitem">
-Fried, Roland, Karen Schettlinger, et Matthias Borowski. 2024. <em>robfilter: Robust Time Series Filters</em>. <a href="https://CRAN.R-project.org/package=robfilter">https://CRAN.R-project.org/package=robfilter</a>.
+Fried, Roland, Karen Schettlinger, et Matthias Borowski. 2024. <em>robfilter: Robust Time Series Filters</em>. <a href="https://doi.org/10.32614/CRAN.package.robfilter">https://doi.org/10.32614/CRAN.package.robfilter</a>.
 </div>
 <div id="ref-gather2006online" class="csl-entry" role="listitem">
 Gather, Ursula, Karen Schettlinger, et Roland Fried. 2006. <span>«&nbsp;Online signal extraction by robust linear regression&nbsp;»</span>. <em>Computational Statistics</em> 21 (1): 33‑51. <a href="https://doi.org/10.1007/s00180-006-0249-8">https://doi.org/10.1007/s00180-006-0249-8</a>.
@@ -1445,6 +1358,9 @@ Gray, Alistair G, et Peter J Thomson. 2002. <span>«&nbsp;<span>On a Family of F
 <div id="ref-henderson1916note" class="csl-entry" role="listitem">
 Henderson, Robert. 1916. <span>«&nbsp;Note on graduation by adjusted average&nbsp;»</span>. <em>Transactions of the actuarial society of America</em> 17: 43‑48.
 </div>
+<div id="ref-ladiray2011seasonal" class="csl-entry" role="listitem">
+Ladiray, Dominique, et Benoît Quenneville. 2011. <em>Seasonal Adjustment with the X-11 Method</em>. Springer. <a href="https://doi.org/10.1007/978-1-4613-0175-2">https://doi.org/10.1007/978-1-4613-0175-2</a>.
+</div>
 <div id="ref-Loader1999" class="csl-entry" role="listitem">
 Loader, Clive. 1999. <em>Local regression and likelihood</em>. New York: Springer-Verlag. <a href="https://doi.org/10.1007/b98858">https://doi.org/10.1007/b98858</a>.
 </div>
@@ -1453,6 +1369,9 @@ Matthews, Steve. 2022. <span>«&nbsp;Trend-Cycle Estimation in Topsy-Turvy Times
 </div>
 <div id="ref-fredmd" class="csl-entry" role="listitem">
 McCracken, Michael W., et Serena Ng. 2016. <span>«&nbsp;FRED-MD: A Monthly Database for Macroeconomic Research&nbsp;»</span>. <em>Journal of Business &amp; Economic Statistics</em> 34 (4): 574‑89. <a href="https://doi.org/10.1080/07350015.2015.1086655">https://doi.org/10.1080/07350015.2015.1086655</a>.
+</div>
+<div id="ref-x13" class="csl-entry" role="listitem">
+Monsell, Brian C. 2007. <span>«&nbsp;The X-13A-S seasonal adjustment program&nbsp;»</span>. In <em>Proceedings of the Federal Committee On Statistical Methodology Research Conference, November 5–7, 2007</em>, 515. Arlington, Virginia.
 </div>
 <div id="ref-musgrave1964set" class="csl-entry" role="listitem">
 Musgrave, John C. 1964. <span>«&nbsp;A set of end weights to end all end weights&nbsp;»</span>. <em>US Census Bureau [custodian]</em>.
@@ -1488,16 +1407,17 @@ Venables, W. N., et B. D. Ripley. 2002. <em>Modern Applied Statistics with S</em
 <div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Notes de bas de page</h2>
 
 <ol>
-<li id="fn1"><p> Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série chronologique : à chaque date <span class="math inline">\(t\)</span> on calcule une moyenne pondérée de <span class="math inline">\(p\)</span> points passés et <span class="math inline">\(q\)</span> points futurs où <span class="math inline">\(p,q\geq0\)</span> dépend de la moyenne mobile.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p> Une moyenne mobile est une méthode statistique qui consiste à appliquer une moyenne pondérée glissante à une série chronologique : à chaque date <span class="math inline">\(t\)</span> on calcule une moyenne pondérée de <span class="math inline">\(p\)</span> points passés et <span class="math inline">\(f\)</span> points futurs où <span class="math inline">\(p,f\geq0\)</span> dépend de la moyenne mobile.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p> Cela revient à supposer que le biais d’approximation de la tendance-cycle par un polynôme local est nul.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p> Les méthodes LTS et LMS sont implémentées dans le package <code>MASS</code> <span class="citation" data-cites="MASS">(<a href="#ref-MASS" role="doc-biblioref">Venables et Ripley 2002</a>)</span>, il est nécessaire de réimplémenter le processus d’estimation locale. Nous n’avons pas trouvé d’autres fonctions permettant d’utiliser les autres méthodes mais elles pourraient être implémentées facilement.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p> Voir par exemple <a href="https://www.statcxan.gc.ca/fr/quo/bdd/tendance-cycle" class="uri">https://www.statcxan.gc.ca/fr/quo/bdd/tendance-cycle</a>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p> Sur une série mensuelle de 19 ans (<span class="math inline">\(n=228\)</span>), en utilisant la moyenne mobile de Henderson de 13 termes (<span class="math inline">\(p=f=6\)</span>), le temps de calcul <span class="math inline">\(\nu\)</span> est d’en moyenne 0,11 seconde (sur 1 000 évaluations). Il est divisé d’environ 350 en utilisant la formule proposée dans cet article (environ 0,31 milliseconde) et d’environ 5 800 en utilisant l’approximation <span class="math inline">\(\nu\simeq \tr(\boldsymbol \Delta)\)</span> (environ 0,02 milliseconde).<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p> Série étudiée corrigée des variations saisonnières et des jours ouvrables, téléchargée fin octobre 2024 à l’adresse : <a href="https://www.insee.fr/fr/statistiques/serie/010756763" class="uri">https://www.insee.fr/fr/statistiques/serie/010756763</a>. <a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p> Série téléchargée fin octobre 2024 à l’adresse : <a href="https://www.insee.fr/fr/statistiques/serie/010756763" class="uri">https://www.insee.fr/fr/statistiques/serie/010756763</a>. <a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn7"><p> Les séries étudiées correspondent à la base publiée en novembre 2022.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn8"><p> <a href="https://www.insee.fr/fr/statistiques/serie/010768140" class="uri">https://www.insee.fr/fr/statistiques/serie/010768140</a>.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn9"><p> <a href="https://www.insee.fr/fr/statistiques/serie/010767578" class="uri">https://www.insee.fr/fr/statistiques/serie/010767578</a>.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn10"><p> <a href="https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions" class="uri">https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions</a><a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p> La série étudiée correspond à celle publiée le 04 octobre 2024 (données alors disponibles jusqu’en août 2024) à l’adresse : <a href="https://www.insee.fr/fr/statistiques/serie/010768307" class="uri">https://www.insee.fr/fr/statistiques/serie/010768307</a>.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p> <a href="https://www.insee.fr/fr/statistiques/serie/010768140" class="uri">https://www.insee.fr/fr/statistiques/serie/010768140</a>.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p> <a href="https://www.insee.fr/fr/statistiques/serie/010767578" class="uri">https://www.insee.fr/fr/statistiques/serie/010767578</a>.<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p> <a href="https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions" class="uri">https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions</a><a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section></div></main>
 <!-- /main column -->
