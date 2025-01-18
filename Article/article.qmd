@@ -30,6 +30,11 @@ format:
       - bottom=2cm
       - left = 2.5cm
       - right = 2.5cm
+  docx:
+    number-sections: true
+    fig-width: 6.3 # 16cm
+    crossref:
+      title-delim: "-"
 crossref:
   tbl-prefix: table
   fig-prefix: figure
@@ -273,7 +278,7 @@ $$
 $$
 (\widehat{TC}_t,\hat\beta_{1,t})=\underset{\tilde\beta_{0},\tilde\beta_{1}}{\argmax}\left\{ rdepth(\tilde\beta_{0},\tilde\beta_{1}) \right\}
 $$
-où la profondeur de la regression --- *regression depth* ($rdepth$) --- d'un ajustement $(\tilde\beta_{0},\tilde\beta_{1})$ est définie comme :
+où la profondeur de la régression --- *regression depth* ($rdepth$) --- d'un ajustement $(\tilde\beta_{0},\tilde\beta_{1})$ est définie comme :
 $$
 rdepth(\tilde\beta_{0},\tilde\beta_{1}) = \underset{-h\leq i\leq h}{\min}
 \left\{ \min \left\{ L^+(i) + R^-(i);R^+(i) + L^-(i) \right\}\right\}
@@ -375,7 +380,7 @@ $$
 
 Pour le cas asymétrique, @proietti2008 proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance.
 Il s'agit d'une généralisation des filtres asymétriques de @musgrave1964set (utilisés dans l'algorithme de désaisonnalisation X-13ARIMA).
-En réecrivant l' @eq-lpp :
+En récrivant l' @eq-lpp :
 $$
 \boldsymbol y_t=\begin{pmatrix}\boldsymbol U &\boldsymbol Z\end{pmatrix}
 \begin{pmatrix}\boldsymbol \gamma_t \\ \boldsymbol \delta_t\end{pmatrix}+
@@ -477,7 +482,7 @@ $$
 
 Par convention, lorsque $\mathcal O_{t}$ ou $\mathcal O_{p,t}$ est la matrice nulle, on garde la modélisation de la @sec-lp.
 
-Dans cette étude, les deux types de points atypiques les plus couramment rencontrés dans l'analyse de données macroéconomiqués sont étudiés :
+Dans cette étude, les deux types de points atypiques les plus couramment rencontrés dans l'analyse de données macroéconomiques sont étudiés :
 
 - Les points atypiques additifs (AO, *additive outlier*) : un choc ponctuelle à une date particulière puis un retour à la normal (grève, mesure exceptionnelle, erreur de mesure par exemple liée à de la non réponse, etc.).
 Le choc affecte donc l'irrégulier et ne devrait pas avoir d'impact sur la tendance-cycle.
@@ -942,7 +947,7 @@ Dans cette section, nous nous concentrerons sur l'illustration d'autres cas :
 - Un choc ponctuel suivi d'un choc permanent (@sec-ex-ao-ls) à partir de l'analyse des immatriculations de voitures particulières neuves, corrigée des variations saisonnières (CVS) et des jours ouvrables (CJO)^[
 Série téléchargée fin octobre 2024 à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010756763>. 
 ].
-Le choc ponctuel s'observe en août 2018, suivi d'un choc permament en septembre 2018.
+Le choc ponctuel s'observe en août 2018, suivi d'un choc permanent en septembre 2018.
 
 - La crise financière de 2008 (@sec-ex-crise-financiere) à partir des ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme). Les données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
 Les séries étudiées correspondent à la base publiée en novembre 2022.
@@ -1219,12 +1224,13 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 # Conclusion
 
+
+
+
 \newpage
 \appendix
 
-# Annexes
-
-
+# Annexes {#sec-annexes}
 ## Moyennes mobiles utilisées {#sec-annexes-mm}
 
 
