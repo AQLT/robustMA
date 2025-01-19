@@ -1,5 +1,5 @@
 library(rjd3filters)
-source("0-functions.R")
+source("R/0-functions.R")
 dir_exports <- file.path("results", "AOLS")
 if (!dir.exists(dir_exports)) {
 	dir.create(dir_exports, recursive = TRUE)

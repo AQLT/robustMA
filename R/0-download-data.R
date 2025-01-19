@@ -1,4 +1,7 @@
 library(zoo)
+if (!dir.exists("data")) {
+	dir.create("data")
+}
 id_bank <- c(
 	# Immatriculations de voitures particulières neuves
 	immat = "010756764", # immatriculations_voitures

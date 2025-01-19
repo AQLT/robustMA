@@ -1,5 +1,5 @@
 library(rjd3filters)
-source("0-functions.R")
+source("R/0-functions.R")
 
 gen_ls <- function(t, h = 6){
 	if (t > -h & t <= h) {

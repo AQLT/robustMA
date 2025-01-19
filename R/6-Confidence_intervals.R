@@ -1,6 +1,6 @@
 library(rjd3filters)
-source("0-functions.R")
-source("0-functions-plot.R")
+source("R/0-functions.R")
+source("R/0-functions-plot.R")
 lc_f <- lp_filter()
 robust_ff <- readRDS("data/robust_ff.rds")
 
