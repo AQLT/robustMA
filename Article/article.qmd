@@ -61,8 +61,8 @@ csl: template/chicago-author-date.csl
 library(rjd3filters)
 library(ggplot2)
 library(patchwork)
-source("../0-functions.R", local = knitr::knit_global())
-source("../0-functions-plot.R", local = knitr::knit_global())
+source("../R/0-functions.R", local = knitr::knit_global())
+source("../R/0-functions-plot.R", local = knitr::knit_global())
 lc_f <- lp_filter()
 robust_ff <- readRDS("../data/robust_ff.rds")
 y_as_plot <- FALSE
@@ -81,6 +81,51 @@ apply_consistent_y_lims <- function(this_plot, y_lims = NULL){
     }
     this_plot
 }
+plot_specific_model <- function(num_mod) {
+	p_lms <- (get_all_plots(
+	readRDS(file.path("..", "results", "simul", "simul_ao_td0.RDS")), modeles_retenus = num_mod
+)[[1]] + 
+		ggplot2::ggtitle("AO - tendance degré 0")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "simul", "simul_ao_td1.RDS")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("AO - tendance degré 1")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "simul", "simul_ao_td2.RDS")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("AO - tendance degré 2")) +
+	(get_all_plots(
+	readRDS(file.path("..", "results", "simul", "simul_ls_td0.RDS")), modeles_retenus = num_mod
+)[[1]] + 
+		ggplot2::ggtitle("LS - tendance degré 0")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "simul", "simul_ls_td1.RDS")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("LS - tendance degré 1")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "simul", "simul_ls_td2.RDS")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("LS - tendance degré 2")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "AOLS", "immat2018.RDS")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("Immatriculations de voitures\nparticulières neuves")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("Ventes au détail et\nservices de restauration\n(États-Unis)")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "LSLS", "ipi_manufcovid.RDS")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("IPI industrie manuf.")) +
+	(get_all_plots(
+		readRDS(file.path("..", "results", "AO", "ce16ov2001.rds")), modeles_retenus = num_mod
+	)[[1]] + 
+		ggplot2::ggtitle("Emploi (États-Unis)"))
+}
+models <- c(
+	1, 2, # Pas CLF et ALF
+	4, 5, 6, 7, 8, 9, 10)
 ```
 
 
@@ -89,7 +134,7 @@ apply_consistent_y_lims <- function(this_plot, y_lims = NULL){
 :::: {.abstract}
 Cette étude s'intéresse à l'estimation en temp réel de la tendance-cycle autour de chocs et de points de retournement.
 Les moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle, sensibles à la présence de points atypiques, sont comparées à des méthodes non-linéaires robustes.
-Nous proposons également une méthode pour prendre en compte, lors de la construction de moyennes mobiles, des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
+Nous proposons également une méthodologie pour étendre les moyennes mobiles de Henderson et de Musgrave pour prendre en compte des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
 Nous montrons comment valider la méthodologie de construction de nouvelle moyennes mobiles en décrivant comment estimer des intervalles de confiance pour les estimations issues de moyennes mobiles.
 En comparant les méthodes sur des séries simulées et réelles, nous montrons que : construire des moyennes mobiles robustes permet de réduire les révisions et de mieux modéliser les points de retournement autour de chocs, sans dégrader les estimations lorsqu'aucun choc n'est observé ; les méthodes non-linéaires robustes ne permettent pas d'extraire une composante tendance-cycle satisfaisante pour l'analyse conjoncturelle, avec parfois des révisions importantes.
 
@@ -104,7 +149,7 @@ Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de
 :::: {.abstract}
 This study focuses on the real-time estimation of the trend-cycle around shocks and turning points.
 The linear moving averages classically used for estimating the trend-cycle, which are sensitive to the presence of atypical points, are compared with robust non-linear methods.
-We also propose a method for taking external information into account when building moving averages, and thus building moving averages that are robust to the presence of certain shocks.
+We also propose a methodology for extending the Henderson and Musgrave moving averages to take account of external information and thus construct moving averages that are robust to the presence of certain shocks.
 We show how to validate the methodology for building new moving averages by describing how to estimate confidence intervals for estimates derived from moving averages.
 By comparing the methods on simulated and real series, we show that: building robust moving averages makes it possible to reduce revisions and better model turning points around shocks, without degrading the estimates when no shock is observed; robust non-linear methods do not make it possible to extract a trend-cycle component that is satisfactory for economic analysis, with sometimes significant revisions.
 
@@ -147,10 +192,10 @@ Comme les valeurs prédites sont des combinaisons linéaires des valeurs passée
 
 Par ailleurs, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques.
 L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence.
-alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA-SEATS) ont un module de correction des points atypiques.
+alors que les méthodes de désaisonnalisation (comme X-13ARIMA-SEATS) ont un module de correction des points atypiques.
 
 L'objectif de cette étude est d'étudier et de comparer différentes approches permettant l'extraction de tendance-cycle en temps-réel.
-Nous décrivons également construire des moyennes mobiles linéaires qui prennent en compte des informations extérieures, permettant notamment de modéliser des chocs et donc de les rendre robustes à ces derniers, et également comment valider la modélisation retenue par la construction d'intervalles de confiance.
+Nous décrivons également construire des moyennes mobiles linéaires, associées aux moyennes mobiles de Henderson et de Musgrave, qui prennent en compte des informations extérieures, permettant notamment de modéliser des chocs et donc de les rendre robustes à ces derniers. La modélisation retenue peut être validée par la construction d'intervalles de confiance.
 Ces moyennes mobiles sont également comparées à des méthodes non-linéaires robustes.
 
 Après une description des méthodes utilisées pour extraire la tendance-cycle (@sec-methodo), elles sont comparées sur des séries simulées et réelles autour de chocs et de points de retournement (@sec-results).
@@ -247,7 +292,7 @@ $$
 \left\{ \underset{i=-h,\dots,h}{\med}r^2_{t+i} \right\}
 $$
 
-- Régression des moindre carrés élagués --- *Least Trimmed Squares* (LTS) [@lts] :
+- Régression des moindres carrés élagués --- *Least Trimmed Squares* (LTS) [@lts] :
 $$
 (\widehat{TC}_t,\hat\beta_{1,t})=
 \underset{\beta_{0,t},\beta_{1,t}}{\argmin}
@@ -674,8 +719,7 @@ Les différentes méthodes sont tout d'abord comparées sur des séries simulée
 ### AO ###
 ##########
 res_ao_td0 <- readRDS(file.path("..", "results", "simul", "simul_ao_td0.RDS"))
-graph_est_ao_td0 <- get_all_plots(res_ao_td0, y_as_plot = y_as_plot, add_y = add_y)
-graph_est_ao_td0$CLF <- NULL
+graph_est_ao_td0 <- get_all_plots(res_ao_td0, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y_ao_td0 <- plot_y(res_ao_td0) + 
 	ggplot2::ggtitle("AO - tendance degré 0")
 graph_ci_ao_td0 <- plot_confint(
@@ -686,8 +730,7 @@ graph_ci_ao_td0 <- plot_confint(
 		)
 	)
 res_ao_td1 <- readRDS(file.path("..", "results", "simul", "simul_ao_td1.RDS"))
-graph_est_ao_td1 <- get_all_plots(res_ao_td1, y_as_plot = y_as_plot, add_y = add_y)
-graph_est_ao_td1$CLF <- NULL
+graph_est_ao_td1 <- get_all_plots(res_ao_td1, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y_ao_td1 <- plot_y(res_ao_td1) + 
 	ggplot2::ggtitle("AO - tendance degré 1")
 graph_ci_ao_td1 <- plot_confint(
@@ -698,8 +741,7 @@ graph_ci_ao_td1 <- plot_confint(
 		)
 	)
 res_ao_td2 <- readRDS(file.path("..", "results", "simul", "simul_ao_td2.RDS"))
-graph_est_ao_td2 <- get_all_plots(res_ao_td2, y_as_plot = y_as_plot, add_y = add_y)
-graph_est_ao_td2$CLF <- NULL
+graph_est_ao_td2 <- get_all_plots(res_ao_td2, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y_ao_td2 <- plot_y(res_ao_td2) + 
 	ggplot2::ggtitle("AO - tendance degré 2")
 graph_ci_ao_td2 <- plot_confint(
@@ -715,8 +757,7 @@ graph_ci_ao_td2 <- plot_confint(
 ##########
 
 res_ls_td0 <- readRDS(file.path("..", "results", "simul", "simul_ls_td0.RDS"))
-graph_est_ls_td0 <- get_all_plots(res_ls_td0, y_as_plot = y_as_plot, add_y = add_y)
-graph_est_ls_td0$CLF <- NULL
+graph_est_ls_td0 <- get_all_plots(res_ls_td0, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y_ls_td0 <- plot_y(res_ls_td0) + 
 	ggplot2::ggtitle("LS - tendance degré 0")
 graph_ci_ls_td0 <- plot_confint(
@@ -728,8 +769,7 @@ graph_ci_ls_td0 <- plot_confint(
 		)
 	)
 res_ls_td1 <- readRDS(file.path("..", "results", "simul", "simul_ls_td1.RDS"))
-graph_est_ls_td1 <- get_all_plots(res_ls_td1, y_as_plot = y_as_plot, add_y = add_y)
-graph_est_ls_td1$CLF <- NULL
+graph_est_ls_td1 <- get_all_plots(res_ls_td1, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y_ls_td1 <- plot_y(res_ls_td1) + 
 	ggplot2::ggtitle("LS - tendance degré 1")
 graph_ci_ls_td1 <- plot_confint(
@@ -741,8 +781,7 @@ graph_ci_ls_td1 <- plot_confint(
 		)
 	)
 res_ls_td2 <- readRDS(file.path("..", "results", "simul", "simul_ls_td2.RDS"))
-graph_est_ls_td2 <- get_all_plots(res_ls_td2, y_as_plot = y_as_plot, add_y = add_y)
-graph_est_ls_td2$CLF <- NULL
+graph_est_ls_td2 <- get_all_plots(res_ls_td2, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y_ls_td2 <- plot_y(res_ls_td2) + 
 	ggplot2::ggtitle("LS - tendance degré 2")
 graph_ci_ls_td2 <- plot_confint(
@@ -795,7 +834,7 @@ patchwork::wrap_plots(graph_est_ao_td0, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022
 :::
@@ -819,7 +858,7 @@ patchwork::wrap_plots(graph_est_ao_td1, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022
 :::
@@ -842,7 +881,7 @@ patchwork::wrap_plots(graph_est_ao_td2, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 2 et un choc ponctuel (*additive outlier*, AO) en janvier 2022
 :::
@@ -877,7 +916,7 @@ patchwork::wrap_plots(graph_est_ls_td0, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 0 et un choc permanent (*level shift*, LS) en janvier 2022
 :::
@@ -900,7 +939,7 @@ patchwork::wrap_plots(graph_est_ls_td1, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 1 et un choc permanent (*level shift*, LS) en janvier 2022
 :::
@@ -922,7 +961,7 @@ patchwork::wrap_plots(graph_est_ls_td2, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 2 et un choc permanent (*level shift*, LS) en janvier 2022
 :::
@@ -1012,8 +1051,7 @@ Lorsque l'on ne modélise que le choc ponctuel d'août (@fig-imat2018-ci) un poi
 ##| fig.cap: "Immatriculations de voitures particulières neuves CVS-CJO autour des chocs en août et septembre 2018"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "AOLS", "immat2018.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 # graph_y <- plot_y(res, n_xlabel = 6)
 # graph_ci <- plot_confint(
 # 	res,
@@ -1038,7 +1076,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle des immatriculations de voitures particulières neuves à partir d'août 2018
 :::
@@ -1068,8 +1106,7 @@ En mars 2009 (où l'on sait que les chocs sont permanents et non ponctuels), l'u
 ##| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour d'octobre 2008"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 # graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
@@ -1092,7 +1129,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008
 :::
@@ -1128,9 +1165,8 @@ D'autres exemples sont donnés dans l'annexe [-@sec-autres-ex-covid].
 ##| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière autour de mars 2020"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "LSLS", "ipi_manufcovid.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y,
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models,
 						   share_y_lim = FALSE)
-graph_est$CLF <- NULL
 # graph_y <- plot_y(res, n_xlabel = 6
 # 				  # out = res$out + c(0, 1)/12,
 # 				  #multiple_vline_out = TRUE
@@ -1158,7 +1194,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle de l'IPI CVS-CJO dans l'industrie manufacturière à partir de mars 2020
 :::
@@ -1185,8 +1221,7 @@ Les estimations issues des moyennes mobiles robustes restent dans l'intervalle d
 ##| fig.cap: "Emploi (en logarithme) aux États-Unis autour du point de retournement de février 2001"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "AO", "ce16ov2001.rds"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 # graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
@@ -1205,7 +1240,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle de l'emploi (en logarithme) aux États-Unis à partir de février 2001
 :::
@@ -1224,7 +1259,26 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 # Conclusion
 
+En conclusion, cette étude montre comment, à partir des moyennes mobiles de Henderson et de Musgrave (répanduent pour l'extraction de la tendance-cycle) il est possible d'ajouter des régresseurs externe pour construire des moyennes mobiles avec une meilleure décomposition tendance-cycle et irrégulier.
+Cela permet notamment de modéliser des chocs ponctuels (dont l'effet est généralement associé à l'irrégulier) et des chocs permanents (dont l'effet est associé à la tendance-cycle).
 
+Les moyennes mobiles linéaires classiques (Henderson, Musgrave, *cascade linear filter*...) vont naturellement conduire à des estimations biaisées : lors d'un choc permanent positif, la rupture va être lissée et la tendance-cycle va être sur-estimée avant le choc et sous-estimée après le choc ; lors d'un choc ponctuel (dont l'effet est attribué à l'irrégulier), la tendance-cycle va être sur ou sous-estimée autour du choc (en fonction du signe du choc).
+Cela va également amener à des fortes révisions des estimations autour des chocs.
+Lorsqu'un choc permanent est associé à un point de retournement de l'économie (par exemple lors de la crise financière de 2008 ou lors de la pandémie du COVID-19), les estimations de la tendance-cycle vont conduire à un décalage dans la détection des points de retournement (contraction détectée en avance et reprise en retard), ce qui peut perturber l'utilisateur lors de l'analyse de ces séries.
+À l'inverse, la construction de moyennes mobiles robustes permettent de minimiser les révisions des chocs et de bien détecter les points de retournement.
+La comparaison entre moyennes mobiles robustes et classiques, à l'aide de la construction d'intervalles de confiance et d'une analyse économique, permet de valider la modélisation retenue.
+En particulier, lorsque aucun choc n'est observée, l'utilisation à tort d'une moyenne mobile robuste donnera des résultats très proches des moyennes mobiles classiques et ne dégrade donc pas les résultats.
+En revanche, lors de l'estimation en temps réel, le choix d'une mauvaise spécification (par exemple choc ponctuel, affecté à l'irrégulier, plutôt que choc permanent, affecté à la tendance-cycle) peut entraîner des révisions importantes lorsque la bonne spécification est finalement retenue.
+Si l'on cherche à minimiser les révisions, en cas de doute sur la nature du choc il peut donc être préférable d'utiliser les moyennes mobiles linéaires classiques avant d'être sûr de la spécification à adopter.
+
+Afin d'éviter ce biais lors de l'utilisation de moyennes mobiles linéaires, le logiciel de désaisonnalisation X-13ARIMA-SEATS (où sont notamment utilisées les moyennes mobiles de Henderson et de Musgrave) possède plusieurs modules de correction des chocs : la série est d'abord pré-corrigée et les chocs sont à la fin réintroduit dans la bonne composante (saisonnalité, tendance-cycle ou irrégulier).
+Toutefois, les rares instituts qui publient des estimations de la tendance-cycle (comme Statistique Canada et l'Australian Bureau of Statistics) ne semblent pas utiliser le logiciel X-13ARIMA-SEATS pour l'estimation de cette composante et appliquent plutôt une moyenne mobile sur le série désaisonnalisées.
+Cela peut par exemple s'expliquer lorsque ce ne sont pas les mêmes équipes qui effectuent la désaisonnalisation et l'estimation de la tendance-cycle ou pour simplifier le processus.
+Même si ces modules de corrections peuvent être appliqués sur les séries désaisonnalisées (par exemple via un modèle RegARIMA), l'estimation de l'ampleur du choc dépend du modèle utilisé et de la période d'estimation retenue, ce qui augmente le risque de mauvaise spécification et l'incertitude autour des estimations.
+À l'inverse, l'approche proposée dans cet article garde la même spécification que celles des moyennes mobiles de Henderson et de Musgrave et, par construction, le nombre de périodes révisées ne dépend que de la longueur de la moyenne mobile.
+
+Dans cette étude, les performances des moyennes mobiles linéaires sont comparées à un ensemble de méthodes non-linéaires robustes modélisant une tendance localement linéaire (comme le filtre de Musgrave mais contrairement au filtre de Henderson qui modélisent une tendance localement cubique).
+Ces méthodes sont pour la plupart basées sur la médiane et conduisent parfois à des révisions fortes lors de l'estimation en temps-réel, ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
 
 
 \newpage
@@ -1380,11 +1434,7 @@ graph_y_ipiao <- c(plot_y(
 	)
 	)
 res <- readRDS(file.path("..", "results", "AO", "ipi_voitures98.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est <- lapply(graph_est, function(p){
-	p$CLF <- NULL
-	p
-})
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_ci <- lapply(
 	res$out, plot_confint,
 	data = res,
@@ -1409,7 +1459,7 @@ patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 1998
 :::
@@ -1430,7 +1480,7 @@ patchwork::wrap_plots(graph_est[[2]], ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 1999
 :::
@@ -1446,8 +1496,7 @@ patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
 ```{r}
 #| label: data-autresex-ao2
 res <- readRDS(file.path("..", "results", "AO", "ipi_voitures2004.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 # graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
@@ -1465,7 +1514,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 2004
 :::
@@ -1490,8 +1539,7 @@ Pour la construction des intervalles de confiance, la série est tronquée pour 
 ```{r}
 #| label: data-autresex-ls
 res <- readRDS(file.path("..", "results", "LS", "ipi_petrole_brut10.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
@@ -1515,7 +1563,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans l'extraction de pétrole brut à partir de juin 2010
 :::
@@ -1556,8 +1604,7 @@ graph_y_covid2 <- plot_y(
 	ggplot2::ggtitle("Ventes au détail et\nservices de restauration")
 res <- readRDS(file.path("..", "results", "LSLS", "ce16ovcovid.RDS"))
 
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 
 graph_ci <- plot_confint(
 	res,
@@ -1605,8 +1652,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 ```{r}
 #| label: prep-autres-ex-covid-2
 res <- readRDS(file.path("..", "results", "LSLS", "retailxcovid.RDS"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 # graph_y <- plot_y(res, n_xlabel = 6
 # 				  # out = res$out + c(0, 1)/12,
 # 				  #multiple_vline_out = TRUE
@@ -1634,7 +1680,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020
 :::
@@ -1659,8 +1705,7 @@ Un autre exemple de point de retournement est illustré à partir d'une autre s�
 #| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour du point de retournement de novembre 2007"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
-graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y)
-graph_est$CLF <- NULL
+graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
 graph_y <- plot_y(res, n_xlabel = 6)
 graph_ci <- plot_confint(
 	res,
@@ -1678,7 +1723,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindre carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
 :::
@@ -1695,6 +1740,29 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 <!-- ici clearpage plutôt que newpage car clearpage permet de prendre en compte les figures qui peuvent aller sur plusieurs pages -->
 \clearpage
+
+## Moindres carrés médians (LMS) et moindres carrés élagués (LTS) avec une tendance de degré 2 {#sec-an-lms-lts}
+
+```{r}
+#| label: fig-lmsd2
+#| fig-cap: "Estimations en temps réel de la tendance-cycle pour la méthode des moindres carrés médians (LMS) en modélisation une tendance locale de degré 2"
+#| fig-height: 6
+
+p_lms <- plot_specific_model(11) + plot_layout(ncol = 3) &
+	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
+											  vjust=1.1, hjust=1)) 
+p_lts <- plot_specific_model(12) + plot_layout(ncol = 3) &
+	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
+											  vjust=1.1, hjust=1)) 
+p_lms
+```
+
+```{r}
+#| label: fig-ltsd2
+#| fig-cap: "Estimations en temps réel de la tendance-cycle pour la méthode des moindres carrés élagués (LMS) en modélisation une tendance locale de degré 2"
+#| fig-height: 6
+p_lts
+```
 
 # Bibliographie {-}
 
