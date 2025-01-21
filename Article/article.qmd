@@ -82,46 +82,55 @@ apply_consistent_y_lims <- function(this_plot, y_lims = NULL){
     this_plot
 }
 plot_specific_model <- function(num_mod) {
-	p_lms <- (get_all_plots(
-	readRDS(file.path("..", "results", "simul", "simul_ao_td0.RDS")), modeles_retenus = num_mod
-)[[1]] + 
-		ggplot2::ggtitle("AO - tendance degré 0")) +
-	(get_all_plots(
-		readRDS(file.path("..", "results", "simul", "simul_ao_td1.RDS")), modeles_retenus = num_mod
+	single_plot <- function(folder, file, title) {
+		get_all_plots(
+		readRDS(file.path("..", "results", folder, file)),
+		modeles_retenus = num_mod
 	)[[1]] + 
-		ggplot2::ggtitle("AO - tendance degré 1")) +
+		ggplot2::ggtitle(title)
+	}
 	(get_all_plots(
-		readRDS(file.path("..", "results", "simul", "simul_ao_td2.RDS")), modeles_retenus = num_mod
+		readRDS(file.path("..", "results", "simul", "simul_ao_td0.RDS")), modeles_retenus = num_mod
 	)[[1]] + 
-		ggplot2::ggtitle("AO - tendance degré 2")) +
-	(get_all_plots(
-	readRDS(file.path("..", "results", "simul", "simul_ls_td0.RDS")), modeles_retenus = num_mod
-)[[1]] + 
-		ggplot2::ggtitle("LS - tendance degré 0")) +
-	(get_all_plots(
-		readRDS(file.path("..", "results", "simul", "simul_ls_td1.RDS")), modeles_retenus = num_mod
-	)[[1]] + 
-		ggplot2::ggtitle("LS - tendance degré 1")) +
-	(get_all_plots(
-		readRDS(file.path("..", "results", "simul", "simul_ls_td2.RDS")), modeles_retenus = num_mod
-	)[[1]] + 
-		ggplot2::ggtitle("LS - tendance degré 2")) +
-	(get_all_plots(
-		readRDS(file.path("..", "results", "AOLS", "immat2018.RDS")), modeles_retenus = num_mod
-	)[[1]] + 
-		ggplot2::ggtitle("Immatriculations de voitures\nparticulières neuves")) +
-	(get_all_plots(
-		readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS")), modeles_retenus = num_mod
-	)[[1]] + 
-		ggplot2::ggtitle("Ventes au détail et\nservices de restauration\n(États-Unis)")) +
-	(get_all_plots(
-		readRDS(file.path("..", "results", "LSLS", "ipi_manufcovid.RDS")), modeles_retenus = num_mod
-	)[[1]] + 
-		ggplot2::ggtitle("IPI industrie manuf.")) +
-	(get_all_plots(
-		readRDS(file.path("..", "results", "AO", "ce16ov2001.rds")), modeles_retenus = num_mod
-	)[[1]] + 
-		ggplot2::ggtitle("Emploi (États-Unis)"))
+			ggplot2::ggtitle("AO - tendance degré 0")) +
+		(get_all_plots(
+			readRDS(file.path("..", "results", "simul", "simul_ao_td1.RDS")), modeles_retenus = num_mod
+		)[[1]] + 
+			ggplot2::ggtitle("AO - tendance degré 1")) +
+		(get_all_plots(
+			readRDS(file.path("..", "results", "simul", "simul_ao_td2.RDS")), modeles_retenus = num_mod
+		)[[1]] + 
+			ggplot2::ggtitle("AO - tendance degré 2")) +
+		(get_all_plots(
+			readRDS(file.path("..", "results", "simul", "simul_ls_td0.RDS")), modeles_retenus = num_mod
+		)[[1]] + 
+			ggplot2::ggtitle("LS - tendance degré 0")) +
+		(get_all_plots(
+			readRDS(file.path("..", "results", "simul", "simul_ls_td1.RDS")), modeles_retenus = num_mod
+		)[[1]] + 
+			ggplot2::ggtitle("LS - tendance degré 1")) +
+		(get_all_plots(
+			readRDS(file.path("..", "results", "simul", "simul_ls_td2.RDS")), modeles_retenus = num_mod
+		)[[1]] + 
+			ggplot2::ggtitle("LS - tendance degré 2")) +
+		single_plot("AO", "ipi_voitures2004.RDS",
+					"IPI véhicules auto (AO)") +
+		single_plot("LS", "ipi_petrole_brut10.RDS",
+					"IPI pétrole brut (LS)") +
+		single_plot("AOLS", "immat2018.RDS",
+					"Immat. de voit. particulières\n neuves (AO-LS)") +
+		single_plot("LSLS", "retailx2008.RDS",
+					"Ventes au détail et serv.\nrestauration (LS-LS)") +
+		single_plot("AO", "retailx2007.rds",
+					"Ventes au détail et serv.\nrestauration (retournement)")+
+		single_plot("AO", "ce16ov2001.rds",
+					"Emploi (retournement)") +
+		single_plot("LSLS", "ipi_manufcovid.RDS",
+					"IPI industrie manuf.\n(COVID-19)") +
+		single_plot("LSLS", "ce16ovcovid.RDS",
+					"Emploi (COVID-19)") +
+		single_plot("LSLS", "retailxcovid.RDS",
+					"Ventes au détail et serv.\nrestauration (COVID-19)") 
 }
 models <- c(
 	1, 2, # Pas CLF et ALF
@@ -213,7 +222,7 @@ où $f$ désigne une transformation appropriée (généralement logarithmique ou
 Pour simplifier les notations ultérieures, $y_t$ désignera la série observée transformée.
 La composante de bruit $\varepsilon_t$ est généralement supposée être un bruit blanc.
 En supposant que la série chronologique initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
-Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$ :
+Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$\ :
 $$
 TC_{t+i} = \sum_{j=0}^d\beta_j{i}^j+\xi_{t+i}\quad\forall i\in\{-h,-h+1,\dots,t+h\}
 $$
@@ -349,10 +358,10 @@ Cette approche n'est pas implémentée dans `robfilter` mais peut être obtenue 
 
 
 Dans le cadre de l'analyse conjoncturelle, il n'est généralement pas plausible de modéliser, autour des points de retournement, une tendance de degré 1.
-Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement ces méthodes^[
-Les méthodes LTS et LMS sont implémentées dans le package `MASS` [@MASS], il est nécessaire de réimplémenter le processus d'estimation locale.
-Nous n'avons pas trouvé d'autres fonctions permettant d'utiliser les autres méthodes mais elles pourraient être implémentées facilement.
-].
+Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement toutes ces méthodes.
+Toutefois, les méthodes LTS et LMS sont implémentées dans le package `MASS` [@MASS]^[
+Nous n'avons pas trouvé d'autres fonctions permettant d'utiliser les autres méthodes, même si elles pourraient être réimplémentées facilement.
+], il est possible de réimplémenter le processus d'estimation locale avec une tendance de degré 2, ce qui a été fait dans l'annexe [-@sec-an-lms-ts] qui présente les estimations des tendances-cycles des différents exemples de cet article.
 Même si cette modélisation n'est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d'utilisation de `robfilter` font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle et présentées dans la section suivante.
 
 ## Moyennes mobiles linéaires classiques {#sec-methodes-lineaires}
@@ -455,6 +464,8 @@ Dans cet article, seules des séries mensuelles sont étudiés et le filtre de H
 Par simplification et par cohérence avec ce qui est utilisé dans X-11, le ratio $\delta_1/\sigma$ sera fixé de sorte à avoir $R=3,5$.
 C'est également ce qui est fait par l'Australian Bureau of Statistics [@abs2003].
 Toutefois, comme notamment montré dans @jos2024AQLT, une paramétrisation locale de ce paramètre pourrait être préférée.
+
+Les coefficients des différentes moyennes mobiles étudiées dans cet article sont représentés dans l'annexe [-@sec-annexes-mm].
 
 ### Filtres cascade
 
@@ -680,7 +691,7 @@ $$
 \tr(\boldsymbol \Delta) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
 $$
 En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Delta^2).$
-Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (voir annexe [-@sec-df-var]) :
+Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (annexe [-@sec-df-var]) :
 $$
 \tr(\boldsymbol \Delta^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
@@ -822,7 +833,7 @@ Un léger biais négatif s'observe pour la méthode de Musgrave robuste : cela p
 Cela suggère de préférer une paramétrisation locale de ce paramètre, comme proposé par @jos2024AQLT.\
 Lorsque la tendance est de degré 2 (figures [-@fig-simul-ao-out-td2-est] et [-@fig-simul-ao-out-td2-ci]), les résultats avec les moyennes mobiles sont similaires (révisions importantes autour du choc pour Musgrave et CLF et faibles pour Musgrave robuste).
 Pour les méthodes robustes les estimations finale modélisent bien le retournement de tendance malgré le fait que juste une tendance de degré 1 est modélisée.
-Pour les estimations en temps réel, les tendances sont surestimées mais les révisions faibles : cela s'explique par le faible degré de courbure de la série simulée.
+Pour les estimations en temps réel, les tendances sont surestimées mais les révisions faibles : cela s'explique par le faible degré de courbure de la série simulée et pourraient être minimisées en modélisant des tendances de degré supérieur (voir annexe [-@sec-an-lms-lts] pour les résultats avec les méthodes LMS et LTS).
 
 ::: {#fig-simul-ao-out-td0-est}
 
@@ -897,7 +908,8 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td2, ncol = 3)) +
 
 
 Pour les chocs permanents (*level shift*, LS), à l'exception de la régression profonde (DR) et de la régression médiane répétée (RM), les estimations finales de la tendance-cycle avec les méthodes robustes ne sont pas influencées par la présence du choc (figures [-@fig-simul-ls-out-td0-est],  [-@fig-simul-ls-out-td1-est] et [-@fig-simul-ls-out-td2-est]).
-En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date : il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte  à la bonne date pour la méthode LQD et juillet 2022 (soit l'estimation finale) pour les autres méthodes, même lorsque la tendance est de degré 0. 
+En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date : il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte  à la bonne date pour la méthode LQD et juillet 2022 (soit l'estimation finale) pour les autres méthodes, même lorsque la tendance est de degré 0.
+Modéliser, dans ces méthodes, une tendance de degré 2 ne change pas ce résultat (annexe [-@sec-an-lms-lts]).
 Cela suggère encore d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.\
 Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires\ : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
 Il y a également d'importantes révisions pour la première estimation de janvier 2022 (date du choc).
@@ -1212,6 +1224,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 Un point de retournement, non associé à un choc, est illustré à partir du niveau d'emploi aux États-Unis (utilisée en logarithme) autour de février 2001.
 Parmi les méthodes robustes, seule la régression profonde (DR) permet de détecter le point de retournement à la bonne date (à partir des estimations de juin 2021, @fig-ce16ov2001-est) : les médianes mobiles (MED) et les médianes répétées (RM) ne détectent aucun point de retournement et les autres méthodes le détecte en janvier 2001 (à partir des estimations de juillet 2001, pour les estimations antérieures il est bien détecté en février).
+Modéliser une tendance locale de degré 2 permet de détecter le point de retournement à la bonne date (annexe [-@sec-an-lms-lts])
 Les révisions sont plus faibles pour les estimations issues de moyennes mobiles et le fait de considérer à tort le mois de février comme un choc ponctuel n'a pas d'impact sur les estimations.
 Les estimations issues des moyennes mobiles robustes restent dans l'intervalle de confiance des estimations des moyennes mobiles de Musgrave (@fig-ce16ov2001-ci).
 
@@ -1277,8 +1290,10 @@ Cela peut par exemple s'expliquer lorsque ce ne sont pas les mêmes équipes qui
 Même si ces modules de corrections peuvent être appliqués sur les séries désaisonnalisées (par exemple via un modèle RegARIMA), l'estimation de l'ampleur du choc dépend du modèle utilisé et de la période d'estimation retenue, ce qui augmente le risque de mauvaise spécification et l'incertitude autour des estimations.
 À l'inverse, l'approche proposée dans cet article garde la même spécification que celles des moyennes mobiles de Henderson et de Musgrave et, par construction, le nombre de périodes révisées ne dépend que de la longueur de la moyenne mobile.
 
-Dans cette étude, les performances des moyennes mobiles linéaires sont comparées à un ensemble de méthodes non-linéaires robustes modélisant une tendance localement linéaire (comme le filtre de Musgrave mais contrairement au filtre de Henderson qui modélisent une tendance localement cubique).
-Ces méthodes sont pour la plupart basées sur la médiane et conduisent parfois à des révisions fortes lors de l'estimation en temps-réel, ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
+Dans cette étude, les performances des moyennes mobiles linéaires sont comparées à un ensemble de méthodes non-linéaires robustes pour la plupart basées sur la médiane.
+Lorsque les tendances sont lisses (par exemple sur des séries simulées), ces méthodes fournissent des bonnes alternatives aux méthodes classiques en étant robustes aux chocs ponctuels et en reproduisant, dans la tendance-cycle les chocs permanents (mais pour qu'ils soient reproduits à la bonne date il faut attendre l'estimation finale).
+Toutefois, sur des séries réelles, les révisions sont
+Ces méthodes conduisent parfois à de fortes révisions lors de l'estimation en temps-réel, ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
 
 
 \newpage
@@ -1599,7 +1614,7 @@ graph_y_covid1 <- plot_y(
 	n_xlabel = 6) + 
 	ggplot2::ggtitle("Emploi")
 graph_y_covid2 <- plot_y(
-	readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS")), 
+	readRDS(file.path("..", "results", "LSLS", "retailxcovid.RDS")), 
 	n_xlabel = 6) + 
 	ggplot2::ggtitle("Ventes au détail et\nservices de restauration")
 res <- readRDS(file.path("..", "results", "LSLS", "ce16ovcovid.RDS"))
@@ -1745,8 +1760,8 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ```{r}
 #| label: fig-lmsd2
-#| fig-cap: "Estimations en temps réel de la tendance-cycle pour la méthode des moindres carrés médians (LMS) en modélisation une tendance locale de degré 2"
-#| fig-height: 6
+#| fig-cap: "Estimations en temps réel de la tendance-cycle pour la méthode des moindres carrés médians (LMS) en modélisant une tendance locale de degré 2"
+#| fig-height: 10
 
 p_lms <- plot_specific_model(11) + plot_layout(ncol = 3) &
 	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
@@ -1759,10 +1774,13 @@ p_lms
 
 ```{r}
 #| label: fig-ltsd2
-#| fig-cap: "Estimations en temps réel de la tendance-cycle pour la méthode des moindres carrés élagués (LMS) en modélisation une tendance locale de degré 2"
-#| fig-height: 6
+#| fig-cap: "Estimations en temps réel de la tendance-cycle pour la méthode des moindres carrés élagués (LTS) en modélisant une tendance locale de degré 2"
+#| fig-height: 10
 p_lts
 ```
+
+
+\clearpage
 
 # Bibliographie {-}
 
