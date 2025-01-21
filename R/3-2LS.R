@@ -46,15 +46,15 @@ saveRDS(res,
 # patchwork::wrap_plots(graph_est[1:2])
 # patchwork::wrap_plots(graph_est, ncol = 3)
 # graph_y <- plot_y(res, n_xlabel = 6)
-graph_ci <- plot_confint(
-	res,
-	default_filter = lc_f,
-	robust_f = list("MM robuste LS-LS" = robust_ff[["lsls"]],
-					"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]))
-
-apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
-	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom')
+# graph_ci <- plot_confint(
+# 	res,
+# 	default_filter = lc_f,
+# 	robust_f = list("MM robuste LS-LS" = robust_ff[["lsls"]],
+# 					"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]))
+#
+# apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
+# 	plot_layout(guides = 'collect', axes = "collect") &
+# 	theme(legend.position='bottom')
 
 
 y <- data$ipi_manuf
@@ -64,6 +64,10 @@ res <- lapply(
 	create_vintage(y, date_out),
 	all_filtered, 13, lc_f, robust_filters[["lsls"]], date_out,
 	suff_robust_mm = " (LS-LS)")
+# res <- lapply(
+# 	create_vintage(y, date_out),
+# 	all_filtered, 13, lc_f, robust_filters[["lsls"]], date_out, d2robustM = TRUE,
+# 	suff_robust_mm = " (LS-LS)")
 res <- list(data = res,
 			out = date_out,
 			y = y)
@@ -81,7 +85,7 @@ res <- list(data = res,
 saveRDS(res,
 		file.path(dir_exports, "retailxcovid.RDS")
 )
-# graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = F)
+# graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = F,share_y_lim = FALSE)
 # graph_est$CLF <- NULL
 # graph_y <- plot_y(res, n_xlabel = 6)
 # graph_ci <- plot_confint(
