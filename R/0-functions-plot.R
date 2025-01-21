@@ -168,18 +168,29 @@ get_all_plots <- function(
 		add_y = FALSE,
 		y_as_plot = FALSE,
 		share_y_lim = TRUE,
-		multiple_vline_out = FALSE){
+		multiple_vline_out = FALSE,
+		modeles_retenus = NULL
+		){
 	if (is.null(out)) {
 		out <- res$out
 	}
 	if (length(out) > 1 & !multiple_vline_out) {
 		all_plots <- lapply(out, get_all_plots, res = res, nb_est = nb_est,
 							nb_dates_before = nb_dates_before, vline = vline, add_y = add_y,
-							y_as_plot = y_as_plot, share_y_lim = share_y_lim)
+							y_as_plot = y_as_plot, share_y_lim = share_y_lim,
+							modeles_retenus = modeles_retenus)
 		names(all_plots) <- out
 		return(all_plots)
 	}
 	all_est <- create_vintage_est(res)
+	if(!is.null(modeles_retenus)) {
+		if (is.numeric(modeles_retenus)) {
+			mod <- all_est[modeles_retenus + 1]
+		} else {
+			mod <- all_est[modeles_retenus]
+		}
+		all_est <- c(all_est["y"], mod)
+	}
 	y <- all_est$y[,ncol(all_est$y)]
 	all_est$y <- NULL
 	cols <- seq.int(

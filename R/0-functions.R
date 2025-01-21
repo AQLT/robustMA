@@ -83,6 +83,7 @@ all_filtered <- function(
 		order_robust = c("MED", "RM", "LMS", "LTS", "LQD", "DR"),
 		extend_series_robust = TRUE,
 		suff_robust_mm = "",
+		d2robustM = TRUE,
 		...) {
 
 	h <- trunc((robust_length - 1) / 2)
@@ -107,7 +108,12 @@ all_filtered <- function(
 	lc_out_level <- filtered_out(x, default_filter, out_filter, date_out)
 	res <- ts.union(x, lc_level, lc_out_level, CLF_level, CLF_CN_level, data_rob_level)
 	colnames(res) <- c("y", "Musgrave", paste0("Musgrave robuste", suff_robust_mm),
-					   "CLF", "CLF (coupe et normalise)", colnames(data_rob_level))
+					   "CLF et ALF", "CLF (coupe et normalise)", colnames(data_rob_level))
+	if (d2robustM) {
+		res2 <- ts.union(res, lqs_d2(x, h = h,method = "lms"), lqs_d2(x, h = h,method = "lts"))
+		colnames(res2) <- c(colnames(res), "LMS tendance d2", "LTS tendance d2")
+		res <- res2
+	}
 	res
 }
 
@@ -155,3 +161,26 @@ create_vintage_est <- function(res) {
 	names(all_est) <- colnames(res[[1]])
 	all_est
 }
+
+lqs_d2 <- function(x, h = 6, degree = 2, method = c("lms", "lts")) {
+	method <- match.arg(method)
+	res <- x * NA
+	first_date <- time(x)[1]
+	last_date <- time(x)[length(x)]
+	delta_t <- deltat(res)
+	freq <- frequency(res)
+	for (date in time(res)) {
+		try({
+			fd_est <- max(date - h * delta_t, first_date)
+			ld_est <- min(date + h * delta_t, last_date)
+			X = rjd3filters::polynomial_matrix(l = round((fd_est - date) * freq),
+											   u =round((ld_est - date) * freq),
+											   d0 = 1, d1 = degree)
+			reg_est <- MASS::lqs(X, window(x, start = fd_est, end = ld_est),
+								 method = method)
+			window(res, start = date, end = date) <- coef(reg_est)[1]
+		})
+	}
+	res
+}
+
