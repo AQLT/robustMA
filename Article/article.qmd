@@ -1292,8 +1292,7 @@ Même si ces modules de corrections peuvent être appliqués sur les séries dé
 
 Dans cette étude, les performances des moyennes mobiles linéaires sont comparées à un ensemble de méthodes non-linéaires robustes pour la plupart basées sur la médiane.
 Lorsque les tendances sont lisses (par exemple sur des séries simulées), ces méthodes fournissent des bonnes alternatives aux méthodes classiques en étant robustes aux chocs ponctuels et en reproduisant, dans la tendance-cycle les chocs permanents (mais pour qu'ils soient reproduits à la bonne date il faut attendre l'estimation finale).
-Toutefois, sur des séries réelles, les révisions sont
-Ces méthodes conduisent parfois à de fortes révisions lors de l'estimation en temps-réel, ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
+Toutefois, sur des séries réelles, les révisions sont plus importantes (avec parfois des estimations intermédiaires non cohérentes), ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.
 
 
 \newpage
