@@ -52,7 +52,7 @@ bibliography: biblio.bib
 csl: template/chicago-author-date.csl
 author:
   - name: Alain Quartier-la-Tente 
-    affiliation: Insee, Département des études économiques (DEE), LEMNA
+    affiliation: LEMNA
     orcid: 0000-0001-7890-3857
 comments: 
     hypothesis:
