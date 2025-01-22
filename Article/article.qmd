@@ -30,11 +30,11 @@ format:
       - bottom=2cm
       - left = 2.5cm
       - right = 2.5cm
-  docx:
-    number-sections: true
-    fig-width: 6.3 # 16cm
-    crossref:
-      title-delim: "-"
+  # docx:
+  #   number-sections: true
+  #   fig-width: 6.3 # 16cm
+  #   crossref:
+  #     title-delim: "-"
 crossref:
   tbl-prefix: table
   fig-prefix: figure
@@ -50,6 +50,13 @@ tbl-cap-location: top
 fig-cap-location: top
 bibliography: biblio.bib
 csl: template/chicago-author-date.csl
+author:
+  - name: Alain Quartier-la-Tente 
+    affiliation: Insee, Département des études économiques (DEE), LEMNA
+    orcid: 0000-0001-7890-3857
+comments: 
+    hypothesis:
+      theme: clean
 ---
 
 \renewcommand{\thepage}{\roman{page}}
@@ -141,7 +148,7 @@ models <- c(
 ### Résumé {-}
 
 :::: {.abstract}
-Cette étude s'intéresse à l'estimation en temp réel de la tendance-cycle autour de chocs et de points de retournement.
+Cette étude s'intéresse à l'estimation en temps réel de la tendance-cycle autour de chocs et de points de retournement.
 Les moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle, sensibles à la présence de points atypiques, sont comparées à des méthodes non-linéaires robustes.
 Nous proposons également une méthodologie pour étendre les moyennes mobiles de Henderson et de Musgrave pour prendre en compte des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
 Nous montrons comment valider la méthodologie de construction de nouvelle moyennes mobiles en décrivant comment estimer des intervalles de confiance pour les estimations issues de moyennes mobiles.
@@ -361,7 +368,7 @@ Dans le cadre de l'analyse conjoncturelle, il n'est généralement pas plausible
 Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement toutes ces méthodes.
 Toutefois, les méthodes LTS et LMS sont implémentées dans le package `MASS` [@MASS]^[
 Nous n'avons pas trouvé d'autres fonctions permettant d'utiliser les autres méthodes, même si elles pourraient être réimplémentées facilement.
-], il est possible de réimplémenter le processus d'estimation locale avec une tendance de degré 2, ce qui a été fait dans l'annexe [-@sec-an-lms-ts] qui présente les estimations des tendances-cycles des différents exemples de cet article.
+], il est possible de réimplémenter le processus d'estimation locale avec une tendance de degré 2, ce qui a été fait dans l'annexe [-@sec-an-lms-lts] qui présente les estimations des tendances-cycles des différents exemples de cet article.
 Même si cette modélisation n'est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d'utilisation de `robfilter` font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle et présentées dans la section suivante.
 
 ## Moyennes mobiles linéaires classiques {#sec-methodes-lineaires}
@@ -1272,7 +1279,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 # Conclusion
 
-En conclusion, cette étude montre comment, à partir des moyennes mobiles de Henderson et de Musgrave (répanduent pour l'extraction de la tendance-cycle) il est possible d'ajouter des régresseurs externe pour construire des moyennes mobiles avec une meilleure décomposition tendance-cycle et irrégulier.
+En conclusion, cette étude montre comment, à partir des moyennes mobiles de Henderson et de Musgrave (répandues pour l'extraction de la tendance-cycle) il est possible d'ajouter des régresseurs externe pour construire des moyennes mobiles avec une meilleure décomposition tendance-cycle et irrégulier.
 Cela permet notamment de modéliser des chocs ponctuels (dont l'effet est généralement associé à l'irrégulier) et des chocs permanents (dont l'effet est associé à la tendance-cycle).
 
 Les moyennes mobiles linéaires classiques (Henderson, Musgrave, *cascade linear filter*...) vont naturellement conduire à des estimations biaisées : lors d'un choc permanent positif, la rupture va être lissée et la tendance-cycle va être sur-estimée avant le choc et sous-estimée après le choc ; lors d'un choc ponctuel (dont l'effet est attribué à l'irrégulier), la tendance-cycle va être sur ou sous-estimée autour du choc (en fonction du signe du choc).
@@ -1293,14 +1300,14 @@ Même si ces modules de corrections peuvent être appliqués sur les séries dé
 Dans cette étude, les performances des moyennes mobiles linéaires sont comparées à un ensemble de méthodes non-linéaires robustes pour la plupart basées sur la médiane.
 Lorsque les tendances sont lisses (par exemple sur des séries simulées), ces méthodes fournissent des bonnes alternatives aux méthodes classiques en étant robustes aux chocs ponctuels et en reproduisant, dans la tendance-cycle les chocs permanents (mais pour qu'ils soient reproduits à la bonne date il faut attendre l'estimation finale).
 Toutefois, sur des séries réelles, les révisions sont plus importantes (avec parfois des estimations intermédiaires non cohérentes), ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.
-Par ailleurs, lorsque les points de retournement sont associés à des chocs (comme lors du COVID-19), en étant naturellement robustes aux chcos, ces méthodes ne vont pas permettre d'estimer une tendance-cycle qui reproduirait les points de retournement.
+Par ailleurs, lorsque les points de retournement sont associés à des chocs (comme lors du COVID-19), en étant naturellement robustes aux choss, ces méthodes ne vont pas permettre d'estimer une tendance-cycle qui reproduirait les points de retournement.
 <!-- Tout cela fait que, dans le cadre de l'analyse conjoncturelle et l'analyse des points de retournement, les méthodes robustes ici étudiées ne sont pas à privilégier pour l'extraction de la tendance-cycle. -->
 
 En somme, pour l'analyse de la conjoncture et des points de retournement, l'utilisation de méthodes linéaires locales (telles que des moyennes mobiles) est à privilégier.
 Afin de mieux représenter la réalité économique et de minimiser les révisions, il est important d'avoir une analyse locale par série, par exemple en analysant les chocs et en les prenant en compte dans la construction des moyennes mobiles comme proposé dans cette étude.
 Fixer de manière locale les hyperparamètres utilisés dans les moyennes mobiles asymétriques (lorsque l'on ne possède pas assez de point dans le futur pour utiliser une moyenne mobile symétrique) comme suggéré par @jos2024AQLT permet également de réduire les révisions en évitant des biais systématiques lorsque la tendance est localement linéaire (par exemple reprise d'activité progressive après un choc).
 Toutefois, pour la production de données, il peut être difficile d'avoir le temps d'analyser chaque série pour déterminer les chocs.
-Cette étude
+Il peut alors être intéressant d'étudier des procédures automatiques pour identifier ces chocs, par exemple via des modèles *ad hoc* (du type modèles RegARIMA) ou bien en reproduisant le processus de lissage des moyennes mobiles par une modélisation plus générale (par exemple modélisation espace-état). 
 
 \newpage
 \appendix
