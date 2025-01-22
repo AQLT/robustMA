@@ -1293,7 +1293,14 @@ Même si ces modules de corrections peuvent être appliqués sur les séries dé
 Dans cette étude, les performances des moyennes mobiles linéaires sont comparées à un ensemble de méthodes non-linéaires robustes pour la plupart basées sur la médiane.
 Lorsque les tendances sont lisses (par exemple sur des séries simulées), ces méthodes fournissent des bonnes alternatives aux méthodes classiques en étant robustes aux chocs ponctuels et en reproduisant, dans la tendance-cycle les chocs permanents (mais pour qu'ils soient reproduits à la bonne date il faut attendre l'estimation finale).
 Toutefois, sur des séries réelles, les révisions sont plus importantes (avec parfois des estimations intermédiaires non cohérentes), ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.
+Par ailleurs, lorsque les points de retournement sont associés à des chocs (comme lors du COVID-19), en étant naturellement robustes aux chcos, ces méthodes ne vont pas permettre d'estimer une tendance-cycle qui reproduirait les points de retournement.
+<!-- Tout cela fait que, dans le cadre de l'analyse conjoncturelle et l'analyse des points de retournement, les méthodes robustes ici étudiées ne sont pas à privilégier pour l'extraction de la tendance-cycle. -->
 
+En somme, pour l'analyse de la conjoncture et des points de retournement, l'utilisation de méthodes linéaires locales (telles que des moyennes mobiles) est à privilégier.
+Afin de mieux représenter la réalité économique et de minimiser les révisions, il est important d'avoir une analyse locale par série, par exemple en analysant les chocs et en les prenant en compte dans la construction des moyennes mobiles comme proposé dans cette étude.
+Fixer de manière locale les hyperparamètres utilisés dans les moyennes mobiles asymétriques (lorsque l'on ne possède pas assez de point dans le futur pour utiliser une moyenne mobile symétrique) comme suggéré par @jos2024AQLT permet également de réduire les révisions en évitant des biais systématiques lorsque la tendance est localement linéaire (par exemple reprise d'activité progressive après un choc).
+Toutefois, pour la production de données, il peut être difficile d'avoir le temps d'analyser chaque série pour déterminer les chocs.
+Cette étude
 
 \newpage
 \appendix

@@ -12,7 +12,7 @@ This study is in French but the online version can easily be used to have a tran
 
 # Estimation de la tendance-cycle avec des méthodes robustes aux points atypiques
 
-Cette étude s'intéresse à l'estimation en temp réel de la tendance-cycle autour de chocs et de points de retournement.
+Cette étude s'intéresse à l'estimation en temps réel de la tendance-cycle autour de chocs et de points de retournement.
 Les moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle, sensibles à la présence de points atypiques, sont comparées à des méthodes non-linéaires robustes.
 Nous proposons également une méthode pour prendre en compte, lors de la construction de moyennes mobiles, des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
 Nous montrons comment valider la méthodologie de construction de nouvelle moyennes mobiles en décrivant comment estimer des intervalles de confiance pour les estimations issues de moyennes mobiles.
