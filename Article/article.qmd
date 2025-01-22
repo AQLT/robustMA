@@ -1002,9 +1002,7 @@ Contrairement aux données simulées, sur les données réelles, même lorsque l
 
 Dans cette section, nous nous concentrerons sur l'illustration d'autres cas : 
 
-- Un choc ponctuel suivi d'un choc permanent (@sec-ex-ao-ls) à partir de l'analyse des immatriculations de voitures particulières neuves, corrigée des variations saisonnières (CVS) et des jours ouvrables (CJO)^[
-Série téléchargée fin octobre 2024 à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010756763>. 
-].
+- Un choc ponctuel suivi d'un choc permanent (@sec-ex-ao-ls) à partir de l'analyse des immatriculations de voitures particulières neuves, corrigée des variations saisonnières (CVS) et des jours ouvrables (CJO), publiée par l'Insee (série [`010756763`](https://www.insee.fr/fr/statistiques/serie/010756763) téléchargée en octobre 2024).
 Le choc ponctuel s'observe en août 2018, suivi d'un choc permanent en septembre 2018.
 
 - La crise financière de 2008 (@sec-ex-crise-financiere) à partir des ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme). Les données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
@@ -1012,9 +1010,7 @@ Les séries étudiées correspondent à la base publiée en novembre 2022.
 ].
 Pour cette série la crise financière de 2008 peut s'étudier comme deux chocs permanents consécutifs en octobre et novembre 2008.
 
-- La crise du COVID-19 (@sec-ex-covid) à partir l'indice de la production industrielle (IPI) dans l'industrie manufacturière CVS-CJO, publié par l'Insee^[
-La série étudiée correspond à celle publiée le 04 octobre 2024 (données alors disponibles jusqu'en août 2024) à l'adresse : <https://www.insee.fr/fr/statistiques/serie/010768307>.
-].
+- La crise du COVID-19 (@sec-ex-covid) à partir l'indice de la production industrielle (IPI) dans l'industrie manufacturière CVS-CJO, publié par l'Insee (série [`010768307`](https://www.insee.fr/fr/statistiques/serie/010768307) publiée le 04 octobre 2024).
 Deux autres exemples sont donnés dans l'annexe [-@sec-autres-ex].
 
 - Un point de retournement qui n'est pas associé à un choc (@sec-ex-retournement) à partir du niveau d'emploi aux États-Unis (série `CE16OV` de la base FRED-MD, utilisée en logarithme).
@@ -1444,9 +1440,7 @@ En somme :
 
 ### Chocs ponctuels (*additive outlier*, AO) {#sec-autres-ex-ao}
 
-Les chocs ponctuels (*additive outlier*, AO) sont illustrés sur l'indice de la production industrielle (IPI) dans la construction de véhicules automobiles, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l'Insee^[
-<https://www.insee.fr/fr/statistiques/serie/010768140>.
-] le 04 octobre 2024 (données alors disponibles jusqu'en août 2024).
+Les chocs ponctuels (*additive outlier*, AO) sont illustrés sur l'indice de la production industrielle (IPI) dans la construction de véhicules automobiles, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l'Insee (série [`010768140`](https://www.insee.fr/fr/statistiques/serie/010768140) publiée le 04 octobre 2024).
 Trois chocs ponctuels s'observent clairement sur les mois d'août de 1998, 1999 et 2004 (@fig-ipi-voitures-out-y).
 
 
@@ -1475,7 +1469,9 @@ graph_ci <- lapply(
 #| label: fig-ipi-voitures-out-y
 #| fig.cap: "IPI CVS-CJO dans la construction de véhicules automobiles autour des points atypiques d'août 1998, 1999 et 2004"
 #| fig-height: 2
-patchwork::wrap_plots(graph_y_ipiao, ncol = 3)
+patchwork::wrap_plots(graph_y_ipiao, ncol = 3) &
+	theme(axis.text.x = ggplot2::element_text(size=8, angle=20,
+											  vjust=1.1, hjust=1))
 ```
 
 ::: {#fig-ipi-voitures98-out1-est}
@@ -1558,9 +1554,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ### Choc permanent (*level shift*, LS) {#sec-autres-ex-ls}
 
-Les chocs permanents (*level shift*, LS) sont illustrés sur l'indice de la production industrielle (IPI) dans l'extraction de pétrole brut, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l'Insee^[
-<https://www.insee.fr/fr/statistiques/serie/010767578>.
-] le 04 octobre 2024 (données alors disponibles jusqu'en août 2024).
+Les chocs permanents (*level shift*, LS) sont illustrés sur l'indice de la production industrielle (IPI) dans l'extraction de pétrole brut, corrigé des variations saisonnières (CVS) et des jours ouvrables (CJO), publié par l'Insee (série [`010767578`](https://www.insee.fr/fr/statistiques/serie/010767578)) le 04 octobre 2024 (données alors disponibles jusqu'en août 2024).
 Un choc permanent s'observe en juin 2010.
 Pour la construction des intervalles de confiance, la série est tronquée pour ne prendre que les valeurs après janvier 2001 avant d'éviter que le début de la série, dont le profil est assez différent de celui sur la fin de la série, n'augmente l'estimation de la variance de l'irrégulier.
 
