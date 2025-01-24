@@ -6,8 +6,6 @@ lc_f <- lp_filter()
 robust_ff <- readRDS("data/robust_ff.rds")
 
 
-
-
 patchwork::wrap_plots(
 	plot_confint(
 		readRDS(file.path("results", "AO", "ipi_voitures98.rds")),
