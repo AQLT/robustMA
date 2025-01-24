@@ -107,7 +107,7 @@ all_filtered <- function(
 	CLF_CN_level <- x * CLF_CN
 	lc_out_level <- filtered_out(x, default_filter, out_filter, date_out)
 	res <- ts.union(x, lc_level, lc_out_level, CLF_level, CLF_CN_level, data_rob_level)
-	colnames(res) <- c("y", "Musgrave", paste0("Musgrave robuste", suff_robust_mm),
+	colnames(res) <- c("y", "Henderson", paste0("Henderson robuste", suff_robust_mm),
 					   "CLF et ALF", "CLF (coupe et normalise)", colnames(data_rob_level))
 	if (d2robustM) {
 		res2 <- ts.union(res, lqs_d2(x, h = h,method = "lms"), lqs_d2(x, h = h,method = "lts"))
@@ -150,17 +150,6 @@ create_vintage <- function(x, date_out, ny_before = 2, ny_after = ny_before, nb_
 	y_vintage
 }
 
-create_vintage_est <- function(res) {
-	if (!is.null(res$out))
-		res <- res$data
-	all_est <- lapply(colnames(res[[1]]), function(col){
-		table <- do.call(cbind, lapply(res, `[`,,col))
-		colnames(table) <- as.character(zoo::as.yearmon(as.numeric(colnames(table))))
-		table
-	})
-	names(all_est) <- colnames(res[[1]])
-	all_est
-}
 
 lqs_d2 <- function(x, h = 6, degree = 2, method = c("lms", "lts")) {
 	method <- match.arg(method)

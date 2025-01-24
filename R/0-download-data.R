@@ -19,11 +19,10 @@ data_insee <- AQLTools::lectureBDM(
 )
 colnames(data_insee) <- names(id_bank)
 file <-"https://files.stlouisfed.org/files/htdocs/fred-md/monthly/2022-11.csv"
-data <- AQLThesis::fredmd(file, transform = FALSE, log = TRUE)
+data <- AQLThesis::fredmd(file, transform = FALSE, log = FALSE)
 data_fred <- list(
 	CE16OV = na.omit(data[, "CE16OV"]), #
 	RETAILx = na.omit(data[, "RETAILx"]) # LS (2008-10-01) LS (2008-11-01)
 )
-
 saveRDS(c(lapply(as.list(data_insee), na.omit), data_fred),
 		"data/data.rds")

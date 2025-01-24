@@ -69,6 +69,7 @@ library(rjd3filters)
 library(ggplot2)
 library(patchwork)
 source("../R/0-functions.R", local = knitr::knit_global())
+options(is_french = TRUE)
 source("../R/0-functions-plot.R", local = knitr::knit_global())
 lc_f <- lp_filter()
 robust_ff <- readRDS("../data/robust_ff.rds")
@@ -142,6 +143,13 @@ plot_specific_model <- function(num_mod) {
 models <- c(
 	1, 2, # Pas CLF et ALF
 	4, 5, 6, 7, 8, 9, 10)
+if (getOption("is_french")) {
+	current_local <- Sys.getlocale("LC_TIME")
+	Sys.setlocale("LC_TIME","fr_FR.UTF-8")
+	options(OutDec = ",")
+}
+palette_coef <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+				  "#0072B2", "#D55E00", "#CC79A7", "#999999")
 ```
 
 
@@ -150,8 +158,8 @@ models <- c(
 :::: {.abstract}
 Cette étude s'intéresse à l'estimation en temps réel de la tendance-cycle autour de chocs et de points de retournement.
 Les moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle, sensibles à la présence de points atypiques, sont comparées à des méthodes non-linéaires robustes.
-Nous proposons également une méthodologie pour étendre les moyennes mobiles de Henderson et de Musgrave pour prendre en compte des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
-Nous montrons comment valider la méthodologie de construction de nouvelle moyennes mobiles en décrivant comment estimer des intervalles de confiance pour les estimations issues de moyennes mobiles.
+Nous proposons également une méthodologie pour étendre les moyennes mobiles de Henderson et de Musgrave afin de prendre en compte des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
+Nous décrivons comment estimer des intervalles de confiance pour les estimations issues de moyennes mobiles, ce qui permet de valider l'utilisation de ces nouvelle moyennes mobiles.
 En comparant les méthodes sur des séries simulées et réelles, nous montrons que : construire des moyennes mobiles robustes permet de réduire les révisions et de mieux modéliser les points de retournement autour de chocs, sans dégrader les estimations lorsqu'aucun choc n'est observé ; les méthodes non-linéaires robustes ne permettent pas d'extraire une composante tendance-cycle satisfaisante pour l'analyse conjoncturelle, avec parfois des révisions importantes.
 
 Cette étude est entièrement reproductible et tous les codes utilisés sont disponibles sous <https://github.com/AQLT/robustMA>.
@@ -166,7 +174,7 @@ Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de
 This study focuses on the real-time estimation of the trend-cycle around shocks and turning points.
 The linear moving averages classically used for estimating the trend-cycle, which are sensitive to the presence of atypical points, are compared with robust non-linear methods.
 We also propose a methodology for extending the Henderson and Musgrave moving averages to take account of external information and thus construct moving averages that are robust to the presence of certain shocks.
-We show how to validate the methodology for building new moving averages by describing how to estimate confidence intervals for estimates derived from moving averages.
+We describe how to estimate confidence intervals for estimates derived from moving averages, thereby validating the use of these new moving averages.
 By comparing the methods on simulated and real series, we show that: building robust moving averages makes it possible to reduce revisions and better model turning points around shocks, without degrading the estimates when no shock is observed; robust non-linear methods do not make it possible to extract a trend-cycle component that is satisfactory for economic analysis, with sometimes significant revisions.
 
 This study is fully reproducible and all the codes used are available under <https://github.com/AQLT/robustMA>.
@@ -184,29 +192,30 @@ JEL Classification: C22, E32.
 \setcounter{tocdepth}{2}
 \tableofcontents
 }
-\pagenumbering{arabic}
 \newpage
+\pagenumbering{arabic}
 ```
 
 
 # Introduction
 
-L'analyse du cycle économique, et en particulier la détection rapide des points de retournement d'une série, est un sujet de première importance dans l'analyse de la conjoncture économique. 
-Pour cela, les indicateurs économiques sont généralement corrigés des variations saisonnières.
-Toutefois, afin d'améliorer leur lisibilité, il peut être nécessaire d'effectuer un lissage supplémentaire afin de réduire le bruit, et ainsi analyser la composante tendance-cycle.
+L'analyse du cycle économique, et en particulier la détection rapide des points de retournement, est un sujet de première importance dans l'analyse de la conjoncture économique. 
+Les séries chronologiques se décomposent en trois composantes : les effets saisonniers et les effets de calendrier, la tendance-cycle (permettant d'analyser les points de retournement) et l'irrégulier (le bruit lié à des erreurs d'échantillonnage, chocs économiques, etc.).
+Pour l'analyse conjoncturelle, les indicateurs économiques sont généralement uniquement corrigés des variations saisonnières et des jours ouvrables, laissant ainsi l'effet combiné de la tendance-cycle et de l'irrégulier.
+Toutefois, lorsque l'irrégulier est trop élevé, il peut être nécessaire d'effectuer un lissage supplémentaire afin d'analyser directement la composante tendance-cycle.
 Par construction, les méthodes d'extraction de tendance-cycle sont étroitement liées aux méthodes de désaisonnalisation.
 En effet, afin d'estimer la composante saisonnière, les algorithmes de désaisonnalisation estiment préalablement une composante tendance-cycle.
 Ainsi, même si les méthodes d'extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également également des méthodes d'estimation de la tendance-cycle.
 
 Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d'extraction du cycle économique et d'ajustement saisonnier. 
-Par exemple, la méthode de désaisonnalisation X-11 [@ladiray2011seasonal], utilisée dans le logiciel X-13ARIMA-SEATS [@x13], utilise des moyennes mobiles de Henderson et des moyennes mobiles composites pour estimer les principales composantes d'une série chronologique. 
-Au centre de la série, des filtres symétriques sont appliqués. 
+Par exemple, la méthode de désaisonnalisation X-11 [@ladiray2011seasonal], utilisée dans le logiciel X-13ARIMA-SEATS [@x13], utilise des moyennes mobiles pour estimer les principales composantes d'une série chronologique. 
+Au centre de la série, des filtres symétriques sont appliqués (utilisation d'autant de points dans le passé et dans le futur et le même poids est associé aux observations passées et futures). 
 Pour l'extraction de la tendance-cycle, le filtre symétrique le plus connu est celui de @henderson1916note, notamment utilisé dans l'algorithme de désaisonnalisation X-13ARIMA. 
 En revanche, pour les estimations en temps réel, en raison de l'absence d'observations futures, toutes ces méthodes doivent s'appuyer sur des filtres asymétriques pour estimer les points les plus récents. 
 Par exemple, pour l'extraction de la tendance-cycle tendances-cycles, X-11 utilise le filtre symétrique de Henderson et les filtres asymétriques de @musgrave1964set sur une série étendue utilisant un modèle ARIMA.
 Comme les valeurs prédites sont des combinaisons linéaires des valeurs passées, cela revient à appliquer des moyennes mobiles asymétriques à la fin de la série.
 
-Par ailleurs, ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques.
+Ces moyennes mobiles, comme tout opérateur linéaire, sont sensibles à la présence de points atypiques.
 L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence.
 alors que les méthodes de désaisonnalisation (comme X-13ARIMA-SEATS) ont un module de correction des points atypiques.
 
@@ -221,14 +230,14 @@ Les modélisations utilisées pour les méthodes non-linéaires robustes ne perm
 
 # Méthodologie {#sec-methodo}
 
-L'hypothèse de base utilisée dans les méthodes de décomposition des séries temporelles est que la série chronologique observée, $y_t$, peut être décomposée en une composante de signal $\mu_t$ et une composante erratique $\varepsilon_t$ (appelée composante irrégulière) :
+L'hypothèse de base utilisée dans les méthodes de décomposition de séries temporelles est que la série chronologique observée, $y_t$, peut être décomposée en une composante de signal $\mu_t$ et une composante erratique $\varepsilon_t$ (appelée composante irrégulière) :
 $$
 f(y_t)=\mu_t+\varepsilon_t
 $$
 où $f$ désigne une transformation appropriée (généralement logarithmique ou aucune transformation).
 Pour simplifier les notations ultérieures, $y_t$ désignera la série observée transformée.
 La composante de bruit $\varepsilon_t$ est généralement supposée être un bruit blanc.
-En supposant que la série chronologique initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
+En supposant que la série chronologique initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et le cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
 Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$\ :
 $$
 TC_{t+i} = \sum_{j=0}^d\beta_j{i}^j+\xi_{t+i}\quad\forall i\in\{-h,-h+1,\dots,t+h\}
@@ -237,47 +246,41 @@ avec $\xi_t$ un processus stochastique non corrélé avec $\varepsilon_t$.
 Même si certains articles modélisent $\xi_t$ et $\varepsilon_t$ séparément [voir par exemple @GrayThomson2002], une hypothèse habituelle, utilisée dans cet article, est de rassembler $\xi_t$ et $\varepsilon_t$^[
 Cela revient à supposer que le biais d'approximation de la tendance-cycle par un polynôme local est nul.
 ].
-Ainsi, la tendance-cycle $TC_t$ est considérée comme déterministe et modélisée comme une tendance polynomiale de degré $d$.
+Ainsi, la tendance-cycle $TC_t$ est considérée comme déterministe et modélisée localement comme une tendance polynomiale de degré $d$.
 Les coefficients $(\beta_0,\dots,\beta_d)$ peuvent être estimés par la méthode des moindres carrés pondérés.
 L'estimation $\hat \beta_0$ fournit l'estimation du cycle de tendance $\widehat{TC}_t$ et on peut montrer que cela équivaut à appliquer une moyenne mobile.
-Cette moyenne mobile est symétrique ($\widehat{TC}_t$ est estimée en utilisant autant d'observation avant et après $t$) mais pour l'estimation des derniers points (lorsque l'on ne peut pas utiliser autant d'observations avant et après $t$) il est nécessaire de s'appuyer sur des moyennes mobiles ad-hoc qui sont asymétriques.
+Cette moyenne mobile est généralement symétrique ($\widehat{TC}_t$ est estimée en utilisant autant d'observation avant et après $t$) mais pour l'estimation des derniers points (lorsque l'on ne peut pas utiliser autant d'observations avant et après $t$) il est nécessaire de s'appuyer sur des moyennes mobiles *ad hoc* qui sont asymétriques.
 
 L'estimation de $\widehat{TC}_t$ étant faite par un méthode linéaire, elle est sensible à la présence de points atypiques qui peuvent notamment entraîner des révisions importantes.
 C'est par exemple le cas pendant la crise du COVID-19 qui a conduit Statistiques Canada et Australian Bureau of Statistics à suspendre la publication des tendances-cycles pendant cette période.
-Comme notamment discuté par @matthewssapw4, différentes stratégies peuvent être adoptées pendant les périodes de fortes "turbulences" (comme la crise du COVID-19) où les points atypiques sont importants et donc les estimations directes :
+Lors de périodes de fortes « turbulences » (comme la crise du COVID-19) où les points atypiques sont importants, les estimations directes de la tendance-cycle peuvent être biaisées.
+Comme notamment discuté par @matthewssapw4, différentes stratégies peuvent alors être adoptées :
 
 - Ne pas publier les estimations pendant cette période : c'est ce qui est fait par l'Australian Bureau of Statistics qui ne publie pas d'estimation tendance-cycle entre avril 2020 et mars 2022.
 
-- Estimer les points atypiques avec un modèle RegARIMA, estimer la tendance-cycle sur la série corrigée et "réintroduire" les effets corrigés sur la tendance-cycle. 
-L'inconvénient de cette approche est que l'estimation du point atypique dépend du modèle ARIMA utilisé et de la période d'estimation.
+- Estimer les points atypiques avec un modèle RegARIMA, estimer la tendance-cycle sur la série corrigée et « réintroduire » les effets corrigés sur la tendance-cycle. 
+L'inconvénient de cette approche est que l'estimation des points atypiques dépend du modèle ARIMA utilisé et de la période d'estimation.
 
-- Estimer la tendance-cycle sur l'ensemble de la période et remplacement des données estimées après la rupture par celle estimée en commençant la série après la rupture et après la rupture (série segmentée d'un côté).
-L'inconvénient de cette approche est que les estimations avant la rupture vont être biaisées par la présence de la rupture et que celles après la rupture reposent sur des moyennes mobiles asymétriques (avec un biais plus important que les moyennes mobiles symétriques utilisées pour les estimations finales).
+- Estimer la tendance-cycle sur l'ensemble de la période et remplacer les données estimées après la rupture par celles estimées en commençant la série après la rupture (série segmentée d'un côté).
+L'inconvénient de cette approche est que les estimations avant la rupture vont être biaisées par la présence du choc et que celles après la rupture reposent sur des moyennes mobiles asymétriques (avec un biais plus important que les moyennes mobiles symétriques utilisées pour les estimations finales, et peuvent créer un déphasage, c'est-à-dire un décalage dans les points de retournement).
 
 - Diviser la série en deux au niveau de la rupture et estimer la tendance-cycle sur chaque segment (série segmentée des deux côtés).
-L'inconvénient de cette approche est que les estimations avant la rupture et après la rupture reposent sur des moyennes mobiles asymétriques (avec un biais plus important que les moyennes mobiles symétriques utilisées pour les estimations finales).
+L'inconvénient de cette approche est que les estimations avant la rupture et après la rupture reposent sur des moyennes mobiles asymétriques (avec les mêmes inconvénients que précédemment).
 C'est l'approche privilégiée par Statistique Canada.
 
 L'objectif de cet article est d'étudier des approches alternatives à celles de @matthewssapw4.
-D'une part en étudiant les estimations en temps réel de méthodes robustes à la présence de points (@sec-methodes-robustes) ;
+D'une part en étudiant les estimations en temps réel de méthodes non-linéaires robustes à la présence de points (@sec-methodes-robustes) ;
 d'autre part en les comparant aux estimations des moyennes mobiles classiques (@sec-methodes-lineaires) et en proposant une méthode de construction de moyennes mobiles linéaires robustes (@sec-constr-mm).
 Nous montrons également comment construire des intervalles de confiance pour les estimations issues de moyennes mobiles (@sec-ic), ce qui permet de valider le choix de construction d'une moyenne mobile linéaire robuste.
 
 ## Méthodes robustes {#sec-methodes-robustes}
 
 Dans cette étude nous étudions six méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter].
-Dans ce package, la tendance-cycle est supposée être localement linéaire :
+Dans le package `robfilter`, la tendance-cycle est supposée être localement linéaire :
 $$
 y_{t+i}=\underbrace{\beta_{0,t}+\beta_{1,t}i}_{TC_{t+i}}+\varepsilon_{t,i}
 $$
-Et l'on note :
-$$
-r_{t+i}=y_{t+i}-(\beta_{0,t}+\beta_{1,t}i).
-$$
-On a donc :
-$$
-\widehat{TC}_t = \hat\beta_{0,t}.
-$$
+On a donc $\widehat{TC}_t = \hat\beta_{0,t}$ et l'on note $r_{t+i}= y_{t+i}- (\beta_{0,t}+ \beta_{1,t}i)$.
 
 Les différentes méthodes étudiées sont :
 
@@ -285,7 +288,7 @@ Les différentes méthodes étudiées sont :
 
 $$
 \widehat{TC}_t =
-\underset{i=-h,\dots,h}{\med}y_{t+i}
+\underset{i=-h,\dots,h}{\med}y_{t+i}.
 $$
 
 - Régression médiane répétée --- *Repeated Median* (RM) [@rm]
@@ -305,21 +308,20 @@ $$
 $$
 (\widehat{TC}_t,\hat\beta_{1,t})=
 \underset{\beta_{0,t},\beta_{1,t}}{\argmin}
-\left\{ \underset{i=-h,\dots,h}{\med}r^2_{t+i} \right\}
+\left\{ \underset{i=-h,\dots,h}{\med}r^2_{t+i} \right\}.
 $$
 
 - Régression des moindres carrés élagués --- *Least Trimmed Squares* (LTS) [@lts] :
 $$
 (\widehat{TC}_t,\hat\beta_{1,t})=
 \underset{\beta_{0,t},\beta_{1,t}}{\argmin}
-\left\{ \sum_{i=-h}^h r^2_{t+i} \right\}
+\left\{ \sum_{i=-h}^h r^2_{t+i} \right\}.
 $$
 
 
-- Régression des moindres quartiles différenciés --- *Least Quartile Difference* (LQD) [@lqd].
-En notant $r_{i,j} = r_i-r_j$
+- Régression des moindres quartiles différenciés --- *Least Quartile Difference* (LQD) [@lqd] :
 $$
-\underset{\beta_{1,t}}{\argmin}
+\hat\beta_{1,t}=\underset{\beta_{1,t}}{\argmin}
 Q_{2h+1}(r_{t-h},\dots,r_{t+h})
 $$
 avec
@@ -359,17 +361,17 @@ $$
 \widehat{TC}_{n-h+q} = \widehat{TC}_{n-h}+q\times\hat\beta_{1,n-h}.
 $$
 Pour la médiane mobile, cela revient à prolonger par la dernière valeur connue.
-Cette méthode ne pas pertinente pour l'analyse conjoncturelle puisque les points de retournement sont dès lors détectés avec $h$ périodes de retard.
-Une approche alternative serait d'appliquer les mêmes méthodes mais en utilisant tout simplement que les observations disponibles (pour estimer $\widehat{TC}_{n-h+1}$ on utilise les $2h$ observations entre $n-2h+1$ et $n$, ..., et pour estimer $\widehat{TC}_{n}$ on utilise les $h+1$ observations entre $n-h$ et $n$).
+Cette méthode n'est pas pertinente pour l'analyse conjoncturelle puisque les points de retournement sont détectés avec $h$ périodes de retard.
+Une approche alternative consiste à appliquer les mêmes modèles mais en n'utilisant que les observations disponibles (pour estimer $\widehat{TC}_{n-h+1}$ on utilise les $2h$ observations entre $n-2h+1$ et $n$, ..., et pour estimer $\widehat{TC}_{n}$ on utilise les $h+1$ observations entre $n-h$ et $n$).
 Cette approche n'est pas implémentée dans `robfilter` mais peut être obtenue en ajoutant $h$ valeurs manquantes au début et à la fin de la série : c'est ce qui sera effectué dans cet article.
 
 
 Dans le cadre de l'analyse conjoncturelle, il n'est généralement pas plausible de modéliser, autour des points de retournement, une tendance de degré 1.
 Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement toutes ces méthodes.
+Même si cette modélisation n'est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d'utilisation de `robfilter` font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle et présentées dans la section suivante.
 Toutefois, les méthodes LTS et LMS sont implémentées dans le package `MASS` [@MASS]^[
 Nous n'avons pas trouvé d'autres fonctions permettant d'utiliser les autres méthodes, même si elles pourraient être réimplémentées facilement.
-], il est possible de réimplémenter le processus d'estimation locale avec une tendance de degré 2, ce qui a été fait dans l'annexe [-@sec-an-lms-lts] qui présente les estimations des tendances-cycles des différents exemples de cet article.
-Même si cette modélisation n'est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d'utilisation de `robfilter` font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle et présentées dans la section suivante.
+], il est possible de réimplémenter le processus d'estimation locale avec une tendance de degré 2, ce qui a été fait dans l'annexe [-@sec-an-lms-lts].
 
 ## Moyennes mobiles linéaires classiques {#sec-methodes-lineaires}
 
@@ -423,7 +425,7 @@ L'estimation des paramètres $\boldsymbol \beta_t$ peut être obtenue moindres c
 En notant $\boldsymbol K=diag(\kappa_{-h},\dots,\kappa_{h})$ il vient $\hat{\boldsymbol\beta_t}=(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\transp{\boldsymbol X}\boldsymbol K\boldsymbol y_t.$
 Avec $\boldsymbol e_1=\transp{\begin{pmatrix}1 &0 &\cdots&0 \end{pmatrix}}$, l'estimation de la tendance-cycle est :
 $$
-\widehat{TC}_t=\widehat{\beta}_{0,t}=\boldsymbol e_{1}\hat{\boldsymbol \beta_t}=\transp{\boldsymbol \theta}\boldsymbol y_t=\sum_{j=-h}^{h}\theta_{j}y_{t-j}\text{ avec }\boldsymbol \theta=\boldsymbol K\boldsymbol X(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\boldsymbol e_{1}.
+\widehat{TC}_t=\widehat{\beta}_{0,t}=\transp{\boldsymbol e_{1}}\hat{\boldsymbol \beta_t}=\transp{\boldsymbol \theta}\boldsymbol y_t=\sum_{j=-h}^{h}\theta_{j}y_{t-j}\text{ avec }\boldsymbol \theta=\boldsymbol K\boldsymbol X(\transp{\boldsymbol X}\boldsymbol K\boldsymbol X)^{-1}\boldsymbol e_{1}.
 $$ {#eq-mmsym}
 En somme, l'estimation de la tendance $\hat{m}_{t}$ est obtenue en appliquant une moyenne mobile symétrique $\boldsymbol \theta$ à $y_t$.
 
@@ -445,7 +447,9 @@ En récrivant l' @eq-lpp :
 $$
 \boldsymbol y_t=\begin{pmatrix}\boldsymbol U &\boldsymbol Z\end{pmatrix}
 \begin{pmatrix}\boldsymbol \gamma_t \\ \boldsymbol \delta_t\end{pmatrix}+
-\boldsymbol \varepsilon_t,\quad
+\boldsymbol \varepsilon_t = 
+\boldsymbol U\boldsymbol \gamma_t + \boldsymbol Z \boldsymbol \delta_t +\boldsymbol \varepsilon_t,
+\quad
 \boldsymbol \varepsilon_t\sim\mathcal{N}(0,\boldsymbol D).
 $$ {#eq-lpgeneralmodel}
 où $[\boldsymbol U,\boldsymbol Z]$ est de rang plein et forme un sous-ensemble des colonnes de $\boldsymbol X$.
@@ -454,8 +458,8 @@ Ces contraintes sont représentées par la matrice $\boldsymbol U=\transp{\begin
 C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()`.
 
 Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymbol X$, $d^*<d$, la contrainte consiste à reproduire des tendances polynomiales de degré $d^*$.
-Cela introduit du biais mais réduit la variance. 
-Le filtre de Musgrave se retrouve en modélisant $y_t$ linéaire ($d=1$) et $\theta^{(a)}$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique. 
+Cela introduit du biais (sur les tendances de degré $d^*+1$ à $d$) mais réduit la variance. 
+Le filtre de Musgrave se retrouve en modélisant une tendance localement linéaire ($d=1$), en imposant que $\theta^{(a)}$ préserve les constantes ($d^*=0$) et en prenant le filtre d'Henderson comme filtre symétrique. 
 C'est-à-dire que l'on a $\boldsymbol U=\transp{\begin{pmatrix}1&\cdots&1\end{pmatrix}}$, $\boldsymbol Z=\transp{\begin{pmatrix}-h&\cdots&+h\end{pmatrix}}$, $\boldsymbol \delta_t=\delta_{1,t}$, $\boldsymbol D=\sigma^2\boldsymbol I$.
 Ce filtre dépend du rapport $\lvert\delta_{1,t}/\sigma\rvert$ (modélisant le biais), qui est à fixer par l'utilisateur. 
 En supposant que la tendance est linéaire et le biais constant ($\delta_{1,t}=\delta_1$), ce rapport est lié à l'I-C ratio $R=\frac{\bar{I}}{\bar{C}}=\frac{\sum\lvert I_t-I_{t-1}\rvert}{\sum\lvert C_t-C_{t-1}\rvert}$ (et l'on a $\delta_1/\sigma=2/(R\sqrt{\pi})$), qui est notamment utilisé dans X-11 pour déterminer la longueur de la moyenne mobile de Henderson à utiliser.
@@ -465,32 +469,35 @@ Pour des données mensuelles :
 
 - Si le rapport est faible ($R<1$), un filtre symétrique à 9 termes est utilisé et le rapport $R=1$ est utilisé dans X-11 pour définir le filtre de Musgrave.
 
-- Dans le cas contraire (la plupart des cas), un filtre symétrique à 13 termes est utilisé et le rapport $R=3,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
+- Dans le cas contraire ($1\leq R \leq 3,5$, la plupart des cas), un filtre symétrique à 13 termes est utilisé et le rapport $R=3,5$ est utilisé dans X-11 pour définir le filtre de Musgrave.
 
 Dans cet article, seules des séries mensuelles sont étudiés et le filtre de Henderson à 13 termes sera utilisé comme filtre symétrique.
 Par simplification et par cohérence avec ce qui est utilisé dans X-11, le ratio $\delta_1/\sigma$ sera fixé de sorte à avoir $R=3,5$.
 C'est également ce qui est fait par l'Australian Bureau of Statistics [@abs2003].
 Toutefois, comme notamment montré dans @jos2024AQLT, une paramétrisation locale de ce paramètre pourrait être préférée.
 
+
+Par simplification, dans cette étude on parle d'estimation via la moyenne mobile de Henderson pour désigner l'utilisation des moyennes mobiles de Henderson pour l'esitmation finale et des moyennes mobiles de Musgrave pour les estimations intermédiaires.
 Les coefficients des différentes moyennes mobiles étudiées dans cet article sont représentés dans l'annexe [-@sec-annexes-mm].
+
 
 ### Filtres cascade
 
 Les moyennes mobiles étant des opérateurs linéaires, ils sont sensibles à la présence de points atypiques.
-L'application directe des méthodes peut donc conduire à des estimations biaisées, du fait de leur présence, alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
-Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-13ARIMA pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle).
+Du fait de leur présence, l'application directe des méthodes peut donc conduire à des estimations biaisées alors que les méthodes de désaisonnalisation (comme la méthode X-13ARIMA) ont un module de correction des points atypiques.
+Par ailleurs, comme notamment montré par @dagum1996new, le filtre symétrique final utilisé par X-11 pour extraire la tendance-cycle (et donc celui indirectement utilisé lorsqu'on applique les méthodes sur les séries désaisonnalisées) laisse passer environ 72 % des cycles de 9 ou 10 mois (généralement associés à du bruit plutôt qu'à la tendance-cycle).
 Les filtres asymétriques finaux amplifient même les cycles de 9 ou 10 mois.
 Cela peut avoir pour conséquence l'introduction d'ondulations indésirables, c'est-à-dire la détection de faux points de retournement.
 Ce problème est réduit par la correction des points atypiques (ces cycles étant considérés comme de l'irrégulier). 
 C'est ainsi que le *Nonlinear Dagum Filter* (NLDF) a été développé et consiste à :
 
-1. appliquer l'algorithme de correction des points atypiques de X-13ARIMA sur la série désaisonnalisée, puis de la prolonger par un modèle ARIMA ;
+1. appliquer l'algorithme de correction des points atypiques de X-11 sur la série désaisonnalisée, puis la prolonger par un modèle ARIMA ;
     
 2. effectuer une nouvelle correction des points atypiques en utilisant un seuil bien plus strict et appliquer ensuite le filtre symétrique de 13 termes. 
     En supposant une distribution normale cela revient à modifier 48 % des valeurs de l'irrégulier.   
 
 Les *cascade linear filter* [CLF, @clf], correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$
-De manière similaires, des moyennes mobiles asymétriques, *Asymmetric Linear Filter* (ALF), peuvent être construites
+De manière similaire, des moyennes mobiles asymétriques, *Asymmetric Linear Filter* (ALF), peuvent être construites
     
 C'est la moyenne mobile CLF qui est utilisée par Statistique Canada pour l'estimation de la tendance-cycle^[
 Voir par exemple <https://www.statcxan.gc.ca/fr/quo/bdd/tendance-cycle>.
@@ -513,22 +520,18 @@ $$
 $$
 avec
 $$
-\boldsymbol \theta_t^{(r)}=\boldsymbol K\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}(\transp{\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}}\boldsymbol K \begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix})^{-1}\boldsymbol e_{1}
+\boldsymbol \theta_t^{(r)}=\boldsymbol K\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}\left(\transp{\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}}\boldsymbol K \begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}\right)^{-1}\boldsymbol e_{1}
 \text{ et }
 \mathcal O_{t} = \begin{pmatrix}
 \boldsymbol O_{t-h} \\ \vdots\\\boldsymbol O_{t+h}
 \end{pmatrix}.
 $$
 
-La moyenne mobile $\boldsymbol \theta_t^{(r)}$ est centrée (autant de points avant et après $t$ sont utilisées pour estimer $\widehat{TC}_t$) mais n'est plus forcément symétrique (pour au moins un $i\in\{1,\dots,h\}$ on a : $\theta_{-i,t}^{(r)}\ne\theta_{i,t}^{(r)}$).
-
 Le filtre de Henderson peut être obtenu par approximation locale d'un polynôme de degré 2.
 Puisqu'il est symétrique, il préserve également les tendances de degré 3 et peut également être obtenu par approximation locale d'un polynôme de degré 3.
-En revanche, même si la moyenne mobile $\boldsymbol \theta_t^{(r)}$ est centrée (autant de points avant et après $t$ sont utilisées pour estimer $\widehat{TC}_t$), elle n'est plus forcément symétrique (pour au moins un $i\in\{1,\dots,h\}$ on a : $\theta_{-i,t}^{(r)}\ne\theta_{i,t}^{(r)}$).
+En revanche, même si la moyenne mobile $\boldsymbol \theta_t^{(r)}$ est centrée (autant de points avant et après $t$ sont utilisés pour estimer $\widehat{TC}_t$), elle n'est plus forcément symétrique (pour au moins un $i\in\{1,\dots,h\}$ on a $\theta_{-i,t}^{(r)}\ne\theta_{i,t}^{(r)}$).
 Pour construire une moyenne mobile robuste associée au filtre de Henderson, le choix entre modélisation d'un polynôme local de degré 2 ($d=2$) ou 3 ($d=3$) aura donc un impact sur la moyenne mobile finale.
-Dans cet article nous utiliserons par convention la valeur $d=3$ afin de préserver les mêmes tendances que la moyenne mobile de Henderson.
-
-<!-- Comme $\transp{\begin{pmatrix}\boldsymbol X &  \mathcal O_{t}\end{pmatrix}}\boldsymbol \theta_t^{(r)}=\boldsymbol e_{1}$ -->
+Dans cet article nous utiliserons par convention la valeur $d=3$ afin de préserver sans biais les mêmes tendances que la moyenne mobile de Henderson.
 
 
 Pour la construction des moyennes mobiles asymétriques, le même principe est appliqué à l'@eq-lpgeneralmodel en estimant sans biais $\boldsymbol\zeta_t$ :
@@ -536,27 +539,27 @@ $$
 \boldsymbol y_t=\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix}\begin{pmatrix}\boldsymbol \gamma_t \\ \boldsymbol\zeta_t \end{pmatrix}+\boldsymbol Z\boldsymbol \delta_t+\boldsymbol \varepsilon_t,\quad
 \boldsymbol \varepsilon_t\sim\mathcal{N}(\boldsymbol 0,\boldsymbol D).
 $$
-La moyenne mobile asymétrique $\boldsymbol \theta^{(a)(r)}_t$ est trouvée par minimisation  qui minimise l'erreur quadratique moyenne de révision (à la moyenne mobile $\boldsymbol \theta_t^{(r)}$) sous contraintes.
+La moyenne mobile asymétrique $\boldsymbol \theta^{(a)(r)}_t$ est trouvée par minimisation de l'erreur quadratique moyenne de révision (à la moyenne mobile $\boldsymbol \theta_t^{(r)}$) sous contraintes.
 Ces contraintes sont représentées par la matrice
 $\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix} = \begin{pmatrix}\boldsymbol U_{p} & \mathcal O_{p,t} \\\boldsymbol U_{f} & \mathcal O_{f,t} \end{pmatrix}$ : 
 $$
 \transp{\begin{pmatrix}\boldsymbol U_{p} & \mathcal O_{p,t} \end{pmatrix}}\boldsymbol \theta^{(a)}=\transp{\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix}}\boldsymbol \theta
 $$ 
 
-Par convention, lorsque $\mathcal O_{t}$ ou $\mathcal O_{p,t}$ est la matrice nulle, on garde la modélisation de la @sec-lp.
+Par convention, lorsque $\mathcal O_{t}$ ou $\mathcal O_{p,t}$ est la matrice nulle, on garde la modélisation de la @sec-lp (sans introduction de régresseur supplémentaire).
 
 Dans cette étude, les deux types de points atypiques les plus couramment rencontrés dans l'analyse de données macroéconomiques sont étudiés :
 
 - Les points atypiques additifs (AO, *additive outlier*) : un choc ponctuelle à une date particulière puis un retour à la normal (grève, mesure exceptionnelle, erreur de mesure par exemple liée à de la non réponse, etc.).
 Le choc affecte donc l'irrégulier et ne devrait pas avoir d'impact sur la tendance-cycle.
-Si le choc apparaît à la date $t_0$ il peut être modélisé par le régresseur $O_t^{AO}=\1_{t=t_0}$ qui vaut $1$ à la date $t_0$ et $0$ sinon.
-Si l'on souhaite que le choc soit affecté à la tendance-cycle et non pas à l'irrégulier, il faut utiliser le régresseur $O_{t+j}=O_{t+j}^{AO}=\1_{t+j= t_0}$ lorsque $t< t_0$ ou $t=t_0+h$ (estimations des points avant le choc et dernière moyenne mobile modifiée) et $O_{t+j}=1-O_{t+j}^{AO}=\1_{t+j\ne t_0}$ lorsque $t_0+h>t\geq t_0$ (estimations des points après le choc sauf dernière moyenne mobile modifiée).
+Si le choc apparaît à la date $t_0$ il peut être modélisé par le régresseur $O_t^{AO}=\1_{t=t_0}$ qui vaut $1$ à la date $t_0$ et $0$ sinon.\
+Si l'on souhaite que le choc soit affecté à la tendance-cycle et non pas à l'irrégulier (par exemple pendant la période du COVID-19), il faut utiliser le régresseur $O_{t+j}=O_{t+j}^{AO}=\1_{t+j= t_0}$ lorsque $t< t_0$ ou $t=t_0+h$ (estimations des points avant le choc et dernière moyenne mobile modifiée) et $O_{t+j}=1-O_{t+j}^{AO}=\1_{t+j\ne t_0}$ lorsque $t_0\leq t < t_0+h$ (estimations des points après le choc sauf dernière moyenne mobile modifiée).
 Une distinction est faite pour $t=t_0+h$ car dans ce cas le régresseur $\1_{t+j\ne t_0}$ est égal à $\1_{t+j> t_0}$ ce qui revient à créer une rupture en niveau (cf *infra*) et introduit un pic indésirable à l'estimation en $t_0+h$.
 
 
 - Les ruptures en niveau (LS, *level shift*) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.).
-Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'irrégulier.
-Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t+j< t_0}$ si $t\leq t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t+j\geq t_0}$ si $t>t_0$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
+Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'impact sur l'irrégulier.
+Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t+j< t_0}$ si $t\leq t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t+j\geq t_0}$ si $t_0<t$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
 
 
 L'inconvénient de cette approche, par rapport aux méthodes robustes présentées dans la @sec-methodes-robustes, est que cela suppose de connaître la date et la nature du point atypique.
@@ -569,11 +572,12 @@ La @sec-ic décrit la méthodologie pour la construction d'intervalles de confia
 
 Toutefois, pour l'estimation en temps réel, sauf à avoir une information extérieure, il est difficile de distinguer un *level shift* (LS) d'un ou plusieurs *additive outlier* (AO) consécutifs.
 Le choix du type de point atypique aura une influence forte sur l'estimation (puisque les LS affectent la tendance-cycle et les AO l'irrégulier) et passer d'une spécification à l'autre entraînera des révisions importantes.
-Ces révisions seront par ailleurs plus importantes que si, avant de décider de la bonne modélisation à adopter, les premières estimations avaient été faites avec des moyennes moyennes mobiles classiques.
+Ces révisions seront même plus importantes que si, avant de décider de la bonne modélisation à adopter, les premières estimations avaient été faites avec des moyennes moyennes mobiles classiques.
 
-Par rapport au préajustement des points atypiques par un modèle ad-hoc, comme le module de pré-ajustement de X-13ARIMA basé sur un modèle RegARIMA), l'approche ici présentée a l'avantage de ne pas être dépendante de l'identification d'un modèle et de la période d'estimation (pas de biais lié à l'identification des paramètres ou à l'utilisation d'une période d'estimation trop courte ou trop longue).
+Par rapport au préajustement des points atypiques par un modèle *ad hoc*, comme le module de pré-ajustement de X-13ARIMA basé sur un modèle RegARIMA, l'approche ici présentée a l'avantage de ne pas être dépendante de l'identification d'un modèle et de la période d'estimation (pas de biais lié à l'identification des paramètres ou à l'utilisation d'une période d'estimation trop courte ou trop longue).
 
-Dans la suite ces moyennes mobiles seront appelées moyenne mobile de Henderson ou de Musgrave robuste.
+Dans la suite ces moyennes mobiles seront appelées moyennes mobiles de Henderson ou de Musgrave robustes.
+Par simplification, nous appellerons également moyenne mobile de Henderson robuste l'utilisation des moyennes de mobiles de Henderson (pour l'estimation finale) et de Musgrave (pour les estimations intermédiaires) robustes construits selont la même méthodologie.
 
 ## Construction d'intervalles de confiance pour des moyennes mobiles {#sec-ic}
 
@@ -584,27 +588,27 @@ y_t=\mu_t+\varepsilon_t,
 $$
 où $\mu_t$ est une composante déterministe à estimer et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
 
-Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer une composante inobservable $\mu_t$ (dans notre cas la tendance-cycle $TC_t$) à partir de $y_t$.
+Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer la composante inobservable $\mu_t$ (dans cette étude la tendance-cycle $TC_t$) à partir de $y_t$.
 Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
 
 Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ peut être calculé à partir de la formule :
 $$
 I_t=\left[\hat{\mu}_t - q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2};
  \hat{\mu}_t  + q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2}\right]
-$$
+$${#eq-ic}
 où 
 $$
-\hat\sigma^2=\frac{1}{n-p-f}\sum_{t=p+1}^{n-f}\frac{(y_t-\widehat{\mu}_t)^2}{1-2\theta_0^2+\sum_{i=-p}^{+f} \theta_i^2}.
+\hat\sigma^2=\frac{1}{(n-p-f)\left(1-2\theta_0^2+\sum_{i=-p}^{+f} \theta_i^2\right)}\sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2
 $$
 et $q_\alpha$ est le quantile d'ordre $\alpha$ d'une certaine loi de Student.
-C'est un intervalle de confiance de $\mu_t$ lorsque l'on a un estimateur sans biais de $\mu_t$ ($\mathbb E[\hat{\mu}_t]= \sum_{i=-p}^{+f}\theta_iy_{t+i}= \mu_t$), ce qui n'est généralement pas le cas, mais il est négligeable, lorsque la fenêtre $p+f+1$ est petite.
+C'est un intervalle de confiance de $\mu_t$ lorsque l'on a un estimateur sans biais de $\mu_t$ ($\mathbb E[\hat{\mu}_t]= \sum_{i=-p}^{+f}\theta_iy_{t+i}= \mu_t$), ce qui n'est généralement pas le cas, mais le biais est négligeable lorsque la fenêtre $p+f+1$ est petite.
 
-Ces formules ces retrouvent par analogie avec la régression polynomiale locale.
+Ces formules se retrouvent par analogie avec la régression polynomiale locale.
 En reprenant les notations de @Loader1999 pour la régression polynomiale locale et en adaptant à l'utilisation de moyennes mobiles, la variance $\hat\sigma^2$ peut être estimée par la somme des carrés des résidus normalisés :
 $$
 \hat\sigma^2=\frac{1}{(n-p-f)-2\nu_1+\nu_2}\sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2.
 $$
-$n-p-f$ termes sont utilisés car avec la moyenne mobile $\theta$ seulement $n-p-f$ observations peuvent être utilisées pour estimer $\sigma^2$.
+$n-p-f$ termes sont utilisés car avec la moyenne mobile $\boldsymbol \theta$ seulement $n-p-f$ observations peuvent être utilisées pour estimer $\sigma^2$.
 $\nu_1$ et $\nu_2$ sont deux définitions de degrés de liberté d'une estimation locale (généralisation du nombre de paramètres d'un modèle paramétrique).
 Notons $\boldsymbol H$ la *matrice chapeau* de taille $n\times n$ permettant de faire correspondre les données aux valeurs estimées :
 $$
@@ -637,8 +641,8 @@ $$
 $$
 Si les bruits $\varepsilon_t$ sont indépendants et de variance $\sigma^2$, alors :
 $$
-\V{Y_t-\hat{\mu}_t}=\sigma^2 - 
-2\underbrace{\cov{Y_t}{\hat{\mu}_t}}_{=\theta_0\sigma^2} + 
+\V{y_t-\hat{\mu}_t}=\sigma^2 - 
+2\underbrace{\cov{y_t}{\hat{\mu}_t}}_{=\theta_0\sigma^2} + 
 \underbrace{\V{\hat{\mu}_t}}_{=\sigma^2\sum_{i=-p}^{+f} \theta_i^2}
 $$
 et l'on a donc :
@@ -653,9 +657,9 @@ $$
 \sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2 =
 \transp{\boldsymbol Y}\boldsymbol \Delta\boldsymbol Y 
 $$
-où :
+avec ${\boldsymbol Y} = \transp{\begin{pmatrix} y_1 & \cdots & y_n\end{pmatrix}}$ et :
 $$
-\boldsymbol \Delta = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol)\text{ avec }
+\boldsymbol \Delta = \transp{(\boldsymbol I - \boldsymbol H)}(\boldsymbol I - \boldsymbol H\boldsymbol),\,
 \boldsymbol I = \begin{pmatrix}
 &\boldsymbol0_{p\times n} \\
 \boldsymbol 0_{(n-p-f)\times p} &\boldsymbol I_{n-p-f} & \boldsymbol 0_{(n-p-f)\times f}  \\
@@ -687,11 +691,13 @@ $$
 \end{cases}.
 $$
 Les deux premiers moments de $\nu \hat\sigma^2/\sigma^2$ sont donc identiques à ceux d'un loi du chi-deux avec $\nu$ degrés de liberté.
-La loi $\hat\sigma^2$ étant difficile à calculer dans le cadre de la régression locale, on donc approximer sa distribution de $\hat\sigma^2$ par une loi du chi-deux.
+La loi $\hat\sigma^2$ étant difficile à calculer dans le cadre de la régression locale, on donc approximer sa distribution par une loi du chi-deux.
 
-Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on a donc :
+Puisque $\V{\mu_t}=\sigma^2\sum_{i=-p}^{+f} \theta_i^2$, on retrouve la formule de l'intervalle de confiance de l'@eq-ic :
 $$
-\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}\sim\mathcal{T}(\nu).
+\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\V{\mu_t}}}=\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\sigma^2\sum_{i=-p}^{+f} \theta_i^2}}
+\text{ et }
+\frac{\hat\mu_t-\E{\mu_t}}{\sqrt{\hat\sigma^2}\sqrt{\sum_{i=-p}^{+f} \theta_i^2}}\sim\mathcal{T}(\nu).
 $$
 Le numérateur de $\nu$ se calcule facilement puisque l'on a :
 $$
@@ -813,7 +819,7 @@ graph_ci_ls_td2 <- plot_confint(
 ```
 
 
-Afin d'illustrer les performances des différentes méthodes, les différentes estimations sont comparées sur des séries simulées dans un cas extrême : lorsque l'irrégulier est nul.
+Afin d'illustrer les performances des différentes méthodes, les estimations sont comparées sur des séries simulées dans un cas extrême : lorsque l'irrégulier est nul.
 Trois tendances sont simulées, de degré 0, 1 ou 2, et un choc positif de 10 % est introduit en janvier 2022 : soit un choc ponctuel (*additive outlier*, affectant l'irrégulier) soit un choc permanent (*level shift*, affectant la tendance-cycle).
 Les séries simulées commencent en janvier 2018, soit 4 ans avant le choc afin de limiter l'impact des points atypiques sur le calcul des intervalles de confiance (puisque l'irrégulier est nul, l'intervalle de confiance est également nul avant l'introduction du choc).
 La @fig-simul-y montre les différentes séries simulées.
@@ -831,15 +837,15 @@ graph_y_ao_td0 + graph_y_ao_td1 + graph_y_ao_td2 +
 ```
 
 
-Pour les chocs ponctuels (*additive outlier*, AO), lorsque la tendance est de degré 0, aucune des méthodes robustes n'est influencée par la présence de l'AO, tout comme la moyenne mobile de Musgrave robuste (@fig-simul-ao-out-td0-est).
-Les estimations avec les moyennes mobiles de Musgrave et CLF sont biaisées avec des révisions importantes à la date du choc, légèrement plus petites pour la méthode CLF.
+Pour les chocs ponctuels (*additive outlier*, AO), lorsque la tendance est de degré 0, aucune des méthodes robustes n'est influencée par la présence de l'AO, tout comme la moyenne mobile de Henderson robuste (@fig-simul-ao-out-td0-est).
+Les estimations avec les moyennes mobiles de Henderson et CLF sont biaisées avec des révisions importantes à la date du choc, légèrement plus petites pour la méthode CLF.
 L'analyse des intervalles de confiance valident clairement la présence du point atypique (@fig-simul-ao-out-td0-ci).\
-Lorsque la tendance est de degré 1 (figures [-@fig-simul-ao-out-td1-est] et [-@fig-simul-ao-out-td1-ci]) les résultats sont similaires sauf pour la médiane mobile qui sous-estime la tendance pour les estimations intermédiaires.
+Lorsque la tendance est de degré 1 les résultats sont similaires sauf pour la médiane mobile qui sous-estime la tendance pour les estimations intermédiaires (figures [-@fig-simul-ao-out-td1-est] et [-@fig-simul-ao-out-td1-ci]).
 Comme notamment indiqué par @gather2006online, cela suggère d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
-Un léger biais négatif s'observe pour la méthode de Musgrave robuste : cela provient du fait que pour la création de ces moyennes mobiles la pente est fixé (ratio $\delta_1/\sigma$ fixé et $\sigma$ a priori fixé) à une valeur différente de la pente simulée.
+Un léger biais négatif s'observe pour la méthode de Henderson robuste : cela provient du fait que pour la création de ces moyennes mobiles la pente est fixé (ratio $\delta_1/\sigma$ fixé et $\sigma$ a priori fixé) à une valeur différente de la pente simulée.
 Cela suggère de préférer une paramétrisation locale de ce paramètre, comme proposé par @jos2024AQLT.\
-Lorsque la tendance est de degré 2 (figures [-@fig-simul-ao-out-td2-est] et [-@fig-simul-ao-out-td2-ci]), les résultats avec les moyennes mobiles sont similaires (révisions importantes autour du choc pour Musgrave et CLF et faibles pour Musgrave robuste).
-Pour les méthodes robustes les estimations finale modélisent bien le retournement de tendance malgré le fait que juste une tendance de degré 1 est modélisée.
+Lorsque la tendance est de degré 2, les résultats avec les moyennes mobiles sont similaires (révisions importantes autour du choc pour Henderson et CLF et faibles pour Henderson robuste, figures [-@fig-simul-ao-out-td2-est] et [-@fig-simul-ao-out-td2-ci]).
+Pour les méthodes robustes, les estimations finales reproduisent bien le retournement de tendance malgré le fait qu'elles ne modélisent qu'une tendance de degré 1.
 Pour les estimations en temps réel, les tendances sont surestimées mais les révisions faibles : cela s'explique par le faible degré de courbure de la série simulée et pourraient être minimisées en modélisant des tendances de degré supérieur (voir annexe [-@sec-an-lms-lts] pour les résultats avec les méthodes LMS et LTS).
 
 ::: {#fig-simul-ao-out-td0-est}
@@ -852,14 +858,14 @@ patchwork::wrap_plots(graph_est_ao_td0, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022
 :::
 
 ```{r}
 #| label: fig-simul-ao-out-td0-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour une série simulée avec une tendance de degré 0 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td0, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -876,14 +882,14 @@ patchwork::wrap_plots(graph_est_ao_td1, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022
 :::
 
 ```{r}
 #| label: fig-simul-ao-out-td1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td1, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -899,14 +905,14 @@ patchwork::wrap_plots(graph_est_ao_td2, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 2 et un choc ponctuel (*additive outlier*, AO) en janvier 2022
 :::
 
 ```{r}
 #| label: fig-simul-ao-out-td2-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour une série simulée avec une tendance de degré 1 et un choc ponctuel (*additive outlier*, AO) en janvier 2022"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ao_td2, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -918,10 +924,10 @@ Pour les chocs permanents (*level shift*, LS), à l'exception de la régression 
 En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date : il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte  à la bonne date pour la méthode LQD et juillet 2022 (soit l'estimation finale) pour les autres méthodes, même lorsque la tendance est de degré 0.
 Modéliser, dans ces méthodes, une tendance de degré 2 ne change pas ce résultat (annexe [-@sec-an-lms-lts]).
 Cela suggère encore d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.\
-Les moyennes mobiles linéaires classiques (Musgrave et CLF) donnent des résultats similaires\ : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
+Les moyennes mobiles linéaires classiques (Henderson et CLF) donnent des résultats similaires\ : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
 Il y a également d'importantes révisions pour la première estimation de janvier 2022 (date du choc).
-Il n'y a en revanche quasiment aucune révision pour les moyennes mobile de Musgrave robuste à un choc permanent en janvier 2022.\
-Les intervalles de confiance des estimations de la moyenne mobile de Musgrave sont comparés à la moyenne mobile de Musgrave robuste au choc permanent et à la moyenne mobile de Musgrave robuste à un choc ponctuel en janvier et février 2022 (figures [-@fig-simul-ls-out-td0-ci],  [-@fig-simul-ls-out-td1-ci] et [-@fig-simul-ls-out-td2-ci]).
+Il n'y a en revanche quasiment aucune révision pour les moyennes mobile de Henderson robuste à un choc permanent en janvier 2022.\
+Les intervalles de confiance des estimations de la moyenne mobile de Henderson sont comparés à la moyenne mobile de Henderson robuste à un choc permanent en janvier 2022 ou à un choc ponctuel en janvier et février 2022 (figures [-@fig-simul-ls-out-td0-ci],  [-@fig-simul-ls-out-td1-ci] et [-@fig-simul-ls-out-td2-ci]).
 Cela permet de simuler le cas où on ne sait pas, en temps réel, trancher sur la nature du choc : soit un choc permanent, soit un choc ponctuel (lorsque l'on se place en janvier 2022), soit deux chocs ponctuels (lorsque l'on se place en février 2022).
 En mars 2022, l'observation de trois chocs de même ampleur confirme qu'il s'agit d'un choc permanent et non ponctuel.
 Si l'on s'est trompé dans la nature du choc, jusqu'en février 2022 les révisions sont nulles pour les estimations avant le choc mais importantes pour celles après (janvier et février, puisque le choc est affecté à l'irrégulier et non pas à la tendance-cycle).
@@ -935,14 +941,14 @@ patchwork::wrap_plots(graph_est_ls_td0, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 0 et un choc permanent (*level shift*, LS) en janvier 2022
 :::
 
 ```{r}
 #| label: fig-simul-ls-out-td0-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 0 et un choc permanent (*level shift*, LS) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour une série simulée avec une tendance de degré 0 et un choc permanent (*level shift*, LS) en janvier 2022"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td0, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -958,14 +964,14 @@ patchwork::wrap_plots(graph_est_ls_td1, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 1 et un choc permanent (*level shift*, LS) en janvier 2022
 :::
 
 ```{r}
 #| label: fig-simul-ls-out-td1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 1 et un choc permanent (*level shift*, LS) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour une série simulée avec une tendance de degré 1 et un choc permanent (*level shift*, LS) en janvier 2022"
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td1, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
@@ -980,14 +986,14 @@ patchwork::wrap_plots(graph_est_ls_td2, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour une série simulée avec une tendance de degré 2 et un choc permanent (*level shift*, LS) en janvier 2022
 :::
 
 ```{r}
 #| label: fig-simul-ls-out-td2-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour une série simulée avec une tendance de degré 2 et un choc permanent (*level shift*, LS) en janvier 2022"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour une série simulée avec une tendance de degré 2 et un choc permanent (*level shift*, LS) en janvier 2022"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci_ls_td2, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1005,22 +1011,22 @@ Dans cette section, nous nous concentrerons sur l'illustration d'autres cas :
 - Un choc ponctuel suivi d'un choc permanent (@sec-ex-ao-ls) à partir de l'analyse des immatriculations de voitures particulières neuves, corrigée des variations saisonnières (CVS) et des jours ouvrables (CJO), publiée par l'Insee (série [`010756763`](https://www.insee.fr/fr/statistiques/serie/010756763) téléchargée en octobre 2024).
 Le choc ponctuel s'observe en août 2018, suivi d'un choc permanent en septembre 2018.
 
-- La crise financière de 2008 (@sec-ex-crise-financiere) à partir des ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme). Les données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
+- La crise financière de 2008 (@sec-ex-crise-financiere) à partir des ventes au détail et services de restauration aux États-Unis. Les données issues de la base FRED-MD [@fredmd] contenant des séries économiques sur les États-Unis^[
 Les séries étudiées correspondent à la base publiée en novembre 2022.
-].
+] (série `RETAILx`).
 Pour cette série la crise financière de 2008 peut s'étudier comme deux chocs permanents consécutifs en octobre et novembre 2008.
 
 - La crise du COVID-19 (@sec-ex-covid) à partir l'indice de la production industrielle (IPI) dans l'industrie manufacturière CVS-CJO, publié par l'Insee (série [`010768307`](https://www.insee.fr/fr/statistiques/serie/010768307) publiée le 04 octobre 2024).
 Deux autres exemples sont donnés dans l'annexe [-@sec-autres-ex].
 
-- Un point de retournement qui n'est pas associé à un choc (@sec-ex-retournement) à partir du niveau d'emploi aux États-Unis (série `CE16OV` de la base FRED-MD, utilisée en logarithme).
+- Un point de retournement qui n'est pas associé à un choc (@sec-ex-retournement) à partir du niveau d'emploi aux États-Unis (série `CE16OV` de la base FRED-MD).
 Un autre exemple est donné dans l'annexe [-@sec-autres-ex].
 
 Toutes ces séries sont représentées dans la @fig-ex-y.
 
 ```{r}
 #| label: fig-ex-y
-#| fig.cap: "Séries des immatriculations de voitures particulières neuves en France, ventes au détail et services de restauration aux États-Unis (en logarithme), IPI dans l'industrie manufacturière en France et niveau d'emploi aux États-Unis (en logarithme)"
+#| fig.cap: "Séries des immatriculations de voitures particulières neuves en France, ventes au détail et services de restauration aux États-Unis, IPI dans l'industrie manufacturière en France et niveau d'emploi aux États-Unis"
 #| fig-height: 3
 graph_y_immat <- plot_y(
 	readRDS(file.path("..", "results", "AOLS", "immat2018.RDS")), 
@@ -1052,10 +1058,10 @@ graph_y_immat + graph_y_2008 + graph_y_covid +
 
 L'entrée en vigueur de la procédure d'essai mondiale harmonisée pour les véhicules légers (*Worldwide harmonized Light vehicles Test Procedures*, WLTP) en septembre 2018 a eu pour effet une forte hausse des immatriculations de voitures particulières neuves en août 2018 (choc ponctuel), les constructeurs ayant déstocké des modèles qui n'étaient plus autorisés à la vente à partir de cette date.
 À partir du mois de septembre, le niveau des immatriculations était plus faible par contre-coup de la hausse du mois d'août.
-Même si ce choc en niveau semble temporaire sur 5 mois (retour au niveau de juillet 2018 à partir de février), il est modélisé dans la construction des moyennes mobiles robustes, par simplification, comme un choc permanent.
+Même si ce choc en niveau semble temporaire sur 5 mois (retour au niveau de juillet 2018 à partir de février), il est, par simplification, modélisé dans la construction des moyennes mobiles robustes comme un choc permanent.
 
 Les méthodes robustes ne sont pas affectées par le choc ponctuel mais ne reproduisent pas le changement de niveau à la bonne date (@fig-imat2018-est).
-Les moyennes mobiles linéaires de Musgrave et CLF ont des résultats similaires : fortes révisions en août 2018, un point de retournement détecté en avance (juillet 2018).
+Les moyennes mobiles linéaires de Henderson et CLF ont des résultats similaires : fortes révisions en août 2018, un point de retournement détecté en avance (juillet 2018).
 Les moyennes mobiles robustes conduisent à peu de révisions autour des chocs.
 Lorsque l'on ne modélise que le choc ponctuel d'août (@fig-imat2018-ci) un point de retournement est détecté en mars 2018, ce qui parait peu plausible.
 
@@ -1091,14 +1097,14 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle des immatriculations de voitures particulières neuves à partir d'août 2018
 :::
 
 ```{r}
 #| label: fig-imat2018-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les immatriculations de voitures particulières neuves à partir d'août 2018"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour les immatriculations de voitures particulières neuves à partir d'août 2018"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1110,15 +1116,15 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 La crise financière de 2008 est illustrée à partir des ventes au détail et services de restauration.
 Sur cette série, on observe deux chocs consécutifs en niveau : en octobre et en novembre 2008.
 Seules deux méthodes robustes (médiane mobile et LMS) reproduisent ces chocs dans les estimations finales (@fig-retailx2008-est) ; certaines estimations intermédiaires sont éloignées des estimations finales (par exemple pour les médianes mobiles ou les points de décembre 2008 et janvier 2009 RM, LMS, LTS et LQD) ce qui conduit à des révisions importantes.
-Les moyennes mobiles linéaires donnent des estimations avec relativement peu de révisions (en particulier pour les moyennes mobiles robustes) mais le retournement conjoncturel est détecté trop tôt pour Musgrave et CLF.
+Les moyennes mobiles linéaires donnent des estimations avec relativement peu de révisions (en particulier pour les moyennes mobiles robustes) mais le retournement conjoncturel est détecté trop tôt pour Henderson et CLF.
 En temps-réel, si l'on ne sait pas que ce sont des chocs permanents, les chocs peuvent être modélisés comme deux chocs ponctuels dont on attribuerait l'effet à la tendance-cycle.
 Cette modélisation conduit à des révisions importantes entre novembre et décembre 2008 (@fig-retailx2008-ci).
-En mars 2009 (où l'on sait que les chocs sont permanents et non ponctuels), l'utilisation de cette mauvaise spécifications donnent des estimations de la tendance-cycle proches des moyennes mobiles de Musgrave avant octobre 2008 (avec un point de retournement qui est donc détecté trop tôt) et proches des moyennes mobiles robustes à deux chocs permanents après octobre 2008.
+En mars 2009 (où l'on se doute que les chocs sont permanents et non ponctuels), l'utilisation de cette mauvaise spécifications donnent des estimations de la tendance-cycle proches des moyennes mobiles de Henderson avant octobre 2008 (avec un point de retournement qui est donc détecté trop tôt) et proches des moyennes mobiles robustes à deux chocs permanents après octobre 2008.
 
 ```{r}
 #| label: data-2008
 ##| label: fig-retailx2008-y
-##| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour d'octobre 2008"
+##| fig.cap: "Ventes au détail et services de restauration aux États-Unis autour d'octobre 2008"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "LSLS", "retailx2008.RDS"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
@@ -1144,14 +1150,14 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
-Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008
+Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration aux États-Unis à partir d'octobre 2008
 :::
 
 ```{r}
 #| label: fig-retailx2008-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir d'octobre 2008"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour les ventes au détail et services de restauration aux États-Unis à partir d'octobre 2008"
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
@@ -1163,7 +1169,7 @@ Le COVID-19 est illustré sur l'indice de la production industrielle (IPI) CVS-C
 Sur cette série, on observe deux chocs négatifs en mars et avril 2020, suivis d'une remontée progressive jusqu'en juillet 2020 vers un niveau légèrement inférieur à celui d'avant crise.
 Pour cette période, il est attendu de l'estimation finale de la tendance-cycle qu'elle permette de détecter les deux points de retournement en février 2020 (pic) et avril 2020 (creux).
 Les méthodes robustes peinent à reproduire ces retournements : les estimations finales sont robustes aux chocs, les révisions sont importantes et les retournement conjoncturels détectés semblent plutôt provenir des périodes post-chocs, ce qui conduit à détecter les points de retournement avec décalage (@fig-ipi-manuf-covid-est)
-Les moyennes mobiles de Musgrave et CLF conduisent, encore une fois, à détecter les points de retournement avec un décalage ; les révisions sont importantes autour des chocs (mars, mai et juin) et plus faibles pour les autres mois.
+Les moyennes mobiles de Henderson et CLF conduisent, encore une fois, à détecter les points de retournement avec un décalage ; les révisions sont importantes autour des chocs (mars, mai et juin) et plus faibles pour les autres mois.
 
 Pour la construction des moyennes mobiles robustes, même si l'on pourrait construire des régresseurs spécifiques, il a ici été choisi de rester sur la modélisation de chocs ponctuels et permanents ce qui permet de garder une approche simple et plus facilement généralisable à d'autres cas.
 La @fig-ipi-manuf-covid-ci compare les estimations des moyennes mobiles robustes construites en modélisant deux chocs ponctuels consécutifs (dont on attribuerait l'effet à la tendance-cycle plutôt qu'à l'irrégulier), deux chocs permanents consécutifs ou un choc ponctuel suivi d'un choc permanent.
@@ -1191,8 +1197,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (sur TC)" = robust_ff[["aoaoinv"]],
-		"MM robuste AO-LS (sur TC)" = robust_ff[["aoinvls"]]
+		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaoinv"]],
+		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aoinvls"]]
 		),
 	show.legend = TRUE
 )
@@ -1200,23 +1206,21 @@ graph_ci <- plot_confint(
 ```
 
 ::: {#fig-ipi-manuf-covid-est}
-
 ```{r}
 #| label: ffig-ipi-manuf-covid-est
-#| fig.cap: "IPI CVS-CJO dans l'industrie manufacturière à partir de mars 2020"
 #| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle de l'IPI CVS-CJO dans l'industrie manufacturière à partir de mars 2020
 :::
 
 ```{r}
 #| label: fig-ipi-manuf-covid-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans l'industrie manufacturière à partir de mars 2020"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour l'IPI dans l'industrie manufacturière à partir de mars 2020"
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
@@ -1225,16 +1229,16 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ### Points de retournement {#sec-ex-retournement}
 
-Un point de retournement, non associé à un choc, est illustré à partir du niveau d'emploi aux États-Unis (utilisée en logarithme) autour de février 2001.
+Un point de retournement, non associé à un choc, est illustré à partir du niveau d'emploi aux États-Unis autour de février 2001.
 Parmi les méthodes robustes, seule la régression profonde (DR) permet de détecter le point de retournement à la bonne date (à partir des estimations de juin 2021, @fig-ce16ov2001-est) : les médianes mobiles (MED) et les médianes répétées (RM) ne détectent aucun point de retournement et les autres méthodes le détecte en janvier 2001 (à partir des estimations de juillet 2001, pour les estimations antérieures il est bien détecté en février).
-Modéliser une tendance locale de degré 2 permet de détecter le point de retournement à la bonne date (annexe [-@sec-an-lms-lts])
+En revanche, modéliser une tendance locale de degré 2 permet de détecter le point de retournement à la bonne date (annexe [-@sec-an-lms-lts])
 Les révisions sont plus faibles pour les estimations issues de moyennes mobiles et le fait de considérer à tort le mois de février comme un choc ponctuel n'a pas d'impact sur les estimations.
-Les estimations issues des moyennes mobiles robustes restent dans l'intervalle de confiance des estimations des moyennes mobiles de Musgrave (@fig-ce16ov2001-ci).
+Les estimations issues des moyennes mobiles robustes restent dans l'intervalle de confiance des estimations des moyennes mobiles de Henderson (@fig-ce16ov2001-ci).
 
 ```{r}
 #| label: data-retournement
 ##| label: fig-ce16ov2001-y
-##| fig.cap: "Emploi (en logarithme) aux États-Unis autour du point de retournement de février 2001"
+##| fig.cap: "Emploi aux États-Unis autour du point de retournement de février 2001"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "AO", "ce16ov2001.rds"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
@@ -1256,14 +1260,14 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
-Estimations en temps réel de la tendance-cycle de l'emploi (en logarithme) aux États-Unis à partir de février 2001
+Estimations en temps réel de la tendance-cycle de l'emploi aux États-Unis à partir de février 2001
 :::
 
 ```{r}
 #| label: fig-ce16ov2001-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'emploi (en logarithme) aux États-Unis à partir de février 2001"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour l'emploi aux États-Unis à partir de février 2001"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1280,28 +1284,28 @@ Cela permet notamment de modéliser des chocs ponctuels (dont l'effet est géné
 
 Les moyennes mobiles linéaires classiques (Henderson, Musgrave, *cascade linear filter*...) vont naturellement conduire à des estimations biaisées : lors d'un choc permanent positif, la rupture va être lissée et la tendance-cycle va être sur-estimée avant le choc et sous-estimée après le choc ; lors d'un choc ponctuel (dont l'effet est attribué à l'irrégulier), la tendance-cycle va être sur ou sous-estimée autour du choc (en fonction du signe du choc).
 Cela va également amener à des fortes révisions des estimations autour des chocs.
-Lorsqu'un choc permanent est associé à un point de retournement de l'économie (par exemple lors de la crise financière de 2008 ou lors de la pandémie du COVID-19), les estimations de la tendance-cycle vont conduire à un décalage dans la détection des points de retournement (contraction détectée en avance et reprise en retard), ce qui peut perturber l'utilisateur lors de l'analyse de ces séries.
+Lorsqu'un choc est associé à un point de retournement de l'économie (par exemple lors de la crise financière de 2008 ou lors de la pandémie du COVID-19), les estimations de la tendance-cycle vont conduire à un décalage dans la détection des points de retournement (contraction détectée en avance et reprise en retard), ce qui peut perturber l'utilisateur lors de l'analyse de ces séries.
 À l'inverse, la construction de moyennes mobiles robustes permettent de minimiser les révisions des chocs et de bien détecter les points de retournement.
 La comparaison entre moyennes mobiles robustes et classiques, à l'aide de la construction d'intervalles de confiance et d'une analyse économique, permet de valider la modélisation retenue.
-En particulier, lorsque aucun choc n'est observée, l'utilisation à tort d'une moyenne mobile robuste donnera des résultats très proches des moyennes mobiles classiques et ne dégrade donc pas les résultats.
+De plus, lorsque aucun choc n'est observée, l'utilisation à tort d'une moyenne mobile robuste donnera des résultats très proches des moyennes mobiles classiques et ne dégrade donc pas les résultats.
 En revanche, lors de l'estimation en temps réel, le choix d'une mauvaise spécification (par exemple choc ponctuel, affecté à l'irrégulier, plutôt que choc permanent, affecté à la tendance-cycle) peut entraîner des révisions importantes lorsque la bonne spécification est finalement retenue.
 Si l'on cherche à minimiser les révisions, en cas de doute sur la nature du choc il peut donc être préférable d'utiliser les moyennes mobiles linéaires classiques avant d'être sûr de la spécification à adopter.
 
-Afin d'éviter ce biais lors de l'utilisation de moyennes mobiles linéaires, le logiciel de désaisonnalisation X-13ARIMA-SEATS (où sont notamment utilisées les moyennes mobiles de Henderson et de Musgrave) possède plusieurs modules de correction des chocs : la série est d'abord pré-corrigée et les chocs sont à la fin réintroduit dans la bonne composante (saisonnalité, tendance-cycle ou irrégulier).
+Afin d'éviter le biais lié à la présence de points atypiques, le logiciel de désaisonnalisation X-13ARIMA-SEATS (où sont notamment utilisées les moyennes mobiles de Henderson et de Musgrave) possède plusieurs modules de correction des chocs : la série est d'abord pré-corrigée et les chocs sont à la fin réintroduit dans la bonne composante (saisonnalité, tendance-cycle ou irrégulier).
 Toutefois, les rares instituts qui publient des estimations de la tendance-cycle (comme Statistique Canada et l'Australian Bureau of Statistics) ne semblent pas utiliser le logiciel X-13ARIMA-SEATS pour l'estimation de cette composante et appliquent plutôt une moyenne mobile sur le série désaisonnalisées.
 Cela peut par exemple s'expliquer lorsque ce ne sont pas les mêmes équipes qui effectuent la désaisonnalisation et l'estimation de la tendance-cycle ou pour simplifier le processus.
 Même si ces modules de corrections peuvent être appliqués sur les séries désaisonnalisées (par exemple via un modèle RegARIMA), l'estimation de l'ampleur du choc dépend du modèle utilisé et de la période d'estimation retenue, ce qui augmente le risque de mauvaise spécification et l'incertitude autour des estimations.
-À l'inverse, l'approche proposée dans cet article garde la même spécification que celles des moyennes mobiles de Henderson et de Musgrave et, par construction, le nombre de périodes révisées ne dépend que de la longueur de la moyenne mobile.
+À l'inverse, l'approche proposée dans cet article garde les mêmes spécifications que celle des moyennes mobiles de Henderson et de Musgrave et, par construction, le nombre de périodes révisées ne dépend que de la longueur de la moyenne mobile.
 
-Dans cette étude, les performances des moyennes mobiles linéaires sont comparées à un ensemble de méthodes non-linéaires robustes pour la plupart basées sur la médiane.
-Lorsque les tendances sont lisses (par exemple sur des séries simulées), ces méthodes fournissent des bonnes alternatives aux méthodes classiques en étant robustes aux chocs ponctuels et en reproduisant, dans la tendance-cycle les chocs permanents (mais pour qu'ils soient reproduits à la bonne date il faut attendre l'estimation finale).
+Dans cette étude, les performances des moyennes mobiles linéaires sont également comparées à des méthodes non-linéaires robustes pour la plupart basées sur la médiane.
+Lorsque les tendances sont lisses et le bruit faible (par exemple sur des séries simulées), ces méthodes fournissent des bonnes alternatives aux méthodes classiques en étant robustes aux chocs ponctuels et en reproduisant, dans la tendance-cycle les chocs permanents (mais pour qu'ils soient reproduits à la bonne date il faut attendre l'estimation finale).
 Toutefois, sur des séries réelles, les révisions sont plus importantes (avec parfois des estimations intermédiaires non cohérentes), ce qui suggère, comme notamment indiqué par @gather2006online, d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.
 Par ailleurs, lorsque les points de retournement sont associés à des chocs (comme lors du COVID-19), en étant naturellement robustes aux choss, ces méthodes ne vont pas permettre d'estimer une tendance-cycle qui reproduirait les points de retournement.
 <!-- Tout cela fait que, dans le cadre de l'analyse conjoncturelle et l'analyse des points de retournement, les méthodes robustes ici étudiées ne sont pas à privilégier pour l'extraction de la tendance-cycle. -->
 
 En somme, pour l'analyse de la conjoncture et des points de retournement, l'utilisation de méthodes linéaires locales (telles que des moyennes mobiles) est à privilégier.
-Afin de mieux représenter la réalité économique et de minimiser les révisions, il est important d'avoir une analyse locale par série, par exemple en analysant les chocs et en les prenant en compte dans la construction des moyennes mobiles comme proposé dans cette étude.
-Fixer de manière locale les hyperparamètres utilisés dans les moyennes mobiles asymétriques (lorsque l'on ne possède pas assez de point dans le futur pour utiliser une moyenne mobile symétrique) comme suggéré par @jos2024AQLT permet également de réduire les révisions en évitant des biais systématiques lorsque la tendance est localement linéaire (par exemple reprise d'activité progressive après un choc).
+Afin de mieux représenter la réalité économique et de minimiser les révisions, il est important d'avoir une analyse locale par série : en analysant les chocs et en les prenant en compte dans la construction des moyennes mobiles comme proposé dans cette étude ; 
+ou encore en fixant localement les hyperparamètres utilisés dans les moyennes mobiles asymétriques (lorsque l'on ne possède pas assez de point dans le futur pour utiliser une moyenne mobile symétrique), comme suggéré par @jos2024AQLT, pour réduire les révisions en évitant des biais systématiques lorsque la tendance est localement linéaire (par exemple reprise d'activité progressive après un choc).
 Toutefois, pour la production de données, il peut être difficile d'avoir le temps d'analyser chaque série pour déterminer les chocs.
 Il peut alors être intéressant d'étudier des procédures automatiques pour identifier ces chocs, par exemple via des modèles *ad hoc* (du type modèles RegARIMA) ou bien en reproduisant le processus de lissage des moyennes mobiles par une modélisation plus générale (par exemple modélisation espace-état). 
 
@@ -1314,19 +1318,21 @@ Il peut alors être intéressant d'étudier des procédures automatiques pour id
 
 ```{r}
 #| label: fig-mm-musgrave
-#| fig.cap: "Henderson et filtre de Musgrave ($R=3,5$)"
+#| fig.cap: "Moyennes mobiles de Henderson et de Musgrave ($R=3,5$)"
 #| fig-height: 2
-ggdemetra3::ggplot_coef(lp_filter(), q= 0:6)
+ggdemetra3::ggplot_coef(lp_filter(), q = 0:6) +
+	ggplot2::scale_color_manual(values = palette_coef)
 ```
 
 ```{r}
 #| label: fig-clf
-#| fig.cap: "Cascade linear filter (CLF) et *Asymmetric Linear Filter* (ALF) ou méthode « couper-et-normaliser »"
+#| fig.cap: "Cascade linear filter (CLF) et *Asymmetric Linear Filter* (ALF) ou méthode «\ couper-et-normaliser »"
 
 (ggdemetra3::ggplot_coef(CLF, q= 0:6) + ggplot2::ggtitle("CLF et ALF")) /
 	(ggdemetra3::ggplot_coef(CLF_CN, q= 0:6) + 
 	ggplot2::ggtitle("CLF et « couper-et-normaliser »"))  + 
-	plot_layout(guides = 'collect', axes = "collect")
+	plot_layout(guides = 'collect', axes = "collect") &
+	ggplot2::scale_color_manual(values = palette_coef)
 ```
 
 
@@ -1336,7 +1342,8 @@ ggdemetra3::ggplot_coef(lp_filter(), q= 0:6)
 (ggdemetra3::ggplot_coef(robust_ff$ao$t0, q= 0:7) + ggplot2::ggtitle("Choc associé à l'irrégulier")) /
 	(ggdemetra3::ggplot_coef(robust_ff$aoinv$t0, q= 0:7) + 
 	ggplot2::ggtitle("Choc associé à la tendance-cycle"))  + 
-	plot_layout(guides = 'collect', axes = "collect")
+	plot_layout(guides = 'collect', axes = "collect") &
+	ggplot2::scale_color_manual(values = palette_coef)
 ```
 
 ```{r}
@@ -1345,7 +1352,8 @@ ggdemetra3::ggplot_coef(lp_filter(), q= 0:6)
 (ggdemetra3::ggplot_coef(robust_ff$aols$`t-1`, q= 0:7) + ggplot2::ggtitle("AO associé à l'irrégulier")) /
 	(ggdemetra3::ggplot_coef(robust_ff$aoinvls$`t-1`, q= 0:7) + 
 	ggplot2::ggtitle("AO associé à la tendance-cycle"))  + 
-	plot_layout(guides = 'collect', axes = "collect")
+	plot_layout(guides = 'collect', axes = "collect") &
+	ggplot2::scale_color_manual(values = palette_coef)
 ```
 
 ```{r}
@@ -1354,7 +1362,8 @@ ggdemetra3::ggplot_coef(lp_filter(), q= 0:6)
 (ggdemetra3::ggplot_coef(robust_ff$ls$t0, q= 0:7) +
 	ggplot2::ggtitle("Un LS"))/
 	(ggdemetra3::ggplot_coef(robust_ff$lsls$`t-1`, q= 0:7)+ ggplot2::ggtitle("Deux LS")) + 
-	plot_layout(guides = 'collect', axes = "collect")
+	plot_layout(guides = 'collect', axes = "collect") &
+	ggplot2::scale_color_manual(values = palette_coef)
 ```
 
 
@@ -1403,17 +1412,6 @@ On a ${\boldsymbol H}_{i,j}=\theta_{i-j}\1_{i\in[p+1,n-f]}$ et donc ${\boldsymbo
 (\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j} &=\sum_{k=1}^n{\boldsymbol \Gamma}_{k,i}{\boldsymbol \Gamma}_{k,j}=\sum_{k=1}^nw_{k-i}w_{k-j} \1_{(i,j)\in[p+1,n-f]^2}\\
 &=\sum_{k=-p}^fw_{k}w_{i-j+k}\1_{(i,j)\in[p+1,n-f]^2}.
 \end{align*}
-L'ensemble des termes de $({\boldsymbol \Gamma}\transp{{\boldsymbol \Gamma}})_{i,j}$ se calcule par le produit matriciel :
-$$
-\begin{pmatrix}w_{-p} & \cdots & w_f\end{pmatrix}
-\begin{pmatrix}
-w_{-p} &0 & 0 &\cdots& 0 \\
-w_{-p+1} & w_{-p} & 0 & \ddots & \vdots \\
-w_{-p+2} & w_{-p+1}& w_{-p} & \ddots & \vdots\\
-\vdots & \vdots & \vdots & \ddots &\vdots \\
-w_f & w_{f-1} & w_{f-2}&\ddots&w_p\\
-\end{pmatrix}=\begin{pmatrix} L_0 & \cdots & L_{p+f} \end{pmatrix}.
-$$
 Puis :
 \begin{align*}
 ((\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})^2)_{i,i} &= \sum_{j=1}^n(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{i,j}(\transp{{\boldsymbol \Gamma}}{\boldsymbol \Gamma})_{j,i}\\
@@ -1483,16 +1481,18 @@ patchwork::wrap_plots(graph_est[[1]], ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 1998
 :::
 
 ```{r}
 #| label: fig-ipi-voitures98-out1-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 1998"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 1998"
 
-patchwork::wrap_plots(graph_ci[[1]], ncol = 3)
+patchwork::wrap_plots(graph_ci[[1]], ncol = 3)  + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 ::: {#fig-ipi-voitures98-out2-est}
@@ -1504,16 +1504,18 @@ patchwork::wrap_plots(graph_est[[2]], ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 1999
 :::
 
 ```{r}
 #| label: fig-ipi-voitures98-out2-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 1999"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 1999"
 
-patchwork::wrap_plots(graph_ci[[2]], ncol = 3)
+patchwork::wrap_plots(graph_ci[[2]], ncol = 3) + 
+	plot_layout(guides = 'collect', axes = "collect") &
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
 ```
 
 
@@ -1538,14 +1540,14 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans la construction de véhicules automobiles à partir d'août 2004
 :::
 
 ```{r}
 #| label: fig-ipi-voitures2004-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 2004"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour l'IPI dans la construction de véhicules automobiles à partir d'août 2004"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1585,24 +1587,24 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
 Estimations en temps réel de la tendance-cycle pour l'IPI dans l'extraction de pétrole brut à partir de juin 2010
 :::
 
 ```{r}
 #| label: fig-ipi-petrole-brut10-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'IPI dans l'extraction de pétrole brut à partir de juin 2010"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour l'IPI dans l'extraction de pétrole brut à partir de juin 2010"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
-	plot_layout(guides = 'collect', axes = "collect") &
-	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0))
+	plot_layout(guides = 'collect', axes = "collect")  &
+	theme(legend.position='bottom', legend.margin = margin(-10, 0, -4, 0)) 
 ```
 
 
 ### COVID-19 {#sec-autres-ex-covid}
 
-Deux autres exemples de la performance des différentes pendantes pendant le COVID-19 sont issus de la base FRED-MD : le niveau d'emploi aux États-Unis (série `CE16OV`, utilisée en logarithme) et les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme).
+Deux autres exemples de l'estimation de la tendance-cycle pendant le COVID-19 sont données à partir du niveau d'emploi (série `CE16OV`) et des ventes au détail et services de restauration (série `RETAILx) aux États-Unis, séries issues de la base FRED-MD.
 Les points de retournement officiels de la datation du National Bureau of Economic Research (NBER) sont en février et avril 2020^[
 <https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions>
 ].
@@ -1633,8 +1635,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]],
-		"MM robuste AO-LS (sur TC)" = robust_ff[["aoinvls"]]
+		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaoinv"]],
+		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aoinvls"]]
 		),
 	show.legend = TRUE
 )
@@ -1642,7 +1644,7 @@ graph_ci <- plot_confint(
 
 ```{r}
 #| label: fig-autresex-covid-y
-#| fig.cap: "Emploi et ventes au détail et services de restauration, en logarithme, aux États-Unis autour de mars 2020"
+#| fig.cap: "Emploi et ventes au détail et services de restauration aux États-Unis autour de mars 2020"
 #| fig-height: 2
 graph_y_covid1 + graph_y_covid2 +
 	plot_layout(guides = 'collect', axes = "collect", nrow = 1) &
@@ -1653,7 +1655,7 @@ graph_y_covid1 + graph_y_covid2 +
 
 ```{r}
 #| label: fig-ce16ov-covid-est
-#| fig.cap: "Emploi (en logarithme) aux États-Unis à partir de mars 2020"
+#| fig.cap: "Emploi aux États-Unis à partir de mars 2020"
 #| fig-height: 5
 patchwork::wrap_plots(graph_est, ncol = 3)
 ```
@@ -1661,7 +1663,7 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 ```{r}
 #| label: fig-ce16ov-covid-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour l'emploi (en logarithme) aux États-Unis à partir de mars 2020"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour l'emploi aux États-Unis à partir de mars 2020"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1684,8 +1686,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]],
-		"MM robuste AO-LS (sur TC)" = robust_ff[["aoinvls"]]
+		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaoinv"]],
+		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aoinvls"]]
 		),
 	show.legend = TRUE
 )
@@ -1702,14 +1704,14 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
-Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020
+Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration aux États-Unis à partir de mars 2020
 :::
 
 ```{r}
 #| label: fig-retailx-covid-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de mars 2020"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour les ventes au détail et services de restauration aux États-Unis à partir de mars 2020"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &
@@ -1720,11 +1722,11 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ### Points de retournement {#sec-autres-ex-retournement}
 
-Un autre exemple de point de retournement est illustré à partir d'une autre série de la base FRED-MD : les ventes au détail et services de restauration (série `RETAILx`, utilisée en logarithme) autour du point de retournement de novembre 2007.
+Un autre exemple de point de retournement est illustré à partir des ventes au détail et services de restauration aux États-Unis (série `RETAILx` de la base FRED-MD) autour du point de retournement de novembre 2007.
 
 ```{r}
 #| label: fig-retailx2007-y
-#| fig.cap: "Ventes au détail et services de restauration (en logarithme) aux États-Unis autour du point de retournement de novembre 2007"
+#| fig.cap: "Ventes au détail et services de restauration aux États-Unis autour du point de retournement de novembre 2007"
 #| fig-height: 2
 res <- readRDS(file.path("..", "results", "AO", "retailx2007.rds"))
 graph_est <- get_all_plots(res, y_as_plot = y_as_plot, add_y = add_y, modeles_retenus = models)
@@ -1745,14 +1747,14 @@ patchwork::wrap_plots(graph_est, ncol = 3)
 ```
 \scriptsize\raggedright
 
-**Note** : Musgrave : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Musgrave robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
+**Note** : Henderson : Henderson (estimation finale) et Musgrave (estimations intermédiaires) ; Henderson robuste : moyennes mobiles robustes de Henderson (estimation finale) et de Musgrave (estimations intermédiaires) ; CLF : *cascade linear filter* (estimation finale) et méthode « couper-et-normaliser » (estimations intermédiaires) ; MED : Médiane mobile ; RM : médiane répétée ; LMS : moindres carrés médians ; LTS : moindres carrés élagués ; LQD : moindres quartiles différenciés ; DR : Régression profonde.
 
-Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007
+Estimations en temps réel de la tendance-cycle des ventes au détail et services de restauration aux États-Unis à partir de novembre 2007
 :::
 
 ```{r}
 #| label: fig-retailx2007-ci
-#| fig.cap: "Intervalles de confiance pour les filtres de Musgrave et filtres de Musgrave robuste pour les ventes au détail et services de restauration (en logarithme) aux États-Unis à partir de novembre 2007"
+#| fig.cap: "Intervalles de confiance pour les filtres de Henderson et filtres de Henderson robustes robuste pour les ventes au détail et services de restauration aux États-Unis à partir de novembre 2007"
 
 apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) + 
 	plot_layout(guides = 'collect', axes = "collect") &

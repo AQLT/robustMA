@@ -26,5 +26,3 @@ saveRDS(list(data = res,
 			 y = ipi_petrole_brut),
 		file.path(dir_exports, "ipi_petrole_brut10.rds")
 )
-
-

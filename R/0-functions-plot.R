@@ -1,9 +1,19 @@
-plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits_y = NULL, outDec = ".",
-					  extra_series = NULL, colour.extra_series = "darkgreen") {
+plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits_y = NULL,
+					  extra_series = NULL, colour.extra_series = "darkgreen", french = getOption("is_french"),
+					  b_and_w = FALSE,
+					  outDec = getOption("OutDec")) {
+	if (french) {
+		current_local <- Sys.getlocale("LC_TIME")
+		Sys.setlocale("LC_TIME","fr_FR.UTF-8")
+		on.exit(Sys.setlocale("LC_TIME", current_local))
+	}
+
 	x_lab = y_lab= NULL
 	n_xlabel = 5 ;n_ylabel = 4;
-	x_breaks <- time(data)[seq.int(1, length((time(data))), by = length((time(data))) %/% n_xlabel)]
+	date_p1 <- c(time(data), time(data)[length(time(data))] + deltat(data))
+	x_breaks <- date_p1[seq.int(1, length(date_p1), by = length(date_p1) %/% n_xlabel)]
 
+	xlim <- c(date_p1[1], date_p1[length(date_p1)])
 
 	dataGraph <- format_data_plot(data)
 	data_legend <- dataGraph |>
@@ -31,9 +41,8 @@ plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits
 									labels = zoo::as.yearmon) +
 		ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(n = n_ylabel),
 									labels = function(x) format(x, decimal.mark = outDec)) +
-		ggplot2::coord_cartesian(ylim = limits_y) +
-		ggplot2::theme_bw()
-	p +
+		ggplot2::coord_cartesian(ylim = limits_y, xlim = xlim) +
+		ggplot2::theme_bw() +
 		ggplot2::geom_text(ggplot2::aes(x = date, y = value, label =variable, colour = variable), data = data_legend,
 						   check_overlap = TRUE, hjust = 0, nudge_x = 0.01,
 						   size = 2) +
@@ -41,11 +50,15 @@ plot_est <- function (data, vline =NULL, titre = NULL, sous_titre = NULL, limits
 					   plot.title = ggplot2::element_text(hjust = 0.5),
 					   panel.grid.minor.x = ggplot2::element_blank(),
 					   panel.grid.major.x = ggplot2::element_blank(),
+					   panel.grid.minor.y = ggplot2::element_blank(),
 					   axis.text.x = ggplot2::element_text(size=8, angle=20,
 					   									vjust=1.1, hjust=1),
 					   axis.text.y = ggplot2::element_text(size=8),
 					   plot.subtitle = ggplot2::element_text(hjust = 0.5,
 					   									  size=10,face="italic"))
+	if (b_and_w)
+		p <- p + ggplot2::scale_colour_grey()
+	p
 }
 format_data_plot  <- function(data){
 	time <- time(data)
@@ -62,7 +75,13 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f,
 						 show.legend = FALSE,
 						 same_x_limit = TRUE,
 						 date_outlier = TRUE,
-						 n_xlabel = 5) {
+						 n_xlabel = 5,
+						 french = getOption("is_french")) {
+	if (french) {
+		current_local <- Sys.getlocale("LC_TIME")
+		Sys.setlocale("LC_TIME","fr_FR.UTF-8")
+		on.exit(Sys.setlocale("LC_TIME", current_local))
+	}
 	if (is.null(out)) {
 		out <- data$out
 	}
@@ -108,7 +127,7 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f,
 		confint_default <- confint_filter(y_confint, lc_f, gaussian_distribution = gaussian_distribution, exact_df = exact_df)
 		data_plot <- ts.union(confint_default, est_robust, y)
 		data_plot <- window(data_plot, start = first_date)
-		colnames(data_plot) <- c("Musgrave", "Confint_m", "Confint_p", names_robust_f,"y")
+		colnames(data_plot) <- c("Henderson", "Confint_m", "Confint_p", names_robust_f,"y")
 		if (!same_x_limit) {
 			dates <- window(time(data_plot), start = first_date)
 			x_breaks <- dates[seq.int(1, length((dates)), by = length((dates)) %/% n_xlabel)]
@@ -120,7 +139,7 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f,
 		p <- ggplot2::ggplot(data = data_plot_wide, ggplot2::aes(x = date)) +
 			ggplot2::geom_ribbon(
 				ggplot2::aes(ymin = Confint_m, ymax = Confint_p, fill = "Intervalle de confiance 95 %")) +
-			scale_fill_manual(values=c("grey")) +
+			ggplot2::scale_fill_manual(values=c("grey")) +
 			ggplot2::geom_vline(xintercept = out,linetype= 2, alpha = 0.5)
 			# ggplot2::geom_line(ggplot2::aes(y = Default), col = "blue")
 		if (add_y) {
@@ -135,17 +154,19 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f,
 						  title = as.character(zoo::as.yearmon(out + i*deltat(y))),
 						  color = NULL,
 						  fill = NULL) +
-			ggplot2::scale_color_manual(values = c("blue", "red", "darkgreen", "orange")) +
+			ggplot2::scale_color_manual(values = grDevices::palette.colors("Okabe-Ito", n = 9)) +
 			ggplot2::theme_bw() +
 			ggplot2::scale_x_continuous(breaks = x_breaks,
 										labels = zoo::as.yearmon,
 										limits = limits_x) +
+				ggplot2::guides(fill=guide_legend(order=1))+
 			# ggplot2::coord_cartesian(xlim = limits_x,
 			# 						 default = TRUE) +
 			ggplot2::theme(
 				plot.title = ggplot2::element_text(hjust = 0.5),
 				panel.grid.minor.x = ggplot2::element_blank(),
 				panel.grid.major.x = ggplot2::element_blank(),
+				panel.grid.minor.y = ggplot2::element_blank(),
 				axis.text.x = ggplot2::element_text(size=8, angle=20,
 													vjust=1.1, hjust=1),
 				axis.text.y = ggplot2::element_text(size=8)
@@ -163,14 +184,21 @@ plot_confint <- function(data, out = NULL, default_filter, robust_f,
 get_all_plots <- function(
 		res,
 		out = NULL,
-		nb_est = 10, nb_dates_before = 6,
+		nb_est = 9, nb_dates_before = 6,
 		vline = TRUE,
 		add_y = FALSE,
 		y_as_plot = FALSE,
 		share_y_lim = TRUE,
 		multiple_vline_out = FALSE,
-		modeles_retenus = NULL
+		modeles_retenus = NULL,
+		french = getOption("is_french"),
+		outDec = getOption("OutDec")
 		){
+	if (french) {
+		current_local <- Sys.getlocale("LC_TIME")
+		Sys.setlocale("LC_TIME","fr_FR.UTF-8")
+		on.exit(Sys.setlocale("LC_TIME", current_local))
+	}
 	if (is.null(out)) {
 		out <- res$out
 	}
@@ -182,7 +210,7 @@ get_all_plots <- function(
 		names(all_plots) <- out
 		return(all_plots)
 	}
-	all_est <- create_vintage_est(res)
+	all_est <- create_vintage_est(res, french = french)
 	if(!is.null(modeles_retenus)) {
 		if (is.numeric(modeles_retenus)) {
 			mod <- all_est[modeles_retenus + 1]
@@ -220,16 +248,20 @@ get_all_plots <- function(
 	}
 
 	all_plots <- lapply(names(data_plots), function(x){
-		plot_est(data_plots[[x]], titre = x,
-				 vline = vline,
-				 extra_series = extra_series,
-				 limits_y = limits_y)
+		p <- plot_est(data_plots[[x]], titre = x,
+					  vline = vline,
+					  extra_series = extra_series,
+					  limits_y = limits_y)
+		if (nb_est <= 9) {
+			p <- p +
+				ggplot2::scale_color_manual(values = grDevices::palette.colors("Okabe-Ito", n = nb_est))
+		}
+		p
 	})
 	names(all_plots) <- names(data_plots)
 	if (y_as_plot) {
 		x_lab = y_lab= NULL
 		n_xlabel = 6 ;n_ylabel = 4;
-		outDec = "."
 		data_plot <- data.frame(date = as.numeric(time(y)),
 								y = as.numeric(y))
 		p <- ggplot2::ggplot(data = data_plot)
@@ -252,6 +284,7 @@ get_all_plots <- function(
 				plot.title = ggplot2::element_text(hjust = 0.5),
 				panel.grid.minor.x = ggplot2::element_blank(),
 				panel.grid.major.x = ggplot2::element_blank(),
+				panel.grid.minor.y = ggplot2::element_blank(),
 				axis.text.x = ggplot2::element_text(size=8, angle=20,
 													vjust=1.1, hjust=1),
 				axis.text.y = ggplot2::element_text(size=8),
@@ -267,9 +300,15 @@ get_all_plots <- function(
 plot_y <- function(res, out = NULL, vline = TRUE,
 				   titre = NULL, sous_titre = NULL,
 				   nb_dates_before = 6, nb_after = 10,
-				   outDec = ".",
 				   n_xlabel = 5,
-				   multiple_vline_out = FALSE) {
+				   multiple_vline_out = FALSE,
+				   french = getOption("is_french"),
+				   outDec = getOption("OutDec")) {
+	if (french) {
+		current_local <- Sys.getlocale("LC_TIME")
+		Sys.setlocale("LC_TIME","fr_FR.UTF-8")
+		on.exit(Sys.setlocale("LC_TIME", current_local))
+	}
 	x_lab = y_lab= NULL
     n_ylabel = 6;
 	if (is.null(out)) {
@@ -284,7 +323,7 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 		return(all_plots)
 	}
 
-	all_est <- create_vintage_est(res)
+	all_est <- create_vintage_est(res, french = french)
 	y <- all_est$y[,ncol(all_est$y)]
 	xlim <- c(start  = min(out) - nb_dates_before * deltat(y),
 			  end  = max(out) + (nb_after - 1) * deltat(y)
@@ -317,10 +356,27 @@ plot_y <- function(res, out = NULL, vline = TRUE,
 			plot.title = ggplot2::element_text(hjust = 0.5),
 			panel.grid.minor.x = ggplot2::element_blank(),
 			panel.grid.major.x = ggplot2::element_blank(),
+			panel.grid.minor.y = ggplot2::element_blank(),
 			axis.text.x = ggplot2::element_text(size=8),
 			axis.text.y = ggplot2::element_text(size=8),
 			plot.subtitle = ggplot2::element_text(hjust = 0.5,
 												  size=10,face="italic")
 		)
 	p
+}
+create_vintage_est <- function(res, french = getOption("is_french")) {
+	if (french) {
+		current_local <- Sys.getlocale("LC_TIME")
+		Sys.setlocale("LC_TIME","fr_FR.UTF-8")
+		on.exit(Sys.setlocale("LC_TIME", current_local))
+	}
+	if (!is.null(res$out))
+		res <- res$data
+	all_est <- lapply(colnames(res[[1]]), function(col){
+		table <- do.call(cbind, lapply(res, `[`,,col))
+		colnames(table) <- as.character(zoo::as.yearmon(as.numeric(colnames(table))))
+		table
+	})
+	names(all_est) <- colnames(res[[1]])
+	all_est
 }

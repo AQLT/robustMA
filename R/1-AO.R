@@ -9,8 +9,6 @@ lc_f <- lp_filter()
 robust_filters <- readRDS("data/robust_filters.rds")
 
 
-
-
 data <- readRDS("data/data.rds")
 
 # IPI voitures
@@ -52,10 +50,6 @@ saveRDS(list(data = res,
 			 y = data[["CE16OV"]]),
 		file.path(dir_exports, "ce16ov2001.rds")
 )
-# plot(window(res[[20]][,1], start = 2000))
-# lines(res[[20]][,2], col = "orange")
-# lines(res[[20]][,3], col = "lightblue")
-# lines(res[[20]][,4], col = "darkgreen")
 
 RETAILx <- data[["RETAILx"]]
 date_out <- 2007 + (11 - 1) / 12
@@ -68,7 +62,3 @@ saveRDS(list(data = res,
 		file.path(dir_exports, "retailx2007.rds")
 )
 
-# plot(window(res[[20]][,1], start = 2006, end = 2008.5))
-# lines(res[[20]][,2], col = "orange")
-# lines(res[[20]][,3], col = "lightblue")
-# lines(res[[20]][,4], col = "darkgreen")
