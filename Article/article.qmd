@@ -726,6 +726,17 @@ Sur une série mensuelle de 19 ans ($n=228$), en utilisant la moyenne mobile de 
 Il est divisé d'environ 350 en utilisant la formule proposée dans cet article (environ 0,31 milliseconde) et d'environ 5 800 en utilisant l'approximation $\nu\simeq \tr(\boldsymbol \Delta)$ (environ 0,02 milliseconde).
 ]. 
 
+::: {.remark}
+Lorsque l'estimation de la tendance-cycle est basée sur des moyennes mobiles construites à l'aide d'un régresseur externe (@sec-constr-mm), les formules ici présentées ne sont pas applicables puisque des moyennes mobiles différentes sont utilisées pour l'estimation finale.
+Pour la construction d'intervalles de confiance, le plus simple est alors de reconstruire la matrice $\boldsymbol H.$
+:::
+
+::: {.remark}
+La matrice $\boldsymbol H$ pourrait également être construite en prenant en complétant les $p$ premières et $f$ dernières lignes par les moyennes mobiles asymétriques qui sont utilisées.
+Toutefois, puisque les modèles sous-jacent aux moyennes mobiles asymétriques sont différents de ceux des moyennes mobiles symétriques (par exemple Musgrave modélise une tendance de degré 1 alors que Henderson modélise une tendance de degré 3), on peut supposer les variances différentes pour chaque moyenne mobile et estimer celles associées aux moyennes mobiles asymétriques en utilisant l'ensemble des données.
+C'est l'approche utilisée dans `rjd3filters` : l'intervalle de confiance sera donc plus grand pour les estimations intermédiaires que pour les estimations finales (ce à quoi l'on pourrait s'attendre !).
+:::
+
 <!-- ::: {.remark} -->
 <!-- Même si la majorité des moyennes mobiles @inseeDTM202401 -->
 <!-- ::: -->
