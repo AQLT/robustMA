@@ -29,6 +29,14 @@ window(simul_ao_td2, start = date_out, end = date_out) <-
 window(simul_ls_td2, start = date_out) <-
 	window(simul_ls_td2, start = date_out) * (1 + niveau_choc)
 
+saveRDS(list(simul_ao_td0 = simul_ao_td0,
+			 simul_ls_td0 = simul_ls_td0,
+			 simul_ao_td1 = simul_ao_td1,
+			 simul_ls_td1 = simul_ls_td1,
+			 simul_ao_td2 = simul_ao_td2,
+			 simul_ls_td2 = simul_ls_td2),
+		file.path("data", "data_simul.RDS")
+)
 ################
 ### degree 0 ###
 ################
