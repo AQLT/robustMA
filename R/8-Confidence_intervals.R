@@ -2,7 +2,7 @@ library(rjd3filters)
 source("R/0-functions.R")
 options(is_french = TRUE)
 source("R/0-functions-plot.R")
-lc_f <- lp_filter()
+lc_f <- lp_filter(ic = 3.5)
 robust_ff <- readRDS("data/robust_ff.rds")
 
 

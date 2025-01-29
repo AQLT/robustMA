@@ -254,7 +254,7 @@ robust_filters <- list(
 	lsls = filters_lsls
 )
 robust_filters <- lapply(robust_filters, reorder_out_filters)
-default_filter <- lp_filter()
+default_filter <- lp_filter(ic = 3.5)
 robust_ff <- lapply(robust_filters, to_ff, default_filter)
 saveRDS(robust_filters, "data/robust_filters.RDS")
 saveRDS(robust_ff, "data/robust_ff.RDS")

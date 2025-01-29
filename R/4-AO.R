@@ -5,7 +5,7 @@ if (!dir.exists(dir_exports)) {
 }
 
 source("R/0-functions.R")
-lc_f <- lp_filter()
+lc_f <- lp_filter(ic = 3.5)
 robust_filters <- readRDS("data/robust_filters.rds")
 
 

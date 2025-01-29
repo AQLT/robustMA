@@ -71,7 +71,7 @@ library(patchwork)
 source("../R/0-functions.R", local = knitr::knit_global())
 options(is_french = TRUE)
 source("../R/0-functions-plot.R", local = knitr::knit_global())
-lc_f <- lp_filter()
+lc_f <- lp_filter(ic = 3.5)
 robust_ff <- readRDS("../data/robust_ff.rds")
 y_as_plot <- FALSE
 add_y <- FALSE
@@ -1331,7 +1331,7 @@ Il peut alors être intéressant d'étudier des procédures automatiques pour id
 #| label: fig-mm-musgrave
 #| fig.cap: "Moyennes mobiles de Henderson et de Musgrave ($R=3,5$)"
 #| fig-height: 2
-ggdemetra3::ggplot_coef(lp_filter(), q = 0:6) +
+ggdemetra3::ggplot_coef(lp_filter(ic = 3.5), q = 0:6) +
 	ggplot2::scale_color_manual(values = palette_coef)
 ```
 

@@ -4,7 +4,7 @@ dir_exports <- file.path("results", "AOLS")
 if (!dir.exists(dir_exports)) {
 	dir.create(dir_exports, recursive = TRUE)
 }
-lc_f <- lp_filter()
+lc_f <- lp_filter(ic = 3.5)
 robust_filters <- readRDS("data/robust_filters.rds")
 
 data <- readRDS("data/data.rds")
