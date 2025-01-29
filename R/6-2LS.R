@@ -50,7 +50,7 @@ saveRDS(res,
 # 	res,
 # 	default_filter = lc_f,
 # 	robust_f = list("MM robuste LS-LS" = robust_ff[["lsls"]],
-# 					"MM robuste AO-AO (TC)" = robust_ff[["aoaoinv"]]))
+# 					"MM robuste AO-AO (TC)" = robust_ff[["aoaotc"]]))
 #
 # apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 # 	plot_layout(guides = 'collect', axes = "collect") &

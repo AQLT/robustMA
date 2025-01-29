@@ -23,7 +23,7 @@ gen_ao <- function(t, h = 6){
 	}
 	X
 }
-gen_ao_inv <- function(t, h = 6){
+gen_ao_tc <- function(t, h = 6){
 	X <- gen_ao(t, h)
 	if (abs(t) <= h) {
 		if (t <= 0 & t != -h) {
@@ -58,8 +58,8 @@ filters_ao <- lapply(6:-6, function(t) {
 	res
 })
 names(filters_ao) <- paste0("t=", 6:-6)
-filters_aoinv <- lapply(6:-6, function(t) {
-	X <- gen_ao_inv(t)
+filters_aotc <- lapply(6:-6, function(t) {
+	X <- gen_ao_tc(t)
 
 	sym <- sym_filter(X= X)
 	res <- list("q=6" = sym)
@@ -78,7 +78,7 @@ filters_aoinv <- lapply(6:-6, function(t) {
 	res <- c(res, afilters)
 	res
 })
-names(filters_aoinv) <- paste0("t=", 6:-6)
+names(filters_aotc) <- paste0("t=", 6:-6)
 
 filters_ls <- lapply(6:-6, function(t) {
 	X <- gen_ls(t)
@@ -123,8 +123,8 @@ filters_aoao <- lapply(6:-7, function(t) {
 })
 names(filters_aoao) <- paste0("t=", 6:-7)
 
-filters_aoaoinv <- lapply(6:-7, function(t) {
-	X <- cbind(gen_ao_inv(t), gen_ao_inv(t+1))
+filters_aoaotc <- lapply(6:-7, function(t) {
+	X <- cbind(gen_ao_tc(t), gen_ao_tc(t+1))
 	sym <- sym_filter(X= X)
 	res <- list("q=6" = sym)
 	if (t == 6)
@@ -143,10 +143,10 @@ filters_aoaoinv <- lapply(6:-7, function(t) {
 	res <- c(res, afilters)
 	res
 })
-names(filters_aoaoinv) <- paste0("t=", 6:-7)
+names(filters_aoaotc) <- paste0("t=", 6:-7)
 
-filters_aoaoaoinv <- lapply(6:-8, function(t) {
-	X <- cbind(gen_ao_inv(t), gen_ao_inv(t+1), gen_ao_inv(t+2))
+filters_aoaoaotc <- lapply(6:-8, function(t) {
+	X <- cbind(gen_ao_tc(t), gen_ao_tc(t+1), gen_ao_tc(t+2))
 	sym <- sym_filter(X= X)
 	res <- list("q=6" = sym)
 	if (t == 6)
@@ -165,7 +165,7 @@ filters_aoaoaoinv <- lapply(6:-8, function(t) {
 	res <- c(res, afilters)
 	res
 })
-names(filters_aoaoaoinv) <- paste0("t=", 6:-8)
+names(filters_aoaoaotc) <- paste0("t=", 6:-8)
 
 filters_aols <- lapply(6:-6, function(t) {
 	# For t= -7 X = null
@@ -192,9 +192,9 @@ filters_aols <- lapply(6:-6, function(t) {
 })
 names(filters_aols) <- paste0("t=", 6:-6)
 
-filters_aoinvls <- lapply(6:-6, function(t) {
+filters_aotcls <- lapply(6:-6, function(t) {
 	# For t= -7 X = null
-	X <- cbind(gen_ao_inv(t), gen_ls(t+1))
+	X <- cbind(gen_ao_tc(t), gen_ls(t+1))
 	if (ncol(X) == 2 && (length(unique(na.omit(X[,1]/X[,2]))) == 1 | length(unique(abs(X[,1]) + abs(X[,2]))) == 1))
 		X <- X[,1,drop = FALSE]
 	sym <- sym_filter(X= X)
@@ -215,7 +215,7 @@ filters_aoinvls <- lapply(6:-6, function(t) {
 	res <- c(res, afilters)
 	res
 })
-names(filters_aoinvls) <- paste0("t=", 6:-6)
+names(filters_aotcls) <- paste0("t=", 6:-6)
 
 filters_lsls <- lapply(6:-6, function(t) {
 	# For t= -7 X = null
@@ -244,13 +244,13 @@ names(filters_lsls) <- paste0("t=", 6:-6)
 
 robust_filters <- list(
 	ao = filters_ao,
-	aoinv = filters_aoinv,
+	aotc = filters_aotc,
 	ls = filters_ls,
 	aoao = filters_aoao,
-	aoaoinv = filters_aoaoinv,
-	aoaoaoinv = filters_aoaoaoinv,
+	aoaotc = filters_aoaotc,
+	aoaoaotc = filters_aoaoaotc,
 	aols = filters_aols,
-	aoinvls = filters_aoinvls,
+	aotcls = filters_aotcls,
 	lsls = filters_lsls
 )
 robust_filters <- lapply(robust_filters, reorder_out_filters)

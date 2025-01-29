@@ -1145,7 +1145,7 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO (sur TC)" = robust_ff[["aoaoinv"]]
+		"MM robuste AO-AO (sur TC)" = robust_ff[["aoaotc"]]
 		),
 	show.legend = TRUE
 )
@@ -1208,8 +1208,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaoinv"]],
-		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aoinvls"]]
+		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaotc"]],
+		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aotcls"]]
 		),
 	show.legend = TRUE
 )
@@ -1351,7 +1351,7 @@ ggdemetra3::ggplot_coef(lp_filter(ic = 3.5), q = 0:6) +
 #| label: fig-robust-ao
 #| fig.cap: "Moyennes mobiles de Henderson et de Musgrave ($R=3,5$) robustes à la présence d'un choc ponctuel (AO) à la dernière date"
 (ggdemetra3::ggplot_coef(robust_ff$ao$t0, q= 0:7) + ggplot2::ggtitle("Choc associé à l'irrégulier")) /
-	(ggdemetra3::ggplot_coef(robust_ff$aoinv$t0, q= 0:7) + 
+	(ggdemetra3::ggplot_coef(robust_ff$aotc$t0, q= 0:7) + 
 	ggplot2::ggtitle("Choc associé à la tendance-cycle"))  + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	ggplot2::scale_color_manual(values = palette_coef)
@@ -1361,7 +1361,7 @@ ggdemetra3::ggplot_coef(lp_filter(ic = 3.5), q = 0:6) +
 #| label: fig-robust-aols
 #| fig.cap: "Moyennes mobiles de Henderson et de Musgrave ($R=3,5$)  à un choc ponctuel (AO) suivi d'un choc permanent (LS) à la dernière date"
 (ggdemetra3::ggplot_coef(robust_ff$aols$`t-1`, q= 0:7) + ggplot2::ggtitle("AO associé à l'irrégulier")) /
-	(ggdemetra3::ggplot_coef(robust_ff$aoinvls$`t-1`, q= 0:7) + 
+	(ggdemetra3::ggplot_coef(robust_ff$aotcls$`t-1`, q= 0:7) + 
 	ggplot2::ggtitle("AO associé à la tendance-cycle"))  + 
 	plot_layout(guides = 'collect', axes = "collect") &
 	ggplot2::scale_color_manual(values = palette_coef)
@@ -1646,8 +1646,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaoinv"]],
-		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aoinvls"]]
+		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaotc"]],
+		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aotcls"]]
 		),
 	show.legend = TRUE
 )
@@ -1697,8 +1697,8 @@ graph_ci <- plot_confint(
 	default_filter = lc_f,
 	robust_f = list(
 		"MM robuste LS-LS" = robust_ff[["lsls"]],
-		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaoinv"]],
-		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aoinvls"]]
+		"MM robuste AO-AO\n(sur TC)" = robust_ff[["aoaotc"]],
+		"MM robuste AO-LS\n(sur TC)" = robust_ff[["aotcls"]]
 		),
 	show.legend = TRUE
 )
