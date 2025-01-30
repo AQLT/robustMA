@@ -207,6 +207,7 @@ Par construction, les méthodes d'extraction de tendance-cycle sont étroitement
 En effet, afin d'estimer la composante saisonnière, les algorithmes de désaisonnalisation estiment préalablement une composante tendance-cycle.
 Ainsi, même si les méthodes d'extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également également des méthodes d'estimation de la tendance-cycle.
 
+
 Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d'extraction du cycle économique et d'ajustement saisonnier. 
 Par exemple, la méthode de désaisonnalisation X-11 [@ladiray2011seasonal], utilisée dans le logiciel X-13ARIMA-SEATS [@x13], utilise des moyennes mobiles pour estimer les principales composantes d'une série chronologique. 
 Au centre de la série, des filtres symétriques sont appliqués (utilisation d'autant de points dans le passé et dans le futur et le même poids est associé aux observations passées et futures). 
@@ -238,11 +239,18 @@ où $f$ désigne une transformation appropriée (généralement logarithmique ou
 Pour simplifier les notations ultérieures, $y_t$ désignera la série observée transformée.
 La composante de bruit $\varepsilon_t$ est généralement supposée être un bruit blanc.
 En supposant que la série chronologique initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et le cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
-Autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$\ :
+L'estimation de la composante tendance-cycle permet faciliter l'analyse des retournements conjoncturels dans le cycle classique (également appelé cycle des affaires)^[
+Contrairement aux méthodes de décomposition entre tendance et cycle, associée à des méthodes de filtrage de type Hodrick-Prescott ou Baxter-King, qui sont plutôt utilisées pour analyser les points de retournement dans le cycle de croissance (voir @ferrara2009caracterisationcycles pour une description des différents cycles économiques).
+].
+On parle de point de retournement lorsque l'on passe d'une phase de récession (diminutions successives) à une phase d'expansion de l'économie (augmentations successives) : on parle alors de redressement ou, dans le cas contraire, de ralentissement.
+Même si plusieurs formules peuvent être utilisées pour définir ces phases, la définition de @Zellner1991 est généralement utilisée pour déterminer les points de retournement : on a un point de retournement à la date $t$ lorsque $TC_{t-3}\geq TC_{t-2}\geq TC_{t-1}<TC_t\leq TC_{t+1}$ (redressement) ou $TC_{t-3}\leq TC_{t-2}\leq TC_{t-1}>TC_t\geq TC_{t+1}$ (ralentissement).  
+
+La composante tendance-cycle est généralement estimée de manière locale.
+En effet, autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$\ :
 $$
 TC_{t+i} = \sum_{j=0}^d\beta_j{i}^j+\xi_{t+i}\quad\forall i\in\{-h,-h+1,\dots,t+h\}
 $$
-avec $\xi_t$ un processus stochastique non corrélé avec $\varepsilon_t$.
+avec $\xi_t$ un processus stochastique non corrélé avec $\varepsilon_t$ représentant l'erreur d'approximation.
 Même si certains articles modélisent $\xi_t$ et $\varepsilon_t$ séparément [voir par exemple @GrayThomson2002], une hypothèse habituelle, utilisée dans cet article, est de rassembler $\xi_t$ et $\varepsilon_t$^[
 Cela revient à supposer que le biais d'approximation de la tendance-cycle par un polynôme local est nul.
 ].
@@ -260,6 +268,8 @@ Comme notamment discuté par @matthewssapw4, différentes stratégies peuvent al
 
 - Estimer les points atypiques avec un modèle RegARIMA, estimer la tendance-cycle sur la série corrigée et « réintroduire » les effets corrigés sur la tendance-cycle. 
 L'inconvénient de cette approche est que l'estimation des points atypiques dépend du modèle ARIMA utilisé et de la période d'estimation.
+Si le modèle est réestimé à chaque nouvelle observation, la tendance-cycle peut donc potentiellement être révisée pendant de nombreuses périodes.
+Par exemple, @JMS2018DL montrent que dans la majorité des cas il faut attendre au moins 3 ans pour que l'estimation du coefficient associé à une rupture converge.
 
 - Estimer la tendance-cycle sur l'ensemble de la période et remplacer les données estimées après la rupture par celles estimées en commençant la série après la rupture (série segmentée d'un côté).
 L'inconvénient de cette approche est que les estimations avant la rupture vont être biaisées par la présence du choc et que celles après la rupture reposent sur des moyennes mobiles asymétriques (avec un biais plus important que les moyennes mobiles symétriques utilisées pour les estimations finales, et peuvent créer un déphasage, c'est-à-dire un décalage dans les points de retournement).
@@ -732,9 +742,9 @@ Pour la construction d'intervalles de confiance, le plus simple est alors de rec
 :::
 
 ::: {.remark}
-La matrice $\boldsymbol H$ pourrait également être construite en prenant en complétant les $p$ premières et $f$ dernières lignes par les moyennes mobiles asymétriques qui sont utilisées.
-Toutefois, puisque les modèles sous-jacent aux moyennes mobiles asymétriques sont différents de ceux des moyennes mobiles symétriques (par exemple Musgrave modélise une tendance de degré 1 alors que Henderson modélise une tendance de degré 3), on peut supposer les variances différentes pour chaque moyenne mobile et estimer celles associées aux moyennes mobiles asymétriques en utilisant l'ensemble des données.
-C'est l'approche utilisée dans `rjd3filters` : l'intervalle de confiance sera donc plus grand pour les estimations intermédiaires que pour les estimations finales (ce à quoi l'on pourrait s'attendre !).
+La matrice $\boldsymbol H$ pourrait également être construite en complétant les $p$ premières et $f$ dernières lignes par les moyennes mobiles asymétriques utilisées.
+Toutefois, puisque les modèles sous-jacents aux moyennes mobiles asymétriques sont différents de ceux des moyennes mobiles symétriques (par exemple Musgrave modélise une tendance de degré 1 alors que Henderson modélise une tendance de degré 3), on peut supposer les variances différentes pour chaque moyenne mobile et estimer celles associées aux moyennes mobiles asymétriques en utilisant l'ensemble des données.
+C'est l'approche utilisée dans `rjd3filters` : la variance estimée sera donc plus grande pour les estimations intermédiaires que pour les estimations finales (ce à quoi l'on pourrait s'attendre).
 :::
 
 <!-- ::: {.remark} -->
