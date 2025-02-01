@@ -240,7 +240,7 @@ Pour simplifier les notations ultérieures, $y_t$ désignera la série observée
 La composante de bruit $\varepsilon_t$ est généralement supposée être un bruit blanc.
 En supposant que la série chronologique initiale est désaisonnalisée (ou sans saisonnalité), le signal $\mu_t$ représente la tendance (variations sur une longue période) et le cycle (mouvements cycliques superposés à la tendance à long terme), estimés ici conjointement et appelé tendance-cycle $TC_t$.
 L'estimation de la composante tendance-cycle permet faciliter l'analyse des retournements conjoncturels dans le cycle classique (également appelé cycle des affaires)^[
-Contrairement aux méthodes de décomposition entre tendance et cycle, associée à des méthodes de filtrage de type Hodrick-Prescott ou Baxter-King, qui sont plutôt utilisées pour analyser les points de retournement dans le cycle de croissance (voir @ferrara2009caracterisationcycles pour une description des différents cycles économiques).
+Dans cet article, on ne cherche donc pas à estimer séparément la tendance et le cycle, associée à des méthodes de filtrage de type Hodrick-Prescott ou Baxter-King, qui sont plutôt utilisées pour analyser les points de retournement dans le cycle de croissance (voir @ferrara2009FR pour une description des différents cycles économiques).
 ].
 On parle de point de retournement lorsque l'on passe d'une phase de récession (diminutions successives) à une phase d'expansion de l'économie (augmentations successives) : on parle alors de redressement ou, dans le cas contraire, de ralentissement.
 Même si plusieurs formules peuvent être utilisées pour définir ces phases, la définition de @Zellner1991 est généralement utilisée pour déterminer les points de retournement : on a un point de retournement à la date $t$ lorsque $TC_{t-3}\geq TC_{t-2}\geq TC_{t-1}<TC_t\leq TC_{t+1}$ (redressement) ou $TC_{t-3}\leq TC_{t-2}\leq TC_{t-1}>TC_t\geq TC_{t+1}$ (ralentissement).  
@@ -601,16 +601,16 @@ où $\mu_t$ est une composante déterministe à estimer et $\varepsilon_{t}\over
 Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer la composante inobservable $\mu_t$ (dans cette étude la tendance-cycle $TC_t$) à partir de $y_t$.
 Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
 
-Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ peut être calculé à partir de la formule :
+Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ au seuil $\alpha$ peut être calculé à partir de la formule :
 $$
-I_t=\left[\hat{\mu}_t - q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2};
- \hat{\mu}_t  + q_{\alpha}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2}\right]
+I_t=\left[\hat{\mu}_t - q_{\alpha/2}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2};
+ \hat{\mu}_t  + q_{1-\alpha/2}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2}\right]
 $${#eq-ic}
 où 
 $$
 \hat\sigma^2=\frac{1}{(n-p-f)\left(1-2\theta_0^2+\sum_{i=-p}^{+f} \theta_i^2\right)}\sum_{t=p+1}^{n-f}(y_t-\widehat{\mu}_t)^2
 $$
-et $q_\alpha$ est le quantile d'ordre $\alpha$ d'une certaine loi de Student.
+et $q_{\alpha/2}$ est le quantile d'ordre $\alpha/2$ d'une certaine loi de Student.
 C'est un intervalle de confiance de $\mu_t$ lorsque l'on a un estimateur sans biais de $\mu_t$ ($\mathbb E[\hat{\mu}_t]= \sum_{i=-p}^{+f}\theta_iy_{t+i}= \mu_t$), ce qui n'est généralement pas le cas, mais le biais est négligeable lorsque la fenêtre $p+f+1$ est petite.
 
 Ces formules se retrouvent par analogie avec la régression polynomiale locale.
