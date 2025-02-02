@@ -603,8 +603,8 @@ Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
 
 Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ au seuil $\alpha$ peut être calculé à partir de la formule :
 $$
-I_t=\left[\hat{\mu}_t - q_{\alpha/2}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2};
- \hat{\mu}_t  + q_{1-\alpha/2}\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2}\right]
+I_t=\left[\hat{\mu}_t - |q_{\alpha/2}|\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2};
+ \hat{\mu}_t  + |q_{1-\alpha/2}|\sqrt{\hat \sigma^2}\sqrt{\sum_{i=-p}^{+f}\theta_i^2}\right]
 $${#eq-ic}
 où 
 $$
