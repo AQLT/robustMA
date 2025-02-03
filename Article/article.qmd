@@ -510,7 +510,7 @@ Les *cascade linear filter* [CLF, @clf], correspondent à une approximation des 
 De manière similaire, des moyennes mobiles asymétriques, *Asymmetric Linear Filter* (ALF), peuvent être construites
     
 C'est la moyenne mobile CLF qui est utilisée par Statistique Canada pour l'estimation de la tendance-cycle^[
-Voir par exemple <https://www.statcxan.gc.ca/fr/quo/bdd/tendance-cycle>.
+Voir par exemple <https://www.statcan.gc.ca/fr/quo/bdd/tendance-cycle>.
 ].
 Pour l'estimation en temps réel, Statistique Canada utilise la méthode « couper-et-normaliser » qui consiste à recalculer les poids, à partir de la moyenne mobile symétrique, en n'utilisant que les poids associées aux observations disponibles (couper) et en renormalisant pour que la somme des coefficients soit égale à 1 (normaliser).
 C'est l'approche qui sera utilisé dans cet article (plutôt que l'utilisation des ALF).
