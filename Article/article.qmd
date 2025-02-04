@@ -264,7 +264,7 @@ C'est par exemple le cas pendant la crise du COVID-19 qui a conduit Statistiques
 Lors de périodes de fortes « turbulences » (comme la crise du COVID-19) où les points atypiques sont importants, les estimations directes de la tendance-cycle peuvent être biaisées.
 Comme notamment discuté par @matthewssapw4, différentes stratégies peuvent alors être adoptées :
 
-- Ne pas publier les estimations pendant cette période : c'est ce qui est fait par l'Australian Bureau of Statistics qui ne publie pas d'estimation tendance-cycle entre avril 2020 et mars 2022.
+- Ne pas publier les estimations pendant cette période : c'est ce qui est fait par l'Australian Bureau of Statistics pour la période du COVID-19 en ne publiant pas d'estimation tendance-cycle entre avril 2020 et mars 2022.
 
 - Estimer les points atypiques avec un modèle RegARIMA, estimer la tendance-cycle sur la série corrigée et « réintroduire » les effets corrigés sur la tendance-cycle. 
 L'inconvénient de cette approche est que l'estimation des points atypiques dépend du modèle ARIMA utilisé et de la période d'estimation.
@@ -276,7 +276,7 @@ L'inconvénient de cette approche est que les estimations avant la rupture vont 
 
 - Diviser la série en deux au niveau de la rupture et estimer la tendance-cycle sur chaque segment (série segmentée des deux côtés).
 L'inconvénient de cette approche est que les estimations avant la rupture et après la rupture reposent sur des moyennes mobiles asymétriques (avec les mêmes inconvénients que précédemment).
-C'est l'approche privilégiée par Statistique Canada.
+C'est l'approche privilégiée par Statistique Canada pendant le COVID-19 et par l'Australian Bureau of Statistics lors de ruptures dans la tendance [@abs2003].
 
 L'objectif de cet article est d'étudier des approches alternatives à celles de @matthewssapw4.
 D'une part en étudiant les estimations en temps réel de méthodes non-linéaires robustes à la présence de points (@sec-methodes-robustes) ;
@@ -453,7 +453,7 @@ $$
 
 Pour le cas asymétrique, @proietti2008 proposent une méthode générale pour construire les filtres asymétriques qui permet de faire un compromis biais-variance.
 Il s'agit d'une généralisation des filtres asymétriques de @musgrave1964set (utilisés dans l'algorithme de désaisonnalisation X-13ARIMA).
-En récrivant l' @eq-lpp :
+En récrivant l'@eq-lpp :
 $$
 \boldsymbol y_t=\begin{pmatrix}\boldsymbol U &\boldsymbol Z\end{pmatrix}
 \begin{pmatrix}\boldsymbol \gamma_t \\ \boldsymbol \delta_t\end{pmatrix}+
