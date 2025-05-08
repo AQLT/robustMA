@@ -507,7 +507,7 @@ C'est ainsi que le *Nonlinear Dagum Filter* (NLDF) a été développé et consis
     En supposant une distribution normale cela revient à modifier 48 % des valeurs de l'irrégulier.   
 
 Les *cascade linear filter* [CLF, @clf], correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$
-De manière similaire, des moyennes mobiles asymétriques, *Asymmetric Linear Filter* (ALF), peuvent être construites
+De manière similaire, des moyennes mobiles asymétriques, *Asymmetric Linear Filter* (ALF), peuvent être construites.
     
 C'est la moyenne mobile CLF qui est utilisée par Statistique Canada pour l'estimation de la tendance-cycle^[
 Voir par exemple <https://www.statcan.gc.ca/fr/quo/bdd/tendance-cycle>.
@@ -515,6 +515,10 @@ Voir par exemple <https://www.statcan.gc.ca/fr/quo/bdd/tendance-cycle>.
 Pour l'estimation en temps réel, Statistique Canada utilise la méthode « couper-et-normaliser » qui consiste à recalculer les poids, à partir de la moyenne mobile symétrique, en n'utilisant que les poids associées aux observations disponibles (couper) et en renormalisant pour que la somme des coefficients soit égale à 1 (normaliser).
 C'est l'approche qui sera utilisé dans cet article (plutôt que l'utilisation des ALF).
 
+::: {.remark}
+Les CLF ne préservent, localement, que les droites (tendances de degré 1) et les moyennes mobiles asymétriques associées que les constantes (tendances de degré 0).
+En revanche la moyenne mobile de Henderson préserve les tendances locales de degré 3 et les moyennes mobiles de Musgrave que les constantes.
+:::
 
 ## Construction de moyennes mobiles robustes {#sec-constr-mm}
 
