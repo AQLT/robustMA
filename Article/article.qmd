@@ -465,7 +465,7 @@ $$ {#eq-lpgeneralmodel}
 où $[\boldsymbol U,\boldsymbol Z]$ est de rang plein et forme un sous-ensemble des colonnes de $\boldsymbol X$.
 L'objectif est de trouver une moyenne mobile asymétrique $\boldsymbol \theta^{(a)}$ qui minimise l'erreur quadratique moyenne de révision (à la moyenne mobile symétrique $\boldsymbol \theta$) sous certaines contraintes.
 Ces contraintes sont représentées par la matrice $\boldsymbol U=\transp{\begin{pmatrix}\transp{\boldsymbol U_{p}}&\transp{\boldsymbol U_{f}}\end{pmatrix}}$ : $\transp{\boldsymbol U_p}\boldsymbol \theta^{(a)}=\transp{\boldsymbol U}\boldsymbol \theta$ (avec $\boldsymbol U_p$ la matrice $(h+q+1)\times (d+1)$ qui contient les observations de la matrice $\boldsymbol U$ connues lors de l'estimation par le filtre asymétrique).
-C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()`.
+C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()` du package R `rjd3filters` [@rjd3filters].
 
 Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymbol X$, $d^*<d$, la contrainte consiste à reproduire des tendances polynomiales de degré $d^*$.
 Cela introduit du biais (sur les tendances de degré $d^*+1$ à $d$) mais réduit la variance. 
@@ -570,11 +570,11 @@ Si le choc apparaît à la date $t_0$ il peut être modélisé par le régresseu
 Si l'on souhaite que le choc soit affecté à la tendance-cycle et non pas à l'irrégulier (par exemple pendant la période du COVID-19), il faut utiliser le régresseur $O_{t+j}=O_{t+j}^{AO}=\1_{t+j= t_0}$ lorsque $t< t_0$ ou $t=t_0+h$ (estimations des points avant le choc et dernière moyenne mobile modifiée) et $O_{t+j}=1-O_{t+j}^{AO}=\1_{t+j\ne t_0}$ lorsque $t_0\leq t < t_0+h$ (estimations des points après le choc sauf dernière moyenne mobile modifiée).
 Une distinction est faite pour $t=t_0+h$ car dans ce cas le régresseur $\1_{t+j\ne t_0}$ est égal à $\1_{t+j> t_0}$ ce qui revient à créer une rupture en niveau (cf *infra*) et introduit un pic indésirable à l'estimation en $t_0+h$.
 
-
 - Les ruptures en niveau (LS, *level shift*) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.).
 Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'impact sur l'irrégulier.
 Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t+j< t_0}$ si $t\leq t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t+j\geq t_0}$ si $t_0<t$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
 
+Cette méthode a été implémentée dans la fonction `publishTC::henderson_robust_smoothing()` du package `publishTC` [@publishTC] qui permet de modéliser des chocs ponctuels (affectés à l'irrégulier ou à la tendance-cycle) et des ruptures en niveau (affectées à la tendance-cycle).
 
 L'inconvénient de cette approche, par rapport aux méthodes robustes présentées dans la @sec-methodes-robustes, est que cela suppose de connaître la date et la nature du point atypique.
 Une approche en deux temps peut être utilisée :
@@ -718,7 +718,7 @@ $$
 \tr(\boldsymbol \Delta) = (n-p-f)\left(1-2\theta_0+\sum_{i=-p}^{+f} \theta_i^2\right).
 $$
 En revanche il est difficile d'avoir une formule simplifiée pour le dénominateur $\tr(\boldsymbol \Delta^2).$
-Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (annexe [-@sec-df-var]) :
+Ce dernier peut être calculé en reconstruisant la matrice $\boldsymbol \Delta$ (produit de matrices de taille $n\times n$) ou, comme proposé dans cet article, par le produit d'une matrice de taille $1\times (p+f+1)$ et d'une matrice de taille $(p+f+1)\times(p+f+1)$ pour réduire le temps de calcul (annexe [-@sec-df-var]) :
 $$
 \tr(\boldsymbol \Delta^2)=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2
 $$
@@ -750,12 +750,9 @@ Toutefois, lorsque plusieurs outliers consécutifs sont utilisés dans le passé
 ::: {.remark}
 La matrice $\boldsymbol H$ pourrait également être construite en complétant les $p$ premières et $f$ dernières lignes par les moyennes mobiles asymétriques utilisées.
 Toutefois, puisque les modèles sous-jacents aux moyennes mobiles asymétriques sont différents de ceux des moyennes mobiles symétriques (par exemple Musgrave modélise une tendance de degré 1 alors que Henderson modélise une tendance de degré 3), on peut supposer les variances différentes pour chaque moyenne mobile et estimer celles associées aux moyennes mobiles asymétriques en utilisant l'ensemble des données.
-C'est l'approche utilisée dans `rjd3filters` : la variance estimée sera donc plus grande pour les estimations intermédiaires que pour les estimations finales (ce à quoi l'on pourrait s'attendre).
+C'est l'approche implémentée dans `rjd3filters`.
 :::
 
-<!-- ::: {.remark} -->
-<!-- Même si la majorité des moyennes mobiles @inseeDTM202401 -->
-<!-- ::: -->
 
 # Résultats {#sec-results}
 
@@ -870,7 +867,9 @@ L'analyse des intervalles de confiance valident clairement la présence du point
 Lorsque la tendance est de degré 1 les résultats sont similaires sauf pour la médiane mobile qui sous-estime la tendance pour les estimations intermédiaires (figures [-@fig-simul-ao-out-td1-est] et [-@fig-simul-ao-out-td1-ci]).
 Comme notamment indiqué par @gather2006online, cela suggère d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel avec les méthodes robustes.
 Un léger biais négatif s'observe pour la méthode de Henderson robuste : cela provient du fait que pour la création de ces moyennes mobiles la pente est fixé (ratio $\delta_1/\sigma$ fixé et $\sigma$ a priori fixé) à une valeur différente de la pente simulée.
-Cela suggère de préférer une paramétrisation locale de ce paramètre, comme proposé par @jos2024AQLT.\
+Cela suggère de préférer une paramétrisation locale de ce paramètre, comme proposé par @jos2024AQLT^[
+C'est ce qui a été implémenté dans la fonction `publishTC::henderson_robust_smoothing(local_icr = TRUE)`.
+].\
 Lorsque la tendance est de degré 2, les résultats avec les moyennes mobiles sont similaires (révisions importantes autour du choc pour Henderson et CLF et faibles pour Henderson robuste, figures [-@fig-simul-ao-out-td2-est] et [-@fig-simul-ao-out-td2-ci]).
 Pour les méthodes robustes, les estimations finales reproduisent bien le retournement de tendance malgré le fait qu'elles ne modélisent qu'une tendance de degré 1.
 Pour les estimations en temps réel, les tendances sont surestimées mais les révisions faibles : cela s'explique par le faible degré de courbure de la série simulée et pourraient être minimisées en modélisant des tendances de degré supérieur (voir annexe [-@sec-an-lms-lts] pour les résultats avec les méthodes LMS et LTS).
@@ -1431,7 +1430,6 @@ w_f & w_{f-1} & w_{f-2}&\ddots&w_{-p}\\
 $$
 avec $\boldsymbol w = \begin{pmatrix}w_{-p},\dots,w_f\end{pmatrix}$ la moyenne mobile telle que $w_i=\1_{i=0}-\theta_i$.
 
-
 Soient $i,j\in\{1,\dots,n\},$ posons par convention $w_i=0$ pour $i\notin[-p,f].$
 Notons $\boldsymbol \Gamma=\boldsymbol I -\boldsymbol H.$
 On a ${\boldsymbol H}_{i,j}=\theta_{i-j}\1_{i\in[p+1,n-f]}$ et donc ${\boldsymbol \Gamma}_{i,j}=w_{i-j}\1_{i\in[p+1,n-f]}$ et ensuite :
@@ -1460,6 +1458,8 @@ En somme :
 &\phantom{=}\dots+2(n-2(p+f))L_{p+f}^2 \\
 &=(n-(p+f))L_0^2+2\sum_{k=1}^{p+f}(n-(p+f)-k)L_k^2.
 \end{align*}
+
+Cette optimisation computationnelle a ensuite été implémentée dans la fonction `rjd3filters::confint_filter()`.
 
 ## Autres exemples sur des séries réelles {#sec-autres-ex}
 
@@ -1793,6 +1793,9 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 \clearpage
 
 ## Moindres carrés médians (LMS) et moindres carrés élagués (LTS) avec une tendance de degré 2 {#sec-an-lms-lts}
+
+Cette annexe présente les résultats des estimations de la réimplémentation des processus d'estimations locale des moindres carrés médians (LMS, @fig-lmsd2) et moindres carrés élagués (LTS, @fig-ltsd2) avec une tendance de degré 2.
+
 
 ```{r}
 #| label: fig-lmsd2
