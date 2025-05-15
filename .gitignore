@@ -4,3 +4,5 @@ figure-pdf
 figure-docx
 .Rhistory
 *.Rproj
+article.tex
+biblio.bib
