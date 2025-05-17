@@ -270,13 +270,14 @@ Comme notamment discuté par @matthewssapw4, différentes stratégies peuvent al
 L'inconvénient de cette approche est que l'estimation des points atypiques dépend du modèle ARIMA utilisé et de la période d'estimation.
 Si le modèle est réestimé à chaque nouvelle observation, la tendance-cycle peut donc potentiellement être révisée pendant de nombreuses périodes.
 Par exemple, @JMS2018DL montrent que dans la majorité des cas il faut attendre au moins 3 ans pour que l'estimation du coefficient associé à une rupture converge.
+C'est l'approche privilégiée par l'Australian Bureau of Statistics lors de ruptures dans la tendance [@abs2003].
 
 - Estimer la tendance-cycle sur l'ensemble de la période et remplacer les données estimées après la rupture par celles estimées en commençant la série après la rupture (série segmentée d'un côté).
 L'inconvénient de cette approche est que les estimations avant la rupture vont être biaisées par la présence du choc et que celles après la rupture reposent sur des moyennes mobiles asymétriques (avec un biais plus important que les moyennes mobiles symétriques utilisées pour les estimations finales, et peuvent créer un déphasage, c'est-à-dire un décalage dans les points de retournement).
 
 - Diviser la série en deux au niveau de la rupture et estimer la tendance-cycle sur chaque segment (série segmentée des deux côtés).
 L'inconvénient de cette approche est que les estimations avant la rupture et après la rupture reposent sur des moyennes mobiles asymétriques (avec les mêmes inconvénients que précédemment).
-C'est l'approche privilégiée par Statistique Canada pendant le COVID-19 et par l'Australian Bureau of Statistics lors de ruptures dans la tendance [@abs2003].
+C'est l'approche privilégiée par Statistique Canada pendant le COVID-19 [@@matthewssapw4].
 
 L'objectif de cet article est d'étudier des approches alternatives à celles de @matthewssapw4.
 D'une part en étudiant les estimations en temps réel de méthodes non-linéaires robustes à la présence de points (@sec-methodes-robustes) ;
