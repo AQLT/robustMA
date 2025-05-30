@@ -277,7 +277,7 @@ L'inconvénient de cette approche est que les estimations avant la rupture vont 
 
 - Diviser la série en deux au niveau de la rupture et estimer la tendance-cycle sur chaque segment (série segmentée des deux côtés).
 L'inconvénient de cette approche est que les estimations avant la rupture et après la rupture reposent sur des moyennes mobiles asymétriques (avec les mêmes inconvénients que précédemment).
-C'est l'approche privilégiée par Statistique Canada pendant le COVID-19 [@@matthewssapw4].
+C'est l'approche privilégiée par Statistique Canada pendant le COVID-19 [@matthewssapw4] et celle qui était par l'Australian Bureau of Statistics lors des premières publications des estimations de la tendance-cycle [@abs_smoothing_1987].
 
 L'objectif de cet article est d'étudier des approches alternatives à celles de @matthewssapw4.
 D'une part en étudiant les estimations en temps réel de méthodes non-linéaires robustes à la présence de points (@sec-methodes-robustes) ;
@@ -558,7 +558,7 @@ La moyenne mobile asymétrique $\boldsymbol \theta^{(a)(r)}_t$ est trouvée par 
 Ces contraintes sont représentées par la matrice
 $\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix} = \begin{pmatrix}\boldsymbol U_{p} & \mathcal O_{p,t} \\\boldsymbol U_{f} & \mathcal O_{f,t} \end{pmatrix}$ : 
 $$
-\transp{\begin{pmatrix}\boldsymbol U_{p} & \mathcal O_{p,t} \end{pmatrix}}\boldsymbol \theta^{(a)}=\transp{\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix}}\boldsymbol \theta
+\transp{\begin{pmatrix}\boldsymbol U_{p} & \mathcal O_{p,t} \end{pmatrix}}\boldsymbol \theta^{(a)}=\transp{\begin{pmatrix}\boldsymbol U & \mathcal O_{t}\end{pmatrix}} \boldsymbol \theta_t^{(r)}.
 $$ 
 
 Par convention, lorsque $\mathcal O_{t}$ ou $\mathcal O_{p,t}$ est la matrice nulle, on garde la modélisation de la @sec-lp (sans introduction de régresseur supplémentaire).
@@ -573,7 +573,7 @@ Une distinction est faite pour $t=t_0+h$ car dans ce cas le régresseur $\1_{t+j
 
 - Les ruptures en niveau (LS, *level shift*) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.).
 Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'impact sur l'irrégulier.
-Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=-\1_{t+j< t_0}$ si $t\leq t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t+j\geq t_0}$ si $t_0<t$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
+Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=1-\1_{t+j< t_0}$ si $t\leq t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t+j\geq t_0}$ si $t_0<t$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
 
 Cette méthode a été implémentée dans la fonction `publishTC::henderson_robust_smoothing()` du package `publishTC` [@publishTC] qui permet de modéliser des chocs ponctuels (affectés à l'irrégulier ou à la tendance-cycle) et des ruptures en niveau (affectées à la tendance-cycle).
 
