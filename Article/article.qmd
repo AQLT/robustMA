@@ -594,6 +594,10 @@ Par rapport au préajustement des points atypiques par un modèle *ad hoc*, comm
 Dans la suite ces moyennes mobiles seront appelées moyennes mobiles de Henderson ou de Musgrave robustes.
 Par simplification, nous appellerons également moyenne mobile de Henderson robuste l'utilisation des moyennes de mobiles de Henderson (pour l'estimation finale) et de Musgrave (pour les estimations intermédiaires) robustes construits selont la même méthodologie.
 
+<!-- ::: {.remark} -->
+<!-- Une procédure similaire pourrait être appliquée aux CLF en ajoutant des régresseurs dans le modèle ARIMA utilisé pour prolonger la série. -->
+<!-- ::: -->
+
 ## Construction d'intervalles de confiance pour des moyennes mobiles {#sec-ic}
 
 Soit $y_1,\dots,y_n$ une série chronologique observée.
@@ -1316,7 +1320,7 @@ Lorsqu'un choc est associé à un point de retournement de l'économie (par exem
 La comparaison entre moyennes mobiles robustes et classiques, à l'aide de la construction d'intervalles de confiance et d'une analyse économique, permet de valider la modélisation retenue.
 De plus, lorsque aucun choc n'est observée, l'utilisation à tort d'une moyenne mobile robuste donnera des résultats très proches des moyennes mobiles classiques et ne dégrade donc pas les résultats.
 En revanche, lors de l'estimation en temps réel, le choix d'une mauvaise spécification (par exemple choc ponctuel, affecté à l'irrégulier, plutôt que choc permanent, affecté à la tendance-cycle) peut entraîner des révisions importantes lorsque la bonne spécification est finalement retenue.
-Si l'on cherche à minimiser les révisions, en cas de doute sur la nature du choc il peut donc être préférable d'utiliser les moyennes mobiles linéaires classiques avant d'être sûr de la spécification à adopter.
+Pour minimiser les révisions, en cas de doute sur la nature du choc il est donc préférable d'utiliser les moyennes mobiles linéaires classiques avant d'être sûr de la spécification à adopter.
 
 Afin d'éviter le biais lié à la présence de points atypiques, le logiciel de désaisonnalisation X-13ARIMA-SEATS (où sont notamment utilisées les moyennes mobiles de Henderson et de Musgrave) possède plusieurs modules de correction des chocs : la série est d'abord pré-corrigée et les chocs sont à la fin réintroduit dans la bonne composante (saisonnalité, tendance-cycle ou irrégulier).
 Toutefois, les rares instituts qui publient des estimations de la tendance-cycle (comme Statistique Canada et l'Australian Bureau of Statistics) ne semblent pas utiliser le logiciel X-13ARIMA-SEATS pour l'estimation de cette composante et appliquent plutôt une moyenne mobile sur le série désaisonnalisées.
