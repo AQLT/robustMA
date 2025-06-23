@@ -156,7 +156,7 @@ palette_coef <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442",
 ### Résumé {-}
 
 :::: {.abstract}
-Cette étude s'intéresse à l'estimation en temps réel de la tendance-cycle autour de chocs et de points de retournement.
+Cette étude s'intéresse à l'estimation en temps réel de la composante tendance-cycle autour de chocs et de points de retournement.
 Les moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle, sensibles à la présence de points atypiques, sont comparées à des méthodes non-linéaires robustes.
 Nous proposons également une méthodologie pour étendre les moyennes mobiles de Henderson et de Musgrave afin de prendre en compte des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
 Nous décrivons comment estimer des intervalles de confiance pour les estimations issues de moyennes mobiles, ce qui permet de valider l'utilisation de ces nouvelle moyennes mobiles.
@@ -171,7 +171,7 @@ Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de
 ### Abstract {-}
 
 :::: {.abstract}
-This study focuses on the real-time estimation of the trend-cycle around shocks and turning points.
+This study focuses on the real-time estimation of the trend-cycle component around shocks and turning points.
 The linear moving averages classically used for estimating the trend-cycle, which are sensitive to the presence of atypical points, are compared with robust non-linear methods.
 We also propose a methodology for extending the Henderson and Musgrave moving averages to take account of external information and thus construct moving averages that are robust to the presence of certain shocks.
 We describe how to estimate confidence intervals for estimates derived from moving averages, thereby validating the use of these new moving averages.
