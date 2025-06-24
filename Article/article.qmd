@@ -43,6 +43,8 @@ crossref:
 execute: 
   cache: true
 lang: fr
+language:
+ title-block-author-single: Auteur
 echo: false
 toc: true
 number-sections: true
