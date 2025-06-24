@@ -749,7 +749,8 @@ Il est divisé d'environ 350 en utilisant la formule proposée dans cet article 
 Lorsque l'estimation de la tendance-cycle est basée sur des moyennes mobiles construites à l'aide d'un régresseur externe (@sec-constr-mm), les formules ici présentées ne sont pas applicables puisque des moyennes mobiles différentes sont utilisées pour l'estimation finale.
 Pour la construction d'intervalles de confiance, le plus simple est alors de reconstruire la matrice $\boldsymbol H.$
 Pour les estimations récentes, lorsque des moyennes mobiles asymétriques sont utilisées, le calcul des intervalles de confiance nécessite la création d'une matrice $\boldsymbol H$ fictive (qui correspondrait à la matrice utilisée si toutes les estimations étaient faites avec une moyenne mobile asymétrique).
-Toutefois, lorsque plusieurs outliers consécutifs sont utilisés dans le passé, la construction d'une moyenne mobile asymétrique robuste n'est pas toujours possible : dans ce cas il est possible d'utiliser par défaut la moyenne mobile asymétrique linéaire de référence (ce qui aurait donc pour effet d'augmenter la variance estimée).
+Toutefois, lorsque plusieurs outliers consécutifs sont utilisés dans le passé, la construction d'une moyenne mobile asymétrique robuste n'est pas toujours possible : dans ce cas il est possible d'utiliser par défaut la moyenne mobile asymétrique linéaire de référence (ce qui a pour effet d'augmenter la variance estimée).
+C'est l'approche implémentée dans `rjd3filters`.
 :::
 
 ::: {.remark}
