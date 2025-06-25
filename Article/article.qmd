@@ -383,7 +383,12 @@ Une approche alternative consiste à appliquer les mêmes modèles mais en n'uti
 Cette approche n'est pas implémentée dans `robfilter` mais peut être obtenue en ajoutant $h$ valeurs manquantes au début et à la fin de la série : c'est ce qui sera effectué dans cet article.
 
 
-Dans le cadre de l'analyse conjoncturelle, il n'est généralement pas plausible de modéliser, autour des points de retournement, une tendance de degré 1.
+Dans le cadre de l'analyse conjoncturelle, il n'est généralement pas plausible de modéliser, autour des points de retournement, une tendance de degré 1^[
+Dans l'utilisation de méthodes robustes, il est courant de localement modéliser une tendance de degré 1.
+Par exemple, dans la méthode de lissage Loess, @loess recommande d'utiliser une tendance de degré 1 qui permet d'avoir un «\ bon compromis entre facilité de calcul et besoin de flexibilité \ ». 
+Idem, dans la méthode de désaisonnalisation STL (*Seasonal-Trend decomposition based on Loess*), @cleveland90 indiquent :
+«\ Il est raisonnable de prendre $d=1$ si le modèle sous-jacent des données présente une légère courbure. Mais si la courbure est importante, par exemple avec des pics et des creux, il est préférable d'opter pour $d=2$.\ »
+].
 Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement toutes ces méthodes.
 Même si cette modélisation n'est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d'utilisation de `robfilter` font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle et présentées dans la section suivante.
 Toutefois, les méthodes LTS et LMS sont implémentées dans le package `MASS` [@MASS]^[
