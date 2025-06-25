@@ -158,7 +158,9 @@ palette_coef <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442",
 ### Résumé {-}
 
 :::: {.abstract}
-Cette étude s'intéresse à l'estimation en temps réel de la composante tendance-cycle autour de chocs et de points de retournement.
+Les séries désaisonnalisées sont usuellement utilisées pour l'analyse de la conjoncture et des points de retournement.
+Lorsque l'irrégulier est trop élevé, il est préférable de lisser la série afin d'analyser directement la composante tendance-cycle.
+Cette étude s'intéresse à l'estimation en temps réel de cette composante autour de chocs et de points de retournement.
 Les moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle, sensibles à la présence de points atypiques, sont comparées à des méthodes non-linéaires robustes.
 Nous proposons également une méthodologie pour étendre les moyennes mobiles de Henderson et de Musgrave afin de prendre en compte des informations extérieurs et ainsi construire des moyennes mobiles robustes à la présence de certains chocs.
 Nous décrivons comment estimer des intervalles de confiance pour les estimations issues de moyennes mobiles, ce qui permet de valider l'utilisation de ces nouvelle moyennes mobiles.
@@ -173,6 +175,8 @@ Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de
 ### Abstract {-}
 
 :::: {.abstract}
+Seasonally adjusted series are usually used to analyse the business cycle and turning points.
+When the irregular is too high, it is preferable to smooth the series in order to analyse the trend-cycle component directly.
 This study focuses on the real-time estimation of the trend-cycle component around shocks and turning points.
 The linear moving averages classically used for estimating the trend-cycle, which are sensitive to the presence of atypical points, are compared with robust non-linear methods.
 We also propose a methodology for extending the Henderson and Musgrave moving averages to take account of external information and thus construct moving averages that are robust to the presence of certain shocks.
