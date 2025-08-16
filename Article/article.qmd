@@ -293,7 +293,7 @@ Nous montrons également comment construire des intervalles de confiance pour le
 ## Méthodes robustes {#sec-methodes-robustes}
 
 Dans cette étude nous étudions six méthodes robustes d'estimation locale de la moyenne implémentées dans la fonction `robfilter::robreg.filter()` [@robfilter].
-Dans le package `robfilter`, la tendance-cycle est supposée être localement linéaire :
+Dans le *package* `robfilter`, la tendance-cycle est supposée être localement linéaire :
 $$
 y_{t+i}=\underbrace{\beta_{0,t}+\beta_{1,t}i}_{TC_{t+i}}+\varepsilon_{t,i}
 $$
@@ -372,7 +372,7 @@ R^-(i) = R^-_{\tilde\beta_{0},\tilde\beta_{1}}(i) = cardinal \left\{ j\in\{i+1,\
 $$
 et $L^-(i)$ et $R^+(i)$ définis de manière analogue.
 
-Pour les estimations intermédiaires (i.e. : lorsque pour estimer la tendance-cycle à la date $t$ on ne possède pas $h$ observations avant ou après $t$), le package `robfilter` extrapole les données à partir du dernier modèle estimé.
+Pour les estimations intermédiaires (i.e. : lorsque pour estimer la tendance-cycle à la date $t$ on ne possède pas $h$ observations avant ou après $t$), le *package* `robfilter` extrapole les données à partir du dernier modèle estimé.
 C'est-à-dire que si les données observées sont $y_1, \dots, y_n$, alors pour $q\in \{1,\dots, 6\}$ :
 $$
 \widehat{TC}_{n-h+q} = \widehat{TC}_{n-h}+q\times\hat\beta_{1,n-h}.
@@ -389,9 +389,9 @@ Par exemple, dans la méthode de lissage Loess, @loess recommande d'utiliser une
 Idem, dans la méthode de désaisonnalisation STL (*Seasonal-Trend decomposition based on Loess*), @cleveland90 indiquent :
 « Il est raisonnable de prendre $d=1$ si le modèle sous-jacent des données présente une légère courbure. Mais si la courbure est importante, par exemple avec des pics et des creux, il est préférable d'opter pour $d=2$. »
 ].
-Il n'est toutefois pas possible de changer cela dans le package `robfilter` et il n'existe pas d'autre package permettant d'appliquer simplement toutes ces méthodes.
+Il n'est toutefois pas possible de changer cela dans le *package* `robfilter` et il n'existe pas d'autre *package* permettant d'appliquer simplement toutes ces méthodes.
 Même si cette modélisation n'est pas toujours optimale, elle reste plausible dans la majorité des cas et la facilité d'utilisation de `robfilter` font de ces méthodes un bon point de comparaison aux moyennes mobiles linéaires classiquement utilisées pour l'estimation de la tendance-cycle et présentées dans la section suivante.
-Toutefois, les méthodes LTS et LMS sont implémentées dans le package `MASS` [@MASS]^[
+Toutefois, les méthodes LTS et LMS sont implémentées dans le *package* `MASS` [@MASS]^[
 Nous n'avons pas trouvé d'autres fonctions permettant d'utiliser les autres méthodes, même si elles pourraient être réimplémentées facilement.
 ], il est possible de réimplémenter le processus d'estimation locale avec une tendance de degré 2, ce qui a été fait dans l'annexe [-@sec-an-lms-lts].
 
@@ -477,7 +477,7 @@ $$ {#eq-lpgeneralmodel}
 où $[\boldsymbol U,\boldsymbol Z]$ est de rang plein et forme un sous-ensemble des colonnes de $\boldsymbol X$.
 L'objectif est de trouver une moyenne mobile asymétrique $\boldsymbol \theta^{(a)}$ qui minimise l'erreur quadratique moyenne de révision (à la moyenne mobile symétrique $\boldsymbol \theta$) sous certaines contraintes.
 Ces contraintes sont représentées par la matrice $\boldsymbol U=\transp{\begin{pmatrix}\transp{\boldsymbol U_{p}}&\transp{\boldsymbol U_{f}}\end{pmatrix}}$ : $\transp{\boldsymbol U_p}\boldsymbol \theta^{(a)}=\transp{\boldsymbol U}\boldsymbol \theta$ (avec $\boldsymbol U_p$ la matrice $(h+q+1)\times (d+1)$ qui contient les observations de la matrice $\boldsymbol U$ connues lors de l'estimation par le filtre asymétrique).
-C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()` du package R `rjd3filters` [@rjd3filters].
+C'est ce qui est implémenté dans la fonction `rjd3filters::mmsre_filter()` du *package* R `rjd3filters` [@rjd3filters].
 
 Lorsque $\boldsymbol U$ correspond aux $d^*+1$ premières colonnes de $\boldsymbol X$, $d^*<d$, la contrainte consiste à reproduire des tendances polynomiales de degré $d^*$.
 Cela introduit du biais (sur les tendances de degré $d^*+1$ à $d$) mais réduit la variance. 
@@ -586,7 +586,7 @@ Une distinction est faite pour $t=t_0+h$ car dans ce cas le régresseur $\1_{t+j
 Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'impact sur l'irrégulier.
 Si le choc est à la date $t_0$ il peut être modélisé par le régresseur $O_{t+j}=1-\1_{t+j< t_0}$ si $t\leq t_0$ (l'estimation de $\beta_{0,t}$ ne prend pas en compte le choc en niveau) et $O_{t+j}=\1_{t+j\geq t_0}$ si $t_0<t$ (l'estimation de $\beta_{0,t}$ prend en compte le choc en niveau).
 
-Cette méthode a été implémentée dans la fonction `publishTC::henderson_robust_smoothing()` du package `publishTC` [@publishTC] qui permet de modéliser des chocs ponctuels (affectés à l'irrégulier ou à la tendance-cycle) et des ruptures en niveau (affectées à la tendance-cycle).
+Cette méthode a été implémentée dans la fonction `publishTC::henderson_robust_smoothing()` du *package* `publishTC` [@publishTC] qui permet de modéliser des chocs ponctuels (affectés à l'irrégulier ou à la tendance-cycle) et des ruptures en niveau (affectées à la tendance-cycle).
 
 L'inconvénient de cette approche, par rapport aux méthodes robustes présentées dans la @sec-methodes-robustes, est que cela suppose de connaître la date et la nature du point atypique.
 Une approche en deux temps peut être utilisée :
