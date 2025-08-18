@@ -499,7 +499,7 @@ C'est également ce qui est fait par l'Australian Bureau of Statistics [@abs2003
 Toutefois, comme notamment montré dans @jos2024AQLT, une paramétrisation locale de ce paramètre pourrait être préférée.
 
 
-Par simplification, dans cette étude on parle d'estimation via la moyenne mobile de Henderson pour désigner l'utilisation des moyennes mobiles de Henderson pour l'esitmation finale et des moyennes mobiles de Musgrave pour les estimations intermédiaires.
+Par simplification, dans cette étude on parle d'estimation via la moyenne mobile de Henderson pour désigner l'utilisation des moyennes mobiles de Henderson pour l'estimation finale et des moyennes mobiles de Musgrave pour les estimations intermédiaires.
 Les coefficients des différentes moyennes mobiles étudiées dans cet article sont représentés dans l'annexe [-@sec-annexes-mm].
 
 
@@ -518,7 +518,7 @@ C'est ainsi que le *Nonlinear Dagum Filter* (NLDF) a été développé et consis
 2. effectuer une nouvelle correction des points atypiques en utilisant un seuil bien plus strict et appliquer ensuite le filtre symétrique de 13 termes. 
     En supposant une distribution normale cela revient à modifier 48 % des valeurs de l'irrégulier.   
 
-Les *cascade linear filter* [CLF, @clf], correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenus à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$
+Les *cascade linear filter* [CLF, @clf], correspondent à une approximation des NLDF en utilisant un filtre de 13 termes et lorsque les prévisions sont obtenues à partir d'un modèle ARIMA(0,1,1) où $\theta=0,40.$
 De manière similaire, des moyennes mobiles asymétriques, *Asymmetric Linear Filter* (ALF), peuvent être construites.
     
 C'est la moyenne mobile CLF qui est utilisée par Statistique Canada pour l'estimation de la tendance-cycle^[
@@ -580,7 +580,7 @@ Dans cette étude, les deux types de points atypiques les plus couramment rencon
 Le choc affecte donc l'irrégulier et ne devrait pas avoir d'impact sur la tendance-cycle.
 Si le choc apparaît à la date $t_0$ il peut être modélisé par le régresseur $O_t^{AO}=\1_{t=t_0}$ qui vaut $1$ à la date $t_0$ et $0$ sinon.\
 Si l'on souhaite que le choc soit affecté à la tendance-cycle et non pas à l'irrégulier (par exemple pendant la période du COVID-19), il faut utiliser le régresseur $O_{t+j}=O_{t+j}^{AO}=\1_{t+j= t_0}$ lorsque $t< t_0$ ou $t=t_0+h$ (estimations des points avant le choc et dernière moyenne mobile modifiée) et $O_{t+j}=1-O_{t+j}^{AO}=\1_{t+j\ne t_0}$ lorsque $t_0\leq t < t_0+h$ (estimations des points après le choc sauf dernière moyenne mobile modifiée).
-Une distinction est faite pour $t=t_0+h$ car dans ce cas le régresseur $\1_{t+j\ne t_0}$ est égal à $\1_{t+j> t_0}$ ce qui revient à créer une rupture en niveau (cf *infra*) et introduit un pic indésirable à l'estimation en $t_0+h$.
+Une distinction est faite pour $t=t_0+h$ car dans ce cas le régresseur $\1_{t+j\ne t_0}$ est égal à $\1_{t+j> t_0}$ ce qui revient à créer une rupture en niveau (cf. *infra*) et introduit un pic indésirable à l'estimation en $t_0+h$.
 
 - Les ruptures en niveau (LS, *level shift*) : un changement soudain et durable du niveau moyen de la série (choc structurel, changement de politique économique, etc.).
 Le choc affecte donc la tendance-cycle et ne devrait pas avoir d'impact sur l'irrégulier.
@@ -598,7 +598,7 @@ La @sec-ic décrit la méthodologie pour la construction d'intervalles de confia
 
 Toutefois, pour l'estimation en temps réel, sauf à avoir une information extérieure, il est difficile de distinguer un *level shift* (LS) d'un ou plusieurs *additive outlier* (AO) consécutifs.
 Le choix du type de point atypique aura une influence forte sur l'estimation (puisque les LS affectent la tendance-cycle et les AO l'irrégulier) et passer d'une spécification à l'autre entraînera des révisions importantes.
-Ces révisions seront même plus importantes que si, avant de décider de la bonne modélisation à adopter, les premières estimations avaient été faites avec des moyennes moyennes mobiles classiques.
+Ces révisions seront même plus importantes que si, avant de décider de la bonne modélisation à adopter, les premières estimations avaient été faites avec des moyennes mobiles classiques.
 
 Par rapport au préajustement des points atypiques par un modèle *ad hoc*, comme le module de pré-ajustement de X-13ARIMA-SEATS basé sur un modèle RegARIMA, l'approche ici présentée a l'avantage de ne pas être dépendante de l'identification d'un modèle et de la période d'estimation (pas de biais lié à l'identification des paramètres ou à l'utilisation d'une période d'estimation trop courte ou trop longue).
 
@@ -760,7 +760,7 @@ Il est divisé d'environ 350 en utilisant la formule proposée dans cet article 
 Lorsque l'estimation de la tendance-cycle est basée sur des moyennes mobiles construites à l'aide d'un régresseur externe (@sec-constr-mm), les formules ici présentées ne sont pas applicables puisque des moyennes mobiles différentes sont utilisées pour l'estimation finale.
 Pour la construction d'intervalles de confiance, le plus simple est alors de reconstruire la matrice $\boldsymbol H.$
 Pour les estimations récentes, lorsque des moyennes mobiles asymétriques sont utilisées, le calcul des intervalles de confiance nécessite la création d'une matrice $\boldsymbol H$ fictive (qui correspondrait à la matrice utilisée si toutes les estimations étaient faites avec une moyenne mobile asymétrique).
-Toutefois, lorsque plusieurs outliers consécutifs sont utilisés dans le passé, la construction d'une moyenne mobile asymétrique robuste n'est pas toujours possible : dans ce cas il est possible d'utiliser par défaut la moyenne mobile asymétrique linéaire de référence (ce qui a pour effet d'augmenter la variance estimée).
+Toutefois, lorsque plusieurs *outliers* consécutifs sont utilisés dans le passé, la construction d'une moyenne mobile asymétrique robuste n'est pas toujours possible : dans ce cas il est possible d'utiliser par défaut la moyenne mobile asymétrique linéaire de référence (ce qui a pour effet d'augmenter la variance estimée).
 C'est l'approche implémentée dans `rjd3filters`.
 :::
 
@@ -967,7 +967,7 @@ Pour les chocs permanents (*level shift*, LS), à l'exception de la régression 
 En revanche, aucune des estimations intermédiaires ne prend en compte le changement de niveau à la bonne date : il faut attendre l'estimation de juin 2022 pour que le changement de niveau soit pris en compte  à la bonne date pour la méthode LQD et juillet 2022 (soit l'estimation finale) pour les autres méthodes, même lorsque la tendance est de degré 0.
 Modéliser, dans ces méthodes, une tendance de degré 2 ne change pas ce résultat (annexe [-@sec-an-lms-lts]).
 Cela suggère encore d'utiliser des quantiles plus élevés que la médiane pour les estimations en temps réel.\
-Les moyennes mobiles linéaires classiques (Henderson et CLF) donnent des résultats similaires : la rupture en niveau est lissée, les points avant le choc sont donc sur-estimés et ceux après le choc sous-estimés.
+Les moyennes mobiles linéaires classiques (Henderson et CLF) donnent des résultats similaires : la rupture en niveau est lissée, les points avant le choc sont donc surestimés et ceux après le choc sous-estimés.
 Il y a également d'importantes révisions pour la première estimation de janvier 2022 (date du choc).
 Il n'y a en revanche quasiment aucune révision pour les moyennes mobile de Henderson robuste à un choc permanent en janvier 2022.\
 Les intervalles de confiance des estimations de la moyenne mobile de Henderson sont comparés à la moyenne mobile de Henderson robuste à un choc permanent en janvier 2022 ou à un choc ponctuel en janvier et février 2022 (figures [-@fig-simul-ls-out-td0-ci],  [-@fig-simul-ls-out-td1-ci] et [-@fig-simul-ls-out-td2-ci]).
@@ -1325,10 +1325,10 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 En conclusion, cette étude montre comment, à partir des moyennes mobiles de Henderson et de Musgrave (répandues pour l'extraction de la tendance-cycle) il est possible d'ajouter des régresseurs externe pour construire des moyennes mobiles avec une meilleure décomposition tendance-cycle et irrégulier.
 Cela permet notamment de modéliser des chocs ponctuels (dont l'effet est généralement associé à l'irrégulier) et des chocs permanents (dont l'effet est associé à la tendance-cycle).
 
-Les moyennes mobiles linéaires classiques (Henderson, Musgrave, *cascade linear filter*...) vont naturellement conduire à des estimations biaisées : lors d'un choc permanent positif, la rupture va être lissée et la tendance-cycle va être sur-estimée avant le choc et sous-estimée après le choc ; lors d'un choc ponctuel (dont l'effet est attribué à l'irrégulier), la tendance-cycle va être sur ou sous-estimée autour du choc (en fonction du signe du choc).
+Les moyennes mobiles linéaires classiques (Henderson, Musgrave, *cascade linear filter*...) vont naturellement conduire à des estimations biaisées : lors d'un choc permanent positif, la rupture va être lissée et la tendance-cycle va être surestimée avant le choc et sous-estimée après le choc ; lors d'un choc ponctuel (dont l'effet est attribué à l'irrégulier), la tendance-cycle va être sur ou sous-estimée autour du choc (en fonction du signe du choc).
 Cela va également amener à des fortes révisions des estimations autour des chocs.
 Lorsqu'un choc est associé à un point de retournement de l'économie (par exemple lors de la crise financière de 2008 ou lors de la pandémie du COVID-19), les estimations de la tendance-cycle vont conduire à un décalage dans la détection des points de retournement (contraction détectée en avance et reprise en retard), ce qui peut perturber l'utilisateur lors de l'analyse de ces séries.
-À l'inverse, la construction de moyennes mobiles robustes permettent de minimiser les révisions des chocs et de bien détecter les points de retournement.
+À l'inverse, la construction de moyennes mobiles robustes permet de minimiser les révisions des chocs et de bien détecter les points de retournement.
 La comparaison entre moyennes mobiles robustes et classiques, à l'aide de la construction d'intervalles de confiance et d'une analyse économique, permet de valider la modélisation retenue.
 De plus, lorsque aucun choc n'est observée, l'utilisation à tort d'une moyenne mobile robuste donnera des résultats très proches des moyennes mobiles classiques et ne dégrade donc pas les résultats.
 En revanche, lors de l'estimation en temps réel, le choix d'une mauvaise spécification (par exemple choc ponctuel, affecté à l'irrégulier, plutôt que choc permanent, affecté à la tendance-cycle) peut entraîner des révisions importantes lorsque la bonne spécification est finalement retenue.
