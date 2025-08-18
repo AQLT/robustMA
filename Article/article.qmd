@@ -211,7 +211,7 @@ Pour l'analyse conjoncturelle, les indicateurs économiques sont généralement 
 Toutefois, lorsque l'irrégulier est trop élevé, il peut être nécessaire d'effectuer un lissage supplémentaire afin d'analyser directement la composante tendance-cycle.
 Par construction, les méthodes d'extraction de tendance-cycle sont étroitement liées aux méthodes de désaisonnalisation.
 En effet, afin d'estimer la composante saisonnière, les algorithmes de désaisonnalisation estiment préalablement une composante tendance-cycle.
-Ainsi, même si les méthodes d'extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également également des méthodes d'estimation de la tendance-cycle.
+Ainsi, même si les méthodes d'extraction de tendance-cycle sont généralement appliquées sur des séries corrigées des variations saisonnières, l'estimation de ces séries dépend également des méthodes d'estimation de la tendance-cycle.
 
 
 Les moyennes mobiles, ou les filtres linéaires, sont omniprésents dans les méthodes d'extraction du cycle économique et d'ajustement saisonnier. 
