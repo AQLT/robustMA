@@ -1330,7 +1330,7 @@ Cela va également mener à de fortes révisions des estimations autour des choc
 Lorsqu'un choc est associé à un point de retournement de l'économie (par exemple lors de la crise financière de 2008 ou lors de la pandémie du COVID-19), les estimations de la tendance-cycle vont conduire à un décalage dans la détection des points de retournement (contraction détectée en avance et reprise en retard), ce qui peut perturber l'utilisateur lors de l'analyse de ces séries.
 À l'inverse, la construction de moyennes mobiles robustes permet de minimiser les révisions des chocs et de bien détecter les points de retournement.
 La comparaison entre moyennes mobiles robustes et classiques, à l'aide de la construction d'intervalles de confiance et d'une analyse économique, permet de valider la modélisation retenue.
-De plus, lorsque aucun choc n'est observée, l'utilisation à tort d'une moyenne mobile robuste donnera des résultats très proches des moyennes mobiles classiques et ne dégrade donc pas les résultats.
+De plus, lorsque aucun choc n'est observé, l'utilisation à tort d'une moyenne mobile robuste donnera des résultats très proches des moyennes mobiles classiques et ne dégrade donc pas les résultats.
 En revanche, lors de l'estimation en temps réel, le choix d'une mauvaise spécification (par exemple choc ponctuel, affecté à l'irrégulier, plutôt que choc permanent, affecté à la tendance-cycle) peut entraîner des révisions importantes lorsque la bonne spécification est finalement retenue.
 Pour minimiser les révisions, en cas de doute sur la nature du choc il est donc préférable d'utiliser les moyennes mobiles linéaires classiques avant d'être sûr de la spécification à adopter.
 
