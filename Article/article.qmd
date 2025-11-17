@@ -1648,7 +1648,7 @@ apply_consistent_y_lims(patchwork::wrap_plots(graph_ci, ncol = 3)) +
 
 ### COVID-19 {#sec-autres-ex-covid}
 
-Deux autres exemples de l'estimation de la tendance-cycle pendant le COVID-19 sont données à partir du niveau d'emploi (série `CE16OV`) et des ventes au détail et services de restauration (série `RETAILx) aux États-Unis, séries issues de la base FRED-MD.
+Deux autres exemples de l'estimation de la tendance-cycle pendant le COVID-19 sont données à partir du niveau d'emploi (série `CE16OV`) et des ventes au détail et services de restauration (série `RETAILx`) aux États-Unis, séries issues de la base FRED-MD.
 Les points de retournement officiels de la datation du National Bureau of Economic Research (NBER) sont en février et avril 2020^[
 <https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions>
 ].
