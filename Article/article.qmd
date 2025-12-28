@@ -19,6 +19,7 @@ format:
     keep-tex: true
     classoption: french
     cite-method: biblatex
+    biblatexoptions: "style=chicago-authordate16,backend=biber,maxcitenames=2"
     pdf-engine: pdflatex
     papersize: A4
     fig-width: 7.5
@@ -251,8 +252,8 @@ Dans cet article, on ne cherche donc pas à estimer séparément la tendance et 
 On parle de point de retournement lorsque l'on passe d'une phase de récession (diminutions successives) à une phase d'expansion de l'économie (augmentations successives) : on parle alors de redressement ou, dans le cas contraire, de ralentissement.
 Même si plusieurs formules peuvent être utilisées pour définir ces phases, la définition de @Zellner1991 est généralement utilisée pour déterminer les points de retournement : on a un point de retournement à la date $t$ lorsque $TC_{t-3}\geq TC_{t-2}\geq TC_{t-1}<TC_t\leq TC_{t+1}$ (redressement) ou $TC_{t-3}\leq TC_{t-2}\leq TC_{t-1}>TC_t\geq TC_{t+1}$ (ralentissement).  
 
-La composante tendance-cycle est généralement estimée de manière locale.
-En effet, autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$ :
+La composante tendance-cycle peut être déterministe ou stochastique.
+En effet, autour d'un voisinage $h$ de $t$, cette composante peut être approximée localement par un polynôme de degré $d$ : 
 $$
 TC_{t+i} = \sum_{j=0}^d\beta_j{i}^j+\xi_{t+i}\quad\forall i\in\{-h,-h+1,\dots,t+h\}
 $$
@@ -260,7 +261,6 @@ avec $\xi_t$ un processus stochastique non corrélé avec $\varepsilon_t$ repré
 Même si certains articles modélisent $\xi_t$ et $\varepsilon_t$ séparément [voir par exemple @GrayThomson2002], une hypothèse habituelle, utilisée dans cet article, est de rassembler $\xi_t$ et $\varepsilon_t$^[
 Cela revient à supposer que le biais d'approximation de la tendance-cycle par un polynôme local est nul.
 ].
-Ainsi, la tendance-cycle $TC_t$ est considérée comme déterministe et modélisée localement comme une tendance polynomiale de degré $d$.
 Les coefficients $(\beta_0,\dots,\beta_d)$ peuvent être estimés par la méthode des moindres carrés pondérés.
 L'estimation $\hat \beta_0$ fournit l'estimation du cycle de tendance $\widehat{TC}_t$ et on peut montrer que cela équivaut à appliquer une moyenne mobile.
 Cette moyenne mobile est généralement symétrique ($\widehat{TC}_t$ est estimée en utilisant autant d'observations avant et après $t$) mais pour l'estimation des derniers points (lorsque l'on ne peut pas utiliser autant d'observations avant et après $t$) il est nécessaire de s'appuyer sur des moyennes mobiles *ad hoc* qui sont asymétriques.
@@ -616,9 +616,9 @@ On suppose qu'elle peut être décomposée en
 $$
 y_t=\mu_t+\varepsilon_t,
 $$
-où $\mu_t$ est une composante déterministe à estimer et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
+où $\mu_t$ est une composante signal à estimer et $\varepsilon_{t}\overset{i.i.d}{\sim}\mathcal{N}(0,\sigma^{2})$ est le bruit.
 
-Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer la composante inobservable $\mu_t$ (dans cette étude la tendance-cycle $TC_t$) à partir de $y_t$.
+Soit $\boldsymbol\theta = \begin{pmatrix}\theta_{-p},\dots,\theta_f\end{pmatrix}$ une moyenne mobile permettant d'estimer localement la composante inobservable $\mu_t$ (dans cette étude la tendance-cycle $TC_t$) à partir de $y_t$.
 Cette estimation est donnée par $\hat \mu_t = \sum_{i=-p}^{+f}\theta_iy_{t+i}.$
 
 Un intervalle de confiance de $\mathbb E[\hat{\mu}_t]$ au seuil $\alpha$ peut être calculé à partir de la formule :
